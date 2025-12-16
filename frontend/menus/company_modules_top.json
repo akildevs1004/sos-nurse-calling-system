@@ -1,0 +1,48 @@
+[
+  {
+    "icon": "mdi-view-dashboard",
+    "title": "Dashboard",
+    "to": "/alarm/dashboard",
+    "submenu": "leftmenu",
+    "menu": "dashboard",
+    "module": "dashboard"
+  },
+  {
+    "icon": "mdi mdi-temperature-celsius",
+    "title": "Logs",
+    "to": "/alarm/temperatureLogs",
+    "menu": "logs",
+    "submenu": "leftmenu",
+    "module": "dashboard"
+  },
+  {
+    "icon": "mdi-alarm-light",
+    "title": "Reports",
+    "to": "/alarm/AlarmLogs",
+    "menu": "reports",
+    "submenu": "leftmenu",
+    "module": "dashboard"
+  },
+
+  {
+    "icon": "mdi-email",
+    "title": "Notifications",
+    "to": "/automation",
+    "menu": "notifications",
+    "module": "settings"
+  },
+  {
+    "icon": "mdi mdi-server",
+    "title": "Devices",
+    "to": "/alarm/rooms",
+    "menu": "rooms",
+    "module": "settings"
+  },
+  {
+    "icon": "mdi mdi-whatsapp",
+    "title": "Whatsapp",
+    "to": "/whatsapp",
+    "menu": "whatsapp",
+    "module": "settings"
+  }
+]
