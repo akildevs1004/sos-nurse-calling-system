@@ -6,7 +6,7 @@ body {
   color:#FFF!important;
 }
 .theme-dark-bg {
-  background-color: #10154d; /* Dark theme background */
+  background-color: #1a2632; /* Dark theme background */
 
 }
 .theme-light-bg {
@@ -14,34 +14,34 @@ body {
 
 }
 .theme--dark.v-card {
-  background-color: #10154d!important;
+  background-color: #1a2632!important;
 }
 
 .theme--dark.v-data-table
 {
-  background-color: #10154d !important;
+  background-color: #1a2632 !important;
 
 }
 
 .theme--dark.v-data-table.v-data-table--fixed-header thead th
 {
-  background-color: #10154d !important;
+  background-color: #1a2632 !important;
 
 }
 
 .theme--dark.v-sheet
 {
-  background-color: #10154d !important;
+  background-color: #1a2632 !important;
 
 }
 .theme--dark.v-navigation-drawer
 {
-   background-color: #10154d !important;
+   background-color: #1a2632 !important;
 }
 
 .theme--dark.v-tabs > .v-tabs-bar
 {
-   background-color: #10154d !important;
+   background-color: #1a2632 !important;
 
 }
 .theme--dark.v-bottom-navigation .v-btn--active {
@@ -63,7 +63,7 @@ body {
 
 .theme--dark.v-tabs-items
 {
-   background-color: #10154d !important;
+   background-color: #1a2632 !important;
 }
 
 .v-sheet.v-snack__wrapper

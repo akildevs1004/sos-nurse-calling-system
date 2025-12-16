@@ -1130,7 +1130,7 @@ export default {
       //     primary: "#1976D2",
       //     accent: "#82B1FF",
       //     secondary: "#424242",
-      //     background: "#10154d",
+      //     background: "#1a2632",
       //     main_bg: "#101044",
       //     popup_background: "#E3F2FD",
       //   },
@@ -1146,7 +1146,7 @@ export default {
   //       primary: "#6946dd", //violoet
   //       accent: "#d8363a",
   //       secondary: "#242424",
-  //       background: "#10154d",
+  //       background: "#1a2632",
   //       info: colors.teal.lighten1,
   //       warning: colors.amber.base,
   //       error: colors.deepOrange.accent4,
@@ -1340,7 +1340,7 @@ export default {
       );
 
       return this.$vuetify.theme.dark
-        ? "#10154d"
+        ? "#1a2632"
         : this.$vuetify.theme.themes.light.surface;
     },
 
@@ -1483,7 +1483,7 @@ export default {
       // } else {
       //   // Switching to Dark Theme
       //   // this.$vuetify.theme.themes.dark = {
-      //   //   background: "#10154d",
+      //   //   background: "#1a2632",
       //   //   main_bg: "#101044",
       //   // };
       // }
@@ -2552,7 +2552,7 @@ body {
 }
 
 .daterange-blacktheme .mx-input {
-  background: #111755;
+  background: #1a2632;
   color: #fff !important;
 }
 

@@ -16,8 +16,8 @@ export default new Vuetify({
         // // primary: "#90caf9",
         // // background: "#121212",
         // background: "#10103d", // Background for the entire app (v-main, v-app)
-        // surface: "#10154d", // Used for cards, sheets, dialogs , Header Tag
-        // primary: "#10154d", // Primary brand color (toolbars, buttons, highlights)
+        // surface: "#1a2632", // Used for cards, sheets, dialogs , Header Tag
+        // primary: "#1a2632", // Primary brand color (toolbars, buttons, highlights)
         // secondary: "#03DAC6", // Secondary accent (chips, smaller highlights)
         // accent: "#FF4081", // Accent color (optional highlight color)
         // error: "#CF6679", // Error color (e.g. inputs, alerts)
