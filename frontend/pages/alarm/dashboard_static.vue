@@ -1,6 +1,16 @@
 <template>
   <v-container fluid class="pa-4">
     <!-- ================= TOP BAR (optional) ================= -->
+    <div class="d-flex align-center mb-4">
+      <div class="text-subtitle-2 grey--text">Dashboard</div>
+      <div class="mx-2 grey--text">/</div>
+      <div class="text-subtitle-2 font-weight-bold">SOS Floor View</div>
+      <v-spacer />
+      <div class="d-flex align-center grey--text text-body-2">
+        <v-icon small class="mr-1">mdi-clock-outline</v-icon>
+        Oct 24, 2023 • 09:42 AM
+      </div>
+    </div>
 
     <!-- ================= TOP STATISTICS ================= -->
     <v-row dense>
