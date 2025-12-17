@@ -71,13 +71,13 @@ class MqttService
 
                         echo "\n";
 
-                        $logPath = base_path('../../mytime2cloud/mqtt-logs/' . date("Y-m-d") . '.log');
-                        File::prepend($logPath, "[" . now() . "] " . $message . "\n");
 
                         Device::where("serial_number", $serialNumber)->update([
                             'status_id' => 1,
                             'last_live_datetime' => date("Y-m-d H:i:s"),
                         ]);
+                        $logPath = base_path('../../sos-nurse-calling-system/mqtt-logs/' . date("Y-m-d") . '.log');
+                        File::prepend($logPath, "[" . now() . "] " . $message . "\n");
 
                         //get config details
                         /*
@@ -92,7 +92,9 @@ class MqttService
                     } catch (\Throwable $e) {
 
                         echo "ERROR\n";
-                        $logPath = base_path('../../mytime2cloud/mqtt-logs/' . date("Y-m-d") . '.log');
+
+
+                        $logPath = base_path('../../sos-nurse-calling-system/mqtt-logs/' . date("Y-m-d") . '.log');
                         File::prepend($logPath, "[" . now() . "] ❌ MQTT heartbeat Exception: " . $e->getMessage() . "\n");
 
                         // Log::error("❌ MQTT heartbeat Exception: " . $e->getMessage());
@@ -103,7 +105,7 @@ class MqttService
                 });
 
                 $this->mqtt->subscribe($this->mqttDeviceClientId . '/+/config', function ($topic, $message) {
-                    $logPath = base_path('../../mytime2cloud/mqtt-logs/' . date("Y-m-d") . '.log');
+                    $logPath = base_path('../../sos-nurse-calling-system/mqtt-logs/' . date("Y-m-d") . '.log');
                     try {;
 
 
@@ -125,7 +127,7 @@ class MqttService
 
                         //     Cache::put("device_config_$serialNumber", $json['config'], now()->addMinutes(1));
 
-                        //     $logPath = base_path('../../mytime2cloud/mqtt-logs/' . date("Y-m-d") . '.log');
+                        //     $logPath = base_path('../../sos-nurse-calling-system/mqtt-logs/' . date("Y-m-d") . '.log');
                         //     File::prepend($logPath, "[" . now() . "] Config received from $serialNumber\n");
                         // }
 
@@ -155,7 +157,7 @@ class MqttService
                         echo $serialNumber . "-Error\n";
 
 
-                        $logPath = base_path('../../mytime2cloud/mqtt-logs/' . date("Y-m-d") . '.log');
+                        $logPath = base_path('../../sos-nurse-calling-system/mqtt-logs/' . date("Y-m-d") . '.log');
                         File::prepend($logPath, "[" . now() . "] ❌ MQTT config Exception: " . $e->getMessage() . "\n");
 
 
@@ -175,7 +177,7 @@ class MqttService
             } catch (\Throwable $e) {
 
                 // echo "ERROR SERVICE\n";
-                // $logPath = base_path('../../mytime2cloud/mqtt-logs/' . date("Y-m-d") . '.log');
+                // $logPath = base_path('../../sos-nurse-calling-system/mqtt-logs/' . date("Y-m-d") . '.log');
                 // File::prepend($logPath, "[" . now() . "] ❌ MQTT SERVICE Exception: " . $e->getMessage() . "\n");
 
                 //Log::error("❌ MQTT SERVICE Exception: " . $e->getMessage());

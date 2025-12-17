@@ -6,35 +6,14 @@
       </v-snackbar>
     </div>
 
-    <v-autocomplete
-      class="pb-0"
-      v-model="payload.branch_id"
-      :items="branchesList"
-      dense
-      placeholder="Select Branch"
-      outlined
-      item-value="id"
-      item-text="branch_name"
-      label="Branch"
-    >
+    <v-autocomplete class="pb-0" v-model="payload.branch_id" :items="branchesList" dense placeholder="Select Branch"
+      outlined item-value="id" item-text="branch_name" label="Branch">
     </v-autocomplete>
 
-    <span
-      v-if="errors && errors.branch_id && errors.branch_id[0]"
-      class="error--text"
-      >{{ errors.branch_id[0] }}</span
-    >
-    <v-text-field
-      class="pb-4"
-      :hide-details="!payload.subject"
-      v-model="payload.subject"
-      placeholder="Notification Name"
-      outlined
-      dense
-      label="Notification Name"
-    ></v-text-field>
-    <span v-if="errors && errors.subject" class="error--text"
-      >{{ errors.subject[0] }}
+    <span v-if="errors && errors.branch_id && errors.branch_id[0]" class="error--text">{{ errors.branch_id[0] }}</span>
+    <v-text-field class="pb-4" :hide-details="!payload.subject" v-model="payload.subject"
+      placeholder="Notification Name" outlined dense label="Notification Name"></v-text-field>
+    <span v-if="errors && errors.subject" class="error--text">{{ errors.subject[0] }}
     </span>
 
     <!-- <v-autocomplete
@@ -120,22 +99,18 @@
           v-on="on"
         ></v-text-field>
       </template>
-      <v-date-picker v-model="payload.date" no-title scrollable>
-        <v-spacer></v-spacer>
-        <v-btn text color="primary" @click="menu = false"> Cancel </v-btn>
-        <v-btn
-          text
-          color="primary"
-          @click="set_date_save($refs.menu, payload.date)"
-        >
-          OK
-        </v-btn>
-      </v-date-picker>
-    </v-menu> -->
+<v-date-picker v-model="payload.date" no-title scrollable>
+  <v-spacer></v-spacer>
+  <v-btn text color="primary" @click="menu = false"> Cancel </v-btn>
+  <v-btn text color="primary" @click="set_date_save($refs.menu, payload.date)">
+    OK
+  </v-btn>
+</v-date-picker>
+</v-menu> -->
 
     <span v-if="errors && errors.date" class="error--text">{{
       errors.date[0]
-    }}</span>
+      }}</span>
 
     <!-- <TimePickerCommon
       style="display: none"
@@ -173,7 +148,7 @@
       <v-col cols="12" class="pa-0 ma-0">
         <span v-if="errors && errors.mediums" class="error--text">{{
           errors.mediums[0]
-        }}</span>
+          }}</span>
       </v-col>
     </v-row>
     <v-divider></v-divider>
@@ -182,51 +157,26 @@
     </v-row>
 
     <div v-for="(item, index) in managers" :key="index">
-      <v-text-field
-        dense
-        outlined
-        v-model="item.name"
-        label="Name"
-      ></v-text-field>
+      <v-text-field dense outlined v-model="item.name" label="Name"></v-text-field>
 
-      <v-text-field
-        v-if="email"
-        dense
-        outlined
-        type="email"
-        v-model="item.email"
-        label="Email"
-      ></v-text-field>
+      <v-text-field v-if="email" dense outlined type="email" v-model="item.email" label="Email"></v-text-field>
 
-      <v-text-field
-        v-if="whatsapp"
-        dense
-        outlined
-        v-model="item.whatsapp_number"
-        label="Whatsapp Number"
-      ></v-text-field>
+      <v-text-field v-if="whatsapp" dense outlined v-model="item.whatsapp_number"
+        label="Whatsapp Number"></v-text-field>
 
       <v-row>
         <v-col md="6" class="pa-0"> <v-divider></v-divider></v-col>
 
         <v-col md="6" class="pa-0 text-end" style="margin-top: -10px">
-          <v-icon @click="removeItem(index)" title="Delete"
-            >mdi-trash-can-outline</v-icon
-          >
-          <v-icon
-            v-if="index == managers.length - 1"
-            title="Add - Maximum 3 managers"
-            :disabled="managers.length >= 3"
-            @click="add"
-            >mdi-plus-circle</v-icon
-          >
+          <v-icon @click="removeItem(index)" title="Delete">mdi-trash-can-outline</v-icon>
+          <v-icon v-if="index == managers.length - 1" title="Add - Maximum 3 managers" :disabled="managers.length >= 3"
+            @click="add">mdi-plus-circle</v-icon>
         </v-col>
       </v-row>
 
-      <v-col md="12"
-        ><span v-if="errors && errors.managers" class="error--text">{{
-          errors.managers[0]
-        }}</span>
+      <v-col md="12"><span v-if="errors && errors.managers" class="error--text">{{
+        errors.managers[0]
+          }}</span>
       </v-col>
     </div>
 
@@ -234,8 +184,7 @@
       <v-spacer></v-spacer>
 
       <v-btn :disabled="!managers.length" class="primary" small @click="store">
-        {{ editItemPayload ? "Update" : "Save" }}</v-btn
-      >
+        {{ editItemPayload ? "Update" : "Save" }}</v-btn>
     </v-card-actions>
 
     <!-- <v-row>
@@ -691,7 +640,7 @@ export default {
     },
     test_endpoint() {
       // /test/whatsapp
-      this.$axios.get("/test/whatsapp").then((res) => {});
+      this.$axios.get("/test/whatsapp").then((res) => { });
     },
     // test() {
     //   var axios = require("axios");
@@ -729,9 +678,7 @@ export default {
     //     url: "https://graph.facebook.com/v14.0/102482416002121/messages",
     //     headers: {
     //       "Content-Type": "application/json",
-    //       Authorization:
-    //         "Bearer EAAP9IfKKSo0BAGDS96w2XuYjjpXIqxZBAOcwzlFWecCxODjNO3ruEcbnZCkmHSWNAGNf1Q9wC2uwe5XnyxteTOYAO3l9wgy4iu9L6wwYgtZBZAygXV3Tc4euoYANOZCFlvMAsnNz7vNQEYUYdL56l9poliM3eS6ZCZBV4dMzJhKEQKDbUTZB2ZBvEVl2mlHvSj8dCWgITF8e9GFkTXO8isMsx",
-    //     },
+
     //     data: data,
     //   };
 

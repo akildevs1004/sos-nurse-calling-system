@@ -1,859 +1,308 @@
 <template>
-  <div style="width: 100%" v-if="can('dashboard_access') && can('dashboard_view')" class="page-wrapper">
-    <div class="text-center">
-      <v-snackbar v-model="snackbar" top outlined elevation="24">
-        {{ response }}
-      </v-snackbar>
+  <v-container fluid class="pa-4">
+    <!-- ================= TOP BAR (optional) ================= -->
+    <div class="d-flex align-center mb-4">
+      <div class="text-subtitle-2 grey--text">Dashboard</div>
+      <div class="mx-2 grey--text">/</div>
+      <div class="text-subtitle-2 font-weight-bold">SOS Floor View</div>
+      <v-spacer />
+      <div class="d-flex align-center grey--text text-body-2">
+        <v-icon small class="mr-1">mdi-clock-outline</v-icon>
+        Oct 24, 2023 • 09:42 AM
+      </div>
     </div>
-    <div class="flip-overlay" :class="{ flipped: flipped }" @click="flipped = !flipped"></div>
 
-    <v-row style="margin-top: 0px">
-      <v-col cols="12" sm="6" md="6" v-if="!isMobileView">
-        <v-card v-if="!displayLiveData" height="400px" elevation="24" loading="false" outlined
-          style="border-radius: 10px">
-          <AlarmDashboardTemparatureHistoryChart2Black :nameChart="'AlarmDashboardTemparatureHistoryChart2Black'"
-            :height="'300'" :device_serial_number="device_serial_number" :device_temperature_serial_address="device_temperature_serial_address
-              " :key="keyChart2" :from_date="from_date" :theme="'black'"
-            @switchBacktoLiveData="switchBacktoLiveData()" />
-        </v-card>
-        <v-card v-if="displayLiveData" class="dashboard-card" height="400px" elevation="24" loading="false" outlined
-          style="border-radius: 10px">
-          <AlarmDashboardLiveWeather @switchBacktoHistoryData="switchBacktoHistoryData()" />
+    <!-- ================= TOP STATISTICS ================= -->
+    <v-row dense>
+      <v-col cols="12" sm="6" md="3">
+        <v-card outlined class="pa-4">
+          <div class="d-flex align-center">
+            <div>
+              <div class="text-caption grey--text text-uppercase font-weight-bold">Total Points</div>
+              <div class="d-flex align-baseline mt-2">
+                <div class="text-h4 font-weight-bold">{{ stats.totalPoints }}</div>
+                <div class="ml-2 grey--text">Rooms & Toilets</div>
+              </div>
+            </div>
+            <v-spacer />
+            <v-icon color="grey">mdi-grid</v-icon>
+          </div>
         </v-card>
       </v-col>
-      <v-col cols="12" sm="6" md="6">
-        <v-card class="dashboard-card" :style="isMobileView
-          ? 'height: auto;'
-          : 'height: 400px; border-radius: 10px;'
-          " elevation="24" loading="false" outlined style="border-radius: 10px">
-          <v-row justify="end" style="display: none1; margin-top: -30px">
-            <v-col></v-col>
-            <v-col style="max-width: 40px" v-if="devicesList.length > 1">
-              <v-icon size="30" color="white" v-if="!playSlider" @click="playSlider = !playSlider">mdi-play-box</v-icon>
-              <v-icon size="30" color="green" v-else @click="playSlider = !playSlider">mdi-pause-box</v-icon>
-            </v-col>
-            <v-col style="max-width: 300px; padding: 0px">
-              <v-select style="z-index: 9999" @change="ChangeDevice()" v-model="device_serial_number_with_sensor"
-                :items="devicesList" dense small outlined hide-details label="Device" class="ma-2" :item-value="(item) =>
-                  `${item.serial_number}|${item.temperature_serial_address ?? 'null'
-                  }`
-                  " :item-text="(item) =>
-                    item.temperature_sensor_name
-                      ? `${item.name} - ${item.temperature_sensor_name}`
-                      : item.name
-                    "></v-select>
-            </v-col>
-            <v-col style="max-width: 50px">
-              <v-icon :color="deviceOnline <= 60 && isMQTTConnected ? 'green' : 'red'">mdi-web-box</v-icon>
-            </v-col>
-          </v-row>
-          <v-row style="display: none1">
-            <v-col cols="5">
-              <v-row>
-                <v-col cols="12" class="text-center"><span class="pl-5"> Temperature</span></v-col>
-                <!-- <v-col cols="4" class="pull-right"
-                    ><v-icon @click="getDataFromApi(1)" style="float: right"
-                      >mdi mdi-reload</v-icon
-                    >
-                  </v-col>-->
-              </v-row>
 
-              <v-row>
-                <v-col v-if="!isMobileView" cols="2" class="align-items-center justify-content-center pt-0">
-                  <!-- <img
-                    src="../../static/alarm-icons/temperature.png"
-                    width="70px"
-                /> -->
-                </v-col>
-                <v-col cols="10" class="pa-0" style="margin-top: -30px">
-                  <TemperatureChartMobile v-if="isMobileView" id="1" style="width: 100px"
-                    :name="'ArrowArcChartTemperature1'" :temperature="temperature_latest" :key="Sensorkey"
-                    :temperature_date_time="temperature_date_time" :width="isMobileView ? 100 : 300" />
-                  <TemperatureChart3 v-else :name="'ArrowArcChartTemperature1'" :temperature="temperature_latest"
-                    :key="Sensorkey + '1'" :temperature_date_time="temperature_date_time" />
-                  <!-- <ArrowArcChartTemperature
-                    :name="'ArrowArcChartTemperature1'"
-                    :height="'380'"
-                    :temperature_latest="temperature_latest"
-                    :temperature_date_time="temperature_date_time"
-                    :key="key"
-                  /> -->
-                </v-col>
-              </v-row>
-            </v-col>
-            <v-col cols="2" class="d-flex justify-center align-center d-none d-md-block">
-              <v-divider inset vertical style="color: #cfcece"></v-divider>
-            </v-col>
-
-            <v-col cols="5">
-              <v-divider v-if="isMobileView" inset horizontal style="color: #cfcece"></v-divider>
-              <!-- <v-divider
-                v-else
-                inset
-                vertical
-                style="color: #cfcece"
-              ></v-divider> -->
-
-              <!-- <v-divider inset vertical style="color: #cfcece"></v-divider> -->
-              <v-row>
-                <v-col cols="12" class="text-center"><span class="pl-5"> Humidity</span></v-col>
-                <!--<v-col cols="4" class="pull-right"
-                    ><v-icon @click="getDataFromApi(1)" style="float: right"
-                      >mdi mdi-reload</v-icon
-                    >
-                  </v-col>-->
-              </v-row>
-
-              <v-row>
-                <v-col v-if="!isMobileView" cols="2" class="align-items-center justify-content-center pt-0">
-                  <!-- <img
-                    src="../../static/alarm-icons/humidity.png"
-                    width="70px"
-                /> -->
-                </v-col>
-                <v-col cols="10" class="pa-0" style="margin-top: -30px">
-                  <HumidityChart3Mobile v-if="isMobileView" :name="'ArrowArcChart2Humidity'" :humidity="humidity_latest"
-                    :key="Sensorkey + '2'" :humidity_date_time="humidity_date_time" />
-                  <HumidityChart3 v-else :name="'ArrowArcChart2Humidity'" :humidity="humidity_latest" :key="Sensorkey"
-                    :humidity_date_time="humidity_date_time" />
-                  <!-- <ArrowArcChart2Humidity
-                    :name="'ArrowArcChart2Humidity'"
-                    :height="'380'"
-                    :humidity_latest="humidity_latest"
-                    :humidity_date_time="humidity_date_time"
-                    :key="key"
-                  /> -->
-                  <!-- <AlarmDashboardHumidityChart1Black
-                    :name="'AlarmDashboardHumidityChart1Black'"
-                    :height="'220'"
-                    :humidity_latest="humidity_latest"
-                    :humidity_date_time="humidity_date_time"
-                    :key="key"
-                  /> -->
-                </v-col>
-              </v-row>
-            </v-col>
-          </v-row>
-        </v-card></v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="12" sm="6" md="6">
-        <AlarmDashboardFooterBlack :loading="loading" :device="device" :key="key"
-          :relayStatus="relayStatus[device.serial_number]" @manualButtonTriggered="manualButtonTriggered()" />
+      <v-col cols="12" sm="6" md="3">
+        <v-card outlined class="pa-4" :class="activeSosCount ? 'sos-border-red' : ''">
+          <div class="d-flex align-center">
+            <div>
+              <div class="text-caption text-uppercase font-weight-bold red--text">Active SOS</div>
+              <div class="d-flex align-baseline mt-2">
+                <div class="text-h4 font-weight-bold">{{ stats.activeSos }}</div>
+                <div class="ml-2 red--text">Calls Active</div>
+              </div>
+            </div>
+            <v-spacer />
+            <v-icon color="red">mdi-bell-alert</v-icon>
+          </div>
+        </v-card>
       </v-col>
-      <v-col cols="12" sm="6" md="6" v-if="!isMobileView">
-        <v-card class="dashboard-card" height="380px" elevation="24" loading="false" outlined
-          style="border-radius: 10px; height: 380px">
-          <AlarmDashboardTemparatureChart2Black :name="'AlarmDashboardTemparatureChart2'" :height="'300'"
-            :device_temperature_serial_address="device_temperature_serial_address
-              " :key="'AlarmDashboardTemparatureChart2' + keyChart2" :device_serial_number="device_serial_number"
-            :from_date="from_date" />
-        </v-card></v-col>
-    </v-row>
-  </div>
-  <!-- https://api.weatherapi.com/v1/current.json?key=6619ca39981a4e4a9c7153233250605&q=Dubai&aqi=no -->
 
-  <NoAccess v-else />
+      <v-col cols="12" sm="6" md="3">
+        <v-card outlined class="pa-4" :class="'sos-border-orange'">
+          <div class="d-flex align-center">
+            <div style="width:100%">
+              <div class="text-caption text-uppercase font-weight-bold orange--text">Avg Response</div>
+              <div class="d-flex align-baseline mt-2">
+                <div class="text-h4 font-weight-bold">1:45</div>
+                <div class="ml-2 orange--text">min</div>
+              </div>
+              <v-progress-linear class="mt-3" height="4" value="45" color="orange" rounded />
+            </div>
+            <v-spacer />
+            <v-icon color="orange">mdi-timer</v-icon>
+          </div>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" sm="6" md="3">
+        <v-card outlined class="pa-4">
+          <div class="d-flex align-center">
+            <div>
+              <div class="text-caption grey--text text-uppercase font-weight-bold">Staff on Floor</div>
+              <div class="d-flex align-center mt-2">
+                <div class="text-h4 font-weight-bold">{{ stats.staffOnFloor }}</div>
+                <div class="ml-3 d-flex">
+                  <v-avatar size="24" class="mr-n2" color="grey darken-2"></v-avatar>
+                  <v-avatar size="24" class="mr-n2" color="grey darken-3"></v-avatar>
+                  <v-avatar size="24" color="grey darken-4">
+                    <span class="white--text text-caption font-weight-bold">+4</span>
+                  </v-avatar>
+                </div>
+              </div>
+            </div>
+            <v-spacer />
+            <v-icon color="grey">mdi-badge-account</v-icon>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <!-- ================= FILTER ROW ================= -->
+    <div class="d-flex flex-wrap align-center mt-4">
+      <!-- Filter buttons -->
+      <v-btn-toggle v-model="filterMode" mandatory class="mr-4">
+        <v-btn small value="all">All</v-btn>
+        <v-btn small value="on">SOS ON</v-btn>
+        <v-btn small value="off">SOS OFF</v-btn>
+      </v-btn-toggle>
+
+      <!-- Grid per row -->
+      <div class="d-flex align-center">
+        <div class="text-caption grey--text mr-2 font-weight-bold">Grid / row:</div>
+        <v-btn-toggle v-model="perRow" mandatory>
+          <v-btn small :value="2">2</v-btn>
+
+          <v-btn small :value="4">4</v-btn>
+          <v-btn small :value="6">6</v-btn>
+          <!-- <v-btn small :value="8">8</v-btn> -->
+
+        </v-btn-toggle>
+      </div>
+
+      <v-spacer />
+
+      <!-- Legend -->
+      <div class="d-flex align-center mt-2 mt-md-0">
+        <div class="d-flex align-center mr-4">
+          <span class="dot dot-red mr-2"></span><span class="text-caption grey--text">SOS ON</span>
+        </div>
+        <div class="d-flex align-center">
+          <span class="dot dot-grey mr-2"></span><span class="text-caption grey--text">SOS OFF</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= CARDS GRID ================= -->
+    <div class="mt-4 gridWrap" :style="gridStyle">
+      <div v-for="d in filteredDevices" :key="d.id" class="gridItem">
+        <v-card outlined class="pa-4 roomCard" :class="cardClass(d)">
+          <div class="d-flex align-start">
+            <div class="min-w-0">
+              <div class="text-h6 font-weight-black text-truncate">
+                {{ d.name }}
+              </div>
+
+              <v-chip x-small class="mt-2" :color="d.status === 'ON' ? 'red' : 'grey'" dark>
+                {{ d.status === 'ON' ? 'PENDING' : 'RESOLVED' }}
+              </v-chip>
+
+              <div class="mt-3">
+                <v-icon :color="d.type === 'toilet' ? 'orange' : 'grey'">
+                  {{ d.type === 'toilet' ? 'mdi-wheelchair-accessibility' : 'mdi-bed' }}
+                </v-icon>
+              </div>
+            </div>
+
+            <v-spacer />
+
+            <v-btn icon small :color="d.status === 'ON' ? 'red' : 'grey'">
+              <v-icon>
+                {{ d.status === 'ON' ? 'mdi-bell-alert' : 'mdi-check-circle' }}
+              </v-icon>
+            </v-btn>
+          </div>
+
+          <div class="mt-5 text-center" v-if="d.status === 'ON'">
+            <div class="text-h4 font-weight-bold" style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">
+              {{ d.elapsed }}
+            </div>
+            <div class="text-caption red--text font-weight-bold text-uppercase" style="letter-spacing:.12em">
+              Elapsed Time
+            </div>
+          </div>
+
+          <div class="mt-5 text-center grey--text" v-else>
+            <v-icon large color="grey">mdi-check-circle</v-icon>
+            <div class="text-body-2 font-weight-medium mt-1">No Active Call</div>
+          </div>
+        </v-card>
+      </div>
+    </div>
+  </v-container>
 </template>
 
 <script>
-import AlarmDashboardFooterBlack from "../../components/Alarm/Dashboard/AlarmDashboardFooterBlack.vue";
-import AlarmDashboardHumidityChart1Black from "../../components/Alarm/Dashboard/AlarmDashboardHumidityChart1Black.vue";
-import AlarmDashboardLiveWeather from "../../components/Alarm/Dashboard/AlarmDashboardLiveWeather.vue";
-import ArrowArcChartTemperature from "../../components/Alarm/Dashboard/ArrowArcChartTemperature.vue";
-import AlarmDashboardTemparatureChart2Black from "../../components/Alarm/Dashboard/AlarmDashboardTemparatureChart2Black.vue";
-import AlarmDashboardTemparatureHistoryChart2Black from "../../components/Alarm/Dashboard/AlarmDashboardTemparatureHistoryChart2Black.vue";
-import ArrowArcChart2 from "../../components/Alarm/Dashboard/ArrowArcChart2Sample.vue";
-import ArrowArcChart2Humidity from "../../components/Alarm/Dashboard/ArrowArcChart2Humidity.vue";
-import TemperatureChart3 from "../../components/Alarm/Dashboard/TemperatureChart3.vue";
-
-import HumidityChart3 from "../../components/Alarm/Dashboard/HumidityChart3.vue";
-import mqtt from "mqtt";
-import TemperatureChartMobile from "../../components/Alarm/Dashboard/TemperatureChartMobile.vue";
-import HumidityChart3Mobile from "../../components/Alarm/Dashboard/HumidityChart3Mobile.vue";
-
 export default {
-  // layout: "black",
-  components: {
-    AlarmDashboardTemparatureChart2Black,
-    ArrowArcChartTemperature,
-    AlarmDashboardHumidityChart1Black,
-    AlarmDashboardLiveWeather,
-    AlarmDashboardTemparatureHistoryChart2Black,
-    ArrowArcChart2,
-    ArrowArcChart2Humidity,
-    TemperatureChart3,
-    HumidityChart3,
-    TemperatureChartMobile,
-    HumidityChart3Mobile,
-  },
+  name: "SosFloorView",
+
   data() {
     return {
-      Sensorkey: 1,
-      mqttClient: null,
-      configPayload: "",
-      playSlider: true,
-      snackbar: false,
-      response: "",
-      currentDeviceIndex: 0,
-      autoCycleInterval: null,
-      flipped: true,
-      device_serial_number_with_sensor: null,
-      device_temperature_serial_address: null,
-      displayLiveData: false,
-      temperature: "",
-      weatherCondition: "",
-      humidity: "",
-      key: 1,
-      temperature_latest: 25,
-      temperature_date_time: "2025-05-06 10:25:10",
-      humidity_latest: 50,
-      humidity_date_time: "2025-05-06 10:25:10",
-      device: null,
-      from_date: "",
-      from_menu: false,
-      selectedDeviceIndex: 0,
-      audioSrc: null,
-      topMenu: 0,
-      key: 1,
-      keyChart2: 1,
-      branchList: [],
-      selectedBranchName: "All Branches",
-      seelctedBranchId: "",
-      branch_id: "",
-      overlay: false,
-      temperature_latest: 0,
-      temperature_date_time: "---",
-      temperature_min: 0,
-      temperature_max: 0,
-      temperature_min_date_time: 0,
-      temperature_max_date_time: 0,
-      temperature_hourly_data: {},
-      fire_alarm_start_datetime: "---",
-      device_serial_number: "",
+      // filters
+      filterMode: "all", // all | on | off
+      perRow: 4,         // 4 | 6 | 8 | 10
 
-      humidity_latest: 0,
-      humidity_date_time: "---",
-      humidity_min: 0,
-      humidity_max: 0,
-      humidity_min_date_time: 0,
-      humidity_max_date_time: 0,
-      device: {
-        fire_alarm_status: 0,
-        fire_alarm_start_datetime: 0,
-        water_alarm_status: 0,
-        water_alarm_start_datetime: 0,
-        power_alarm_status: 0,
-        power_alarm_start_datetime: 0,
-        door_open_status: 0,
-        door_open_start_datetime: 0,
-        smoke_alarm_status: 0,
-        smoke_alarm_start_datetime: 0,
-      },
-      devicesList: [],
-      relayStatus: [],
+      // STATIC DATA (replace later with API/MQTT)
+      devices: [
+        { id: 1, name: "Room 101", type: "room", status: "ON", elapsed: "02:14" },
+        { id: 2, name: "Room 102", type: "room", status: "OFF", elapsed: "" },
+        { id: 3, name: "DT-01 (North)", type: "toilet", status: "ON", elapsed: "00:45" },
+        { id: 4, name: "Room 103", type: "room", status: "OFF", elapsed: "" },
+        { id: 5, name: "Room 104", type: "room", status: "OFF", elapsed: "" },
+        { id: 6, name: "DT-02 (South)", type: "toilet", status: "OFF", elapsed: "" },
+        { id: 7, name: "Room 105", type: "room", status: "ON", elapsed: "00:12" },
+        { id: 8, name: "Room 106", type: "room", status: "OFF", elapsed: "" },
+        { id: 10, name: "Room 102", type: "room", status: "OFF", elapsed: "" },
+        { id: 11, name: "DT-01 (North)", type: "toilet", status: "ON", elapsed: "00:45" },
+        { id: 12, name: "Room 103", type: "room", status: "OFF", elapsed: "" },
+        { id: 13, name: "Room 104", type: "room", status: "OFF", elapsed: "" },
+        { id: 14, name: "DT-02 (South)", type: "toilet", status: "OFF", elapsed: "" },
+        { id: 15, name: "Room 105", type: "room", status: "ON", elapsed: "00:12" },
+        { id: 16, name: "Room 106", type: "room", status: "OFF", elapsed: "" },
+        { id: 17, name: "Room 106", type: "room", status: "OFF", elapsed: "" },
+        { id: 18, name: "Room 101", type: "room", status: "ON", elapsed: "02:14" },
+        { id: 19, name: "Room 105", type: "room", status: "ON", elapsed: "00:12" },
+        { id: 20, name: "Room 105", type: "room", status: "ON", elapsed: "00:12" },
 
-      intervalObj: null,
-      viewportHeight: 0,
-      mqtt_alarm_timestamp: 0,
-      loading: false,
-      waitMQTTRelayUpdate: false,
-      isMQTTConnected: false,
-      MQTTRetryCount: 0,
-      lastMQTTSendTime: 0,
-      deviceOnline: 0, // will store the evaluated result
-      isMobileView: false,
+      ],
     };
   },
-  beforeDestroy() {
-    console.log("Cleaning up resources...");
 
-    if (this.autoCycleInterval) {
-      clearInterval(this.autoCycleInterval);
-    }
-
-    // 1. Clear interval (with null check)
-    if (this.intervalObj) {
-      clearInterval(this.intervalObj);
-      this.intervalObj = null; // Prevent memory leaks
-    }
-
-    this.mqttClient.end(false, () => {
-      console.log("🔌 MQTT Disconnected");
-
-      this.isMQTTConnected = false;
-    });
-  },
-  // watch: {
-  //   from_date(val) {},
-  // },
-
-  watch: {
-    "$vuetify.breakpoint.smAndDown"(val) {
-      this.isMobileView = val;
-      console.log("View changed:", val ? "Mobile" : "Desktop");
-    },
-  },
   computed: {
-    // deviceOnlineStatus() {
-    //   if (this.device_serial_number) {
-    //     return this.$dateFormat.devicetimedifferenceInMin(
-    //       this.getDeviceBySerialNumber(this.device_serial_number)
-    //         .last_live_datetime,
-    //       this.getDeviceBySerialNumber(this.device_serial_number).utc_time_zone
-    //     ) < 1
-    //       ? true
-    //       : false;
-    //   } else return 10;
-    // },
-  },
-  async mounted() {
-    console.log(this.$vuetify.breakpoint.smAndDown);
+    activeSosCount() {
+      return this.devices.filter(d => d.status === "ON").length;
+    },
 
-    this.isMobileView = this.$vuetify.breakpoint.smAndDown ? true : false;
-    this.loading = true;
-    this.connectMQTT();
-    // setTimeout(() => {}, 1000 * 3);
-    // if (window) {
-    //   this.viewportHeight = window.innerHeight;
-    //   window.addEventListener("resize", this.handleResize);
-    // }
-    // if (this.$auth.user.user_type == "employee") {
-    //   this.$router.push(`/dashboard/employee`);
-    // }
+    stats() {
+      return {
+        totalPoints: this.devices.length,
+        activeSos: this.activeSosCount,
+        staffOnFloor: 6,
+      };
+    },
 
-    if (this.$auth.user.branch_id == 0 && this.$auth.user.is_master == false) {
-      alert("You do not have permission to access  ");
-      //this.$router.push("/login");
-      this.$axios.get(`/logout`).then(({ res }) => {
-        this.$auth.logout();
-        this.$router.push(`/login`);
-      });
+    filteredDevices() {
+      if (this.filterMode === "on") return this.devices.filter(d => d.status === "ON");
+      if (this.filterMode === "off") return this.devices.filter(d => d.status === "OFF");
+      return this.devices;
+    },
 
-      this.$router.push(`/login`);
-      return "";
-    }
-    this.loading = true;
-    setTimeout(() => { }, 1000);
-    // setInterval(() => {
-
-    // }, 1000 * 5);
-    setInterval(() => {
-      this.keyChart2++;
-    }, 1000 * 60 * 15);
-    ///this.getDataFromApi(1);
-
-    setInterval(async () => {
-      if (
-        this.$route.name == "alarm-dashboard" &&
-        // this.devicesList.length == 1 &&
-        !this.waitMQTTRelayUpdate
-      ) {
-        const now = Date.now();
-        // if (!this.playSlider || this.devicesList?.length == 1)
-        if (now - this.lastMQTTSendTime > 1000 * 10) {
-          // 10 seconds)
-          //////await this.sendMQTTConfigRequest(); //publish/send request Config Request to Device
-          // this.loading = true;
-          await this.getDataFromApi();
-          this.key++;
-          this.lastMQTTSendTime = now;
-
-          this.checkDeviceOnlineStatus();
-        }
-
-        //if (now - this.lastMQTTSendTime > 1000 * 15)
-      }
-    }, 1000 * 10);
-
-    // setTimeout(() => {
-    //   setInterval(() => {
-    //     if (this.$route.name == "alarm-dashboard")
-    //       if (!this.isMQTTConnected) this.connectMQTT();
-    //   }, 1000 * 5);
-    // }, 1000 * 30);
-  },
-
-  async created() {
-    // this.$root.layoutMethod(); // if layoutMethod is defined globally (rare)
-    // // OR
-    // if (this.$nuxt && this.$nuxt.layoutMethod) {
-    //   this.$nuxt.layoutMethod(); // ✅ This works in Nuxt 2
-    // }
-    try {
-      if (window) {
-        const viewportHeight = window.innerHeight;
-        // console.log("Visible content height:", viewportHeight, "px");
-
-        const contentHeight = document.documentElement.clientHeight;
-        //  // console.log(
-        //     "Content height (excludes scrollbar):",
-        //     contentHeight,
-        //     "px"
-        //   );
-      }
-    } catch (e) { }
-    const today = new Date();
-
-    this.from_date = today.toISOString().slice(0, 10);
-    if (this.$auth.user.branch_id == 0 && this.$auth.user.is_master == false) {
-      alert("You do not have permission to access this branch");
-      //this.$router.push("/login");
-      this.$axios.get(`/logout`).then(({ res }) => {
-        this.$auth.logout();
-        this.$router.push(`/login`);
-      });
-
-      this.$router.push(`/login`);
-      return "";
-    }
-
-    try {
-      await this.getDevicesListwithSensor();
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-    this.getDataFromApi();
-
-    if (this.devicesList.length) {
-      console.log("this.currentDeviceIndex", this.devicesList.length);
-      await this.sendMQTTConfigRequest();
-    }
-
-    // setTimeout(() => {
-    //   this.mqttClient.end(true, () => {
-    //     console.log("🔌 MQTT Disconnected");
-    //     this.isMQTTConnected = false;
-    //   });
-    // }, 1000 * 60);
-
-    // if (this.MQTTRetryCount > 10) {
-    // }
-
-    setTimeout(() => {
-      this.checkDeviceOnlineStatus();
-    }, 1000 * 10);
+    // CSS grid for exact per-row counts (4/6/8/10)
+    gridStyle() {
+      return {
+        gridTemplateColumns: `repeat(${this.perRow}, minmax(0, 1fr))`,
+      };
+    },
   },
 
   methods: {
-    async getDevicesListwithSensor() {
-      // await this.$store.dispatch("fetchDropDowns", {
-      //   key: "deviceList",
-      //   endpoint: "device-list",
-      //   refresh: true,
-      // });
-      // this.devicesList = this.$store.state.deviceList;
-
-      let { data: devices } = await this.$axios.get(`devices_list_sensors`, {
-        params: { company_id: this.$auth.user.company_id },
-      });
-      // console.log("devices", devices);
-
-      this.devicesList = devices;
-
-      this.devicesList = this.devicesList.filter(
-        (item) => item.serial_number != null
-      );
-
-      if (this.devicesList && this.devicesList[0]) {
-        this.device_serial_number_with_sensor = `${this.devicesList[0].serial_number
-          }|${this.devicesList[0].temperature_serial_address ?? "null"}`;
-        this.device_serial_number = this.devicesList[0].serial_number;
-        this.device_temperature_serial_address =
-          this.devicesList[0].temperature_serial_address;
-
-        //this.getDataFromApi();
-        if (this.devicesList.length > 1) this.startAutoDeviceCycle();
-      }
-
-      this.devicesList.forEach((element) => {
-        this.relayStatus[element.serial_number] = {};
-
-        for (let i = 0; i < 4; i++) {
-          this.relayStatus[element.serial_number][`relay${i}`] = false;
-        }
-      });
-
-      // await this.$store.dispatch("fetchDropDowns", {
-      //   key: "employeeList",
-      //   endpoint: "employee-list",
-      //   refresh: true,
-      // });
-      this.branchList = await this.$store.dispatch("fetchDropDowns", {
-        key: "branchList",
-        endpoint: "branch-list",
-        refresh: true,
-      });
-    },
-    async checkDeviceOnlineStatus() {
-      if (this.device_serial_number) {
-        let device = await this.$axios.get(
-          "device-by-serial-number/" + this.device_serial_number,
-          {
-            params: {
-              company_id: this.$auth.user.company_id,
-            },
-          }
-        );
-
-        this.deviceOnline = this.$dateFormat.devicetimedifferenceInMin(
-          device.data.last_live_datetime,
-          device.data.utc_time_zone
-        );
-
-        console.log(
-          "device",
-          device.data.last_live_datetime,
-          this.deviceOnline
-        );
-      }
-
-      //this.deviceOnline = this.deviceOnline;
-      // console.log("Device online:", this.deviceOnline);
-    },
-    // async getDeviceBySerialNumber(serialNumber) {
-    //   // console.log("data", device.data);
-    //   return device.data;
-
-    //   // return this.devicesList.find(
-    //   //   (item) => item.serial_number == serialNumber
-    //   // );
-    // },
-    manualButtonTriggered() {
-      //console.log("manualButtonTriggered");
-
-      if (!this.waitMQTTRelayUpdate) {
-        this.waitMQTTRelayUpdate = true;
-
-        setTimeout(() => {
-          this.waitMQTTRelayUpdate = false;
-        }, 1000 * 8);
-      }
-    },
-    connectMQTT() {
-      if (
-        this.MQTTRetryCount > 10 ||
-        this.$route.name != "alarm-dashboard" ||
-        this.isMQTTConnected
-      )
-        return false;
-      this.loading = true;
-      console.log("connecting to MQTT");
-
-      const host = process.env.MQTT_SOCKET_HOST; // "wss://mqtt.xtremeguard.org:8084"; // If TLS WebSocket is available
-
-      const clientId = "vue-client-" + Math.random().toString(16).substr(2, 8);
-
-      this.mqttClient = mqtt.connect(host, {
-        clientId: clientId,
-        clean: true,
-        connectTimeout: 4000,
-      });
-
-      this.mqttClient.on("connect", () => {
-        console.log("✅ MQTT Connected");
-
-        // // Subscribe to a topic
-        // const topic = `xtremesos/${this.editedItem.serial_number}/config`;
-        // this.mqttClient.subscribe(topic, (err) => {
-        //   if (err) console.error("❌ Subscribe failed:", err);
-        //   else console.log(`📡 Subscribed to ${topic}`);
-        // });
-
-        // this.sendConfigRequest();
-
-        let topic = `xtremesos/+/config`;
-
-        console.log("this.devicesList.length", this.devicesList.length);
-
-        if (this.devicesList.length == 1)
-          topic = `xtremesos/${this.device_serial_number}/config`;
-
-        this.mqttClient.subscribe(topic, (err) => {
-          if (err) console.error("❌ Subscribe failed:", err);
-          else console.log(`📡 Subscribed to ${topic}`);
-        });
-      });
-
-      this.mqttClient.on("message", (topic, payload) => {
-        // console.log("Message", payload.toString());
-        //console.log("topic", topic);
-
-        let message = JSON.parse(payload.toString());
-        //console.log(message);
-
-        if (this.device_serial_number == message.serialNumber) {
-          this.isMQTTConnected = true;
-          this.checkDeviceOnlineStatus();
-          if (message.type == "alarm") {
-            localStorage.setItem("alarm", true);
-
-            this.sendMQTTConfigRequest(); //get immediate relay data
-            this.getDataFromApi();
-          }
-
-          // console.log("this.waitMQTTRelayUpdate", this.waitMQTTRelayUpdate);
-          else if (message.type == "config" && !this.waitMQTTRelayUpdate) {
-            // this.$set(this, "deviceSettings", jsonconfig); // ensures reactivity
-            // //this.deviceSettings = jsonconfig;
-
-            let config = JSON.parse(message.config);
-            this.relayStatus[this.device_serial_number] = {};
-            if (config) {
-              this.relayStatus[this.device_serial_number].relay0 =
-                config.relay0;
-              this.relayStatus[this.device_serial_number].relay1 =
-                config.relay1;
-              this.relayStatus[this.device_serial_number].relay2 =
-                config.relay2;
-              this.relayStatus[this.device_serial_number].relay3 =
-                config.relay3;
-
-              //console.log(this.relayStatus);
-
-              // this.relayStatus.relay0 = data.config.relay0;
-              // this.relayStatus.relay1 = data.config.relay1;
-              // this.relayStatus.relay2 = data.config.relay2;
-              // this.relayStatus.relay3 = data.config.relay3;
-            } else {
-              this.relayStatus[this.device_serial_number].relay0 = false;
-              this.relayStatus[this.device_serial_number].relay1 = false;
-              this.relayStatus[this.device_serial_number].relay2 = false;
-              this.relayStatus[this.device_serial_number].relay3 = false;
-            }
-            this.key++;
-
-            this.loading = false;
-          }
-          // setTimeout(() => {
-          //   this.loading = false;
-          // }, 1000 * 5);
-        }
-      });
-
-      this.mqttClient.on("error", (err) => {
-        console.error("MQTT Error:", err);
-        setTimeout(() => {
-          this.connectMQTT();
-        }, 1000 * 5);
-      });
-
-      this.mqttClient.on("close", () => {
-        this.checkDeviceOnlineStatus();
-        console.log("❌ MQTT Disconnected");
-
-        this.MQTTRetryCount++;
-        {
-          setTimeout(() => {
-            this.connectMQTT();
-          }, 1000 * 5);
-        }
-      });
-    },
-
-    async sendMQTTConfigRequest() {
-      if (!this.device_serial_number) return false;
-
-      if (this.mqttClient && this.mqttClient.connected) {
-        console.log("✅ MQTT connection is active");
-      } else {
-        console.log("❌ MQTT connection is inactive or not established");
-        // this.connectMQTT();
-
-        // this.sendMQTTConfigRequest();
-      }
-      const topic = `xtremesos/${this.device_serial_number}/config/request`;
-      const payload = "GET_CONFIG";
-
-      this.mqttClient.publish(topic, payload, {}, (err) => {
-        if (err) {
-          console.error("❌ Publish failed:", err);
-        } else {
-          console.log(`📤 Published to ${topic}:`, payload);
-        }
-      });
-    },
-    can(per) {
-      return this.$pagePermission.can(per, this);
-    },
-    switchBacktoLiveData() {
-      this.displayLiveData = true;
-    },
-    switchBacktoHistoryData() {
-      this.displayLiveData = false;
-    },
-
-    handleResize() {
-      if (window) this.viewportHeight = window.innerHeight;
-    },
-    startAutoDeviceCycle() {
-      console.log("this.devicesList.lengt", this.devicesList.length);
-      //if (!this.devicesList.length) return;
-
-      this.autoCycleInterval = setInterval(() => {
-        if (this.playSlider) {
-          this.currentDeviceIndex =
-            (this.currentDeviceIndex + 1) % this.devicesList.length;
-
-          console.log("currentDeviceIndex", this.currentDeviceIndex);
-          const item = this.devicesList[this.currentDeviceIndex];
-          this.device_serial_number = item.serial_number;
-          this.device_serial_number_with_sensor = `${item.serial_number}|${item.temperature_serial_address ?? "null"
-            }`;
-          this.flipped = !this.flipped;
-
-          setTimeout(() => {
-            this.flipped = !this.flipped;
-          }, 1000 * 1);
-          this.ChangeDevice(); // trigger data update
-          let sensorName =
-            item.temperature_sensor_name != null
-              ? " - " + item.temperature_sensor_name
-              : "";
-          this.response = "Loading Temperature from " + item.name + sensorName;
-          this.snackbar = true;
-        }
-      }, 1000 * 30); // 30 seconds
-    },
-
-    ChangeDevice() {
-      this.loading = true;
-      const [serial_number, device_temperature_serial_address] =
-        this.device_serial_number_with_sensor.split("|");
-
-      this.device_serial_number = serial_number;
-      this.device_temperature_serial_address =
-        device_temperature_serial_address == "null"
-          ? null
-          : device_temperature_serial_address;
-
-      this.key++;
-      this.keyChart2++;
-
-      this.getDataFromApi();
-
-      this.sendMQTTConfigRequest();
-      //console.log(this.device_serial_number, " this.device_serial_number");
-    },
-    async getDataFromApi() {
-      // if (reset == 1) {
-      //   this.keyChart2++;
-      // }
-      try {
-        if (
-          this.device_serial_number == "" ||
-          this.device_serial_number == null
-        )
-          return false;
-        // if (this.$store.state.alarm_temparature_latest && reset == 0) {
-        //   this.data = this.$store.state.alarm_temparature_latest;
-        // } else
-
-        {
-          this.$axios
-            .get("alarm_dashboard_get_temparature_latest", {
-              params: {
-                company_id: this.$auth.user.company_id,
-
-                device_serial_number: this.device_serial_number,
-                device_temperature_serial_address:
-                  this.device_temperature_serial_address,
-              },
-            })
-            .then(({ data }) => {
-              this.data = data;
-              this.device = data.device;
-              this.loading = false;
-              this.$store.commit(
-                "AlarmDashboard/alarm_temparature_latest",
-                data
-              );
-
-              let previousTemperature = this.temperature_latest;
-              let previousHumidity = this.humidity_latest;
-
-              this.temperature_latest = data.temperature_latest;
-              this.temperature_date_time = this.$dateFormat.format4(
-                data.temperature_date_time
-              );
-
-              this.temperature_min = data.temperature_min + "&deg;C";
-              this.temperature_max = data.temperature_max + "&deg;C";
-              this.temperature_min_date_time = this.$dateFormat.format6(
-                data.temperature_min_date_time
-              );
-              this.temperature_max_date_time = this.$dateFormat.format6(
-                data.temperature_max_date_time
-              );
-              // this.temperature_hourly_data = data.houry_data;
-              if (data.fire_alarm_start_datetime)
-                this.fire_alarm_start_datetime = this.$dateFormat.format4(
-                  data.fire_alarm_start_datetime
-                );
-
-              //humidity
-              this.humidity_latest = data.humidity_latest;
-              this.humidity_date_time = this.$dateFormat.format4(
-                data.humidity_date_time
-              );
-
-              this.humidity_min = data.humidity_min + "%";
-              this.humidity_max = data.humidity_max + "%";
-              this.humidity_min_date_time = this.$dateFormat.format6(
-                data.humidity_min_date_time
-              );
-              this.humidity_max_date_time = this.$dateFormat.format6(
-                data.humidity_max_date_time
-              );
-
-              this.key = this.key + 1;
-
-              if (
-                this.temperature_latest != previousTemperature ||
-                this.humidity_latest != previousHumidity
-              ) {
-                this.Sensorkey++;
-              }
-            });
-        }
-      } catch (e) { }
+    cardClass(d) {
+      if (d.status === "ON") return "cardOn";
+      return "cardOff";
     },
   },
 };
 </script>
+
 <style scoped>
-.page-wrapper {
-  position: relative;
-
-  /* overflow: hidden; */
+/* Grid supports 10-per-row cleanly */
+.gridWrap {
+  display: grid;
+  gap: 14px;
 }
 
-.main-content {
-  z-index: 1;
-  position: relative;
-  padding: 60px;
-  text-align: center;
-  font-size: 20px;
+/* Make grid responsive: fall back to fewer columns on small screens */
+@media (max-width: 1400px) {
+  .gridWrap {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
 }
 
-/* Flip overlay that covers the full body */
-.flip-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(63, 81, 181, 0.2);
-  /* Indigo overlay */
-  pointer-events: none;
-  z-index: 999;
-  transform: rotateY(0deg);
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-  transition: transform 0.6s ease;
+@media (max-width: 960px) {
+  .gridWrap {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
 }
 
-.flip-overlay.flipped {
-  transform: rotateY(180deg);
+@media (max-width: 600px) {
+  .gridWrap {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+}
+
+.roomCard {
+  border-radius: 12px;
+  min-height: 170px;
+}
+
+.cardOn {
+  border: 2px solid rgba(239, 68, 68, 0.95);
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.18);
+}
+
+.cardOff {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.sos-border-red {
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+.sos-border-orange {
+  border-color: rgba(249, 115, 22, 0.35) !important;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.dot-red {
+  background: #ef4444;
+  box-shadow: 0 0 10px rgba(239, 68, 68, .25);
+}
+
+.dot-grey {
+  background: #64748b;
 }
 </style>

@@ -66,12 +66,5 @@
     "to": "/alarm/rooms",
     "menu": "notifications_access",
     "module": "settings"
-  },
-  {
-    "icon": "mdi mdi-whatsapp",
-    "title": "Whatsapp",
-    "to": "/whatsapp",
-    "menu": "notifications_access",
-    "module": "settings"
   }
 ]
