@@ -178,12 +178,12 @@
                                 " outlined dense small :hide-details="true" label="Reset Settins Duration Count"
                                 :items="secondsCountFrom10to60" item-value="value" item-text="label"></v-select>
                             </v-col>
-                            <v-col cols="12">
+                            <!-- <v-col cols="12">
                               <v-select v-model="deviceSettings.config
                                 .temperature_read_interval
                                 " outlined dense small :hide-details="true" label="Temperature Read Interval"
                                 :items="secondsCountFrom10to60" item-value="value" item-text="label"></v-select>
-                            </v-col>
+                            </v-col> -->
 
                             <v-col cols="12">
                               <v-checkbox :hide-details="true" v-model="deviceSettings.config.siren_checkbox"
@@ -583,10 +583,6 @@
             </v-tab-item> -->
             <v-tab-item :key="key">
 
-              {{ key }}
-
-              {{ sos_devices ? [0]?.status : '--' }}
-              {{ sos_devices ? [1]?.status : '--' }}
 
 
               <DeviceSOSDevices :editedItem="editedItem" :key="key" :sos_devices="sos_devices
@@ -799,30 +795,30 @@ export default {
             this.deviceSettings.config.reset_settings_duration = parseInt(
               this.deviceSettings.config.reset_settings_duration
             );
-            this.deviceSettings.config.min_temperature = parseFloat(
-              this.deviceSettings.config.min_temperature
-            );
-            this.deviceSettings.config.max_temperature = parseFloat(
-              this.deviceSettings.config.max_temperature
-            );
-            this.deviceSettings.config.max_humidity = parseFloat(
-              this.deviceSettings.config.max_humidity
-            );
-            this.deviceSettings.config.max_doorcontact = parseInt(
-              this.deviceSettings.config.max_doorcontact
-            );
-            this.deviceSettings.config.max_temperature_sensor_count = parseInt(
-              this.deviceSettings.config.max_temperature_sensor_count
-            );
+            // this.deviceSettings.config.min_temperature = parseFloat(
+            //   this.deviceSettings.config.min_temperature
+            // );
+            // this.deviceSettings.config.max_temperature = parseFloat(
+            //   this.deviceSettings.config.max_temperature
+            // );
+            // this.deviceSettings.config.max_humidity = parseFloat(
+            //   this.deviceSettings.config.max_humidity
+            // );
+            // this.deviceSettings.config.max_doorcontact = parseInt(
+            //   this.deviceSettings.config.max_doorcontact
+            // );
+            // this.deviceSettings.config.max_temperature_sensor_count = parseInt(
+            //   this.deviceSettings.config.max_temperature_sensor_count
+            // );
             this.deviceSettings.config.max_siren_pause = parseInt(
               this.deviceSettings.config.max_siren_pause
             );
-            this.deviceSettings.config.temperature_read_interval = parseInt(
-              this.deviceSettings.config.temperature_read_interval
-            );
-            this.deviceSettings.config.temperature_difference = parseFloat(
-              this.deviceSettings.config.temperature_difference
-            );
+            // this.deviceSettings.config.temperature_read_interval = parseInt(
+            //   this.deviceSettings.config.temperature_read_interval
+            // );
+            // this.deviceSettings.config.temperature_difference = parseFloat(
+            //   this.deviceSettings.config.temperature_difference
+            // );
             this.deviceSettings.config.max_siren_play = parseInt(
               this.deviceSettings.config.max_siren_play
             );

@@ -300,7 +300,7 @@
           <v-btn v-bind="attrs" text @click="snack = false"> Close </v-btn>
         </template>
       </v-snackbar>
-      {{ loading }}
+
       <v-data-table dense :headers="headers" :items="data" model-value="data.id" :loading="loading" :footer-props="{
         itemsPerPageOptions: [50, 100, 500, 1000],
       }" class="elevation-1 pt-5" :options.sync="options" :server-items-length="totalRowsCount" :height="tableHeight">
@@ -582,13 +582,13 @@ export default {
         filterable: false,
       },
 
-      {
-        text: "Device Wifi",
-        align: "left",
-        sortable: false,
-        value: "device_wifi",
-        filterable: false,
-      },
+      // {
+      //   text: "Device IP",
+      //   align: "left",
+      //   sortable: false,
+      //   value: "device_wifi",
+      //   filterable: false,
+      // },
 
       // {
       //   text: "Smoke Alarm ",

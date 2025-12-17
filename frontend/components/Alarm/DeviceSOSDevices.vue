@@ -43,10 +43,10 @@
 
       <v-spacer />
 
-      <v-btn small outlined @click="sendGetConfig()" :disabled="!isConnected">
+      <!-- <v-btn small outlined @click="sendGetConfig()" :disabled="!isConnected">
         <v-icon left small>mdi-refresh</v-icon>
         Get Config
-      </v-btn>
+      </v-btn> -->
     </v-card-actions>
 
     <!-- Edit dialog -->

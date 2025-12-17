@@ -86,8 +86,13 @@ color:#000!important;
 .v-dialog > .v-card > .v-card__title
 {
   padding: 5px 20px 10px!important;
+  color:#FFF!important;
 }
+    .v-dialog>.v-card>.v-card__title
+{
 
+color:#FFF!important;
+}
 
 /*
 :root {
