@@ -103,7 +103,7 @@ export default {
         { text: "ID", value: "id", width: 70, sortable: false },
         { text: "Room", value: "name", sortable: false },
         { text: "Room ID", value: "roomId", sortable: false },
-        { text: "Codes", value: "codes", sortable: false },
+        // { text: "Codes", value: "codes", sortable: false },
         { text: "SOS", value: "status", sortable: false },
         { text: "Actions", value: "actions", sortable: false, align: "end" },
       ],
@@ -373,7 +373,7 @@ export default {
           action: "UPDATE_CONFIG",
           serialNumber: this.editedItem.serial_number,
           // Most compatible: send full config as string
-          config: JSON.stringify(cfg),
+          config: { sos_devices: cfg.sos_devices },
         };
 
         this.mqttClient.publish(this.topicReq, JSON.stringify(payload), { qos: 0, retain: false });
