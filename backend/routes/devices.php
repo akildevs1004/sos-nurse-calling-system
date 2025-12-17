@@ -65,6 +65,7 @@ Route::post('update_device_temperature_settings_from_socket_arduino', [DeviceCon
 
 
 Route::get('/get_device_company_info_arduino', [DeviceController::class, 'getDeviceCompanyInfoForArduino']);
+Route::post('/update_sos_devices_to_eviceConfig', [DeviceController::class, 'updateSOSDevicesToDeviceConfig']);
 
 
 

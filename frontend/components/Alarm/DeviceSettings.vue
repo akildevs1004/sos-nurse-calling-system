@@ -15,14 +15,15 @@
 
     <v-row v-else>
       <v-col cols="12">
-        <v-tabs v-model="tab" :show-arrows="$vuetify.breakpoint.smAndDown">
+        <v-tabs v-model="tab" :show-arrows="$vuetify.breakpoint.smAndDown" :key="key">
           <v-tab> Device Info </v-tab>
           <v-tab> Communication </v-tab>
           <v-tab>Alarms</v-tab>
-          <v-tab>Phone Numbers</v-tab>
-          <v-tab>Sensor Alers</v-tab>
+          <!-- <v-tab>Phone Numbers</v-tab>
+          <v-tab>Sensor Alerts</v-tab> -->
+          <v-tab>SOS List</v-tab>
 
-          <v-tabs-items v-model="tab">
+          <v-tabs-items v-model="tab" :key="key">
             <v-tab-item>
               <v-card color="basil">
                 <v-card-text>
@@ -80,35 +81,32 @@
             <v-tab-item>
               <v-card elevation="2" style="height: 250px" outlined>
                 <v-card-title dense class="popup_background1111" style="padding: 2px">
-                  <v-checkbox color="primary" style="margin-top: -3px" @click="doorAlerts()" :hide-details="true"
-                    v-model="deviceSettings.config.mqtt_communication" label="MQTT"></v-checkbox>
+                  <v-checkbox disabled color="primary" style="margin-top: -3px" @click="doorAlerts()"
+                    :hide-details="true" v-model="deviceSettings.config.mqtt_communication" label="MQTT"></v-checkbox>
                 </v-card-title>
 
                 <v-card-text>
                   <br />
                   <v-row>
                     <v-col cols="12" sm="12" md="6">
-                      <v-text-field :disabled="!deviceSettings.config.mqtt_communication"
-                        v-model="deviceSettings.config.mqtt_server" outlined dense small number :hide-details="true"
-                        label="MQTT Server"></v-text-field>
+                      <v-text-field disabled v-model="deviceSettings.config.mqtt_server" outlined dense small number
+                        :hide-details="true" label="MQTT Server"></v-text-field>
                     </v-col>
                   </v-row>
                   <v-row>
                     <v-col cols="12" sm="12" md="6">
-                      <v-text-field :disabled="!deviceSettings.config.mqtt_communication"
-                        v-model="deviceSettings.config.mqtt_port" outlined dense small number :hide-details="true"
-                        label="MQTT Port"></v-text-field>
+                      <v-text-field disabled v-model="deviceSettings.config.mqtt_port" outlined dense small number
+                        :hide-details="true" label="MQTT Port"></v-text-field>
                     </v-col> </v-row><v-row>
                     <v-col cols="12" sm="12" md="6">
-                      <v-text-field :disabled="!deviceSettings.config.mqtt_communication"
-                        v-model="deviceSettings.config.mqtt_clientId" outlined dense small number :hide-details="true"
-                        label="MQTT Client Id"></v-text-field>
+                      <v-text-field disabled v-model="deviceSettings.config.mqtt_clientId" outlined dense small number
+                        :hide-details="true" label="MQTT Client Id"></v-text-field>
                     </v-col>
                   </v-row>
                 </v-card-text>
               </v-card>
 
-              <v-card elevation="2" style="height: 200px" outlined>
+              <!-- <v-card elevation="2" style="height: 200px" outlined>
                 <v-card-title dense class="popup_background1111" style="padding: 2px">
                   <v-checkbox color="primary" style="margin-top: -3px" @click="doorAlerts()" :hide-details="true"
                     v-model="deviceSettings.config.socket_communication" label="Server/Socket"></v-checkbox>
@@ -148,7 +146,7 @@
                     </v-col>
                   </v-row>
                 </v-card-text>
-              </v-card>
+              </v-card> -->
 
               <v-card-actions class="mt-5" v-if="!viewMode">
                 <!-- <v-btn @click="newItemDialog = false" dark filled color="red"
@@ -208,7 +206,7 @@
                   </v-card>
                 </v-col>
 
-                <v-col cols="12">
+                <v-col cols="12" style="display: none;">
                   <v-row>
                     <v-col cols="12">
                       <v-card elevation="2" outlined style="height: 100px">
@@ -520,7 +518,7 @@
                 <v-btn :loading="loading" @click="save()" dark filled color="primary">Update</v-btn>
               </v-card-actions>
             </v-tab-item>
-            <v-tab-item>
+            <!-- <v-tab-item>
               <v-card elevation="2" outlined>
                 <v-card-text>
                   <v-row>
@@ -571,18 +569,27 @@
                 </v-card-text>
               </v-card>
               <v-card-actions class="mt-5" v-if="!viewMode">
-                <!-- <v-btn @click="newItemDialog = false" dark filled color="red"
-        >Cancel</v-btn
-      > -->
+
                 <v-spacer></v-spacer>
                 <span v-if="errorValidateMessage != ''" style="color: red; padding-right: 50px">Error: {{
                   errorValidateMessage }}</span>
                 <v-btn :loading="loading" @click="save()" dark filled color="primary">Update</v-btn>
               </v-card-actions>
-            </v-tab-item>
+            </v-tab-item> -->
 
-            <v-tab-item>
+            <!-- <v-tab-item>
               <DeviceTemperatureAlerts :editedItem="editedItem" :temperature_alerts_config="deviceSettings.config.temperature_alerts_config
+                " />
+            </v-tab-item> -->
+            <v-tab-item :key="key">
+
+              {{ key }}
+
+              {{ sos_devices ? [0]?.status : '--' }}
+              {{ sos_devices ? [1]?.status : '--' }}
+
+
+              <DeviceSOSDevices :editedItem="editedItem" :key="key" :sos_devices="sos_devices
                 " />
             </v-tab-item>
           </v-tabs-items>
@@ -594,13 +601,14 @@
   <NoAccess v-else />
 </template>
 <script>
-import DeviceTemperatureAlerts from "./DeviceTemperatureAlerts.vue";
+import DeviceSOSDevices from "./DeviceSOSDevices.vue";
 import mqtt from "mqtt";
 
 export default {
-  components: { DeviceTemperatureAlerts },
+  components: { DeviceSOSDevices },
   props: ["addNew", "editedItem"],
   data: () => ({
+    sos_devices: null,
     mqttClient: null,
     configPayload: "",
     mqqtt_response_status: "",
@@ -619,6 +627,7 @@ export default {
     data: [],
     loading: false,
     deviceSettings: { config: null },
+    key: 1,
     headers_table: [
       {
         text: "#",
@@ -708,18 +717,21 @@ export default {
     this.connectMQTT();
   },
 
+
+
   beforeDestroy() {
     if (this.mqttClient) this.mqttClient.end();
   },
   async created() {
     this.generateTimeOptions();
     this.generateTimeOptionsHeartBeat();
-
+    this.connectMQTT();
     // await this.getConfigDataFromAPI();
   },
   methods: {
     connectMQTT() {
-      console.log("connecting to MQTT");
+      // this.key++;
+      console.log("Device settingsconnecting to MQTT");
       // this.loading = true;
       this.mqqtt_response_status = "Connecting to MQTT....";
       //const host = "wss://broker.hivemq.com:8884/mqtt"; // For secure WebSocket
@@ -744,7 +756,7 @@ export default {
         this.mqqtt_response_status = "Device Connected....";
 
         // Subscribe to a topic
-        const topic = `xtremevision/${this.editedItem.serial_number}/config`;
+        const topic = `xtremesos/${this.editedItem.serial_number}/config`;
         this.mqttClient.subscribe(topic, (err) => {
           if (err) {
             this.mqqtt_response_status = "Device Connection Failed....";
@@ -762,12 +774,14 @@ export default {
       });
 
       this.mqttClient.on("message", (topic, payload) => {
-        // console.log(payload);
+        console.log("message", payload);
 
         this.mqqtt_response_status = "Device Loading message";
 
-        if (topic === `xtremevision/${this.editedItem.serial_number}/config`) {
+        if (topic === `xtremesos/${this.editedItem.serial_number}/config`) {
           let jsonconfig = JSON.parse(payload.toString());
+          console.log("jsonconfig.type", jsonconfig.type);
+
           if (jsonconfig.type == "config") {
             this.$set(this, "deviceSettings", jsonconfig); // ensures reactivity
             //this.deviceSettings = jsonconfig;
@@ -775,6 +789,9 @@ export default {
             let config = JSON.parse(jsonconfig.config);
 
             this.deviceSettings.config = config;
+
+            this.sos_devices = config.sos_devices;
+            // this.key++;
 
             this.deviceSettings.config.heartbeat = parseInt(
               this.deviceSettings.config.heartbeat
@@ -814,7 +831,7 @@ export default {
 
             this.mqqtt_response_status = "";
           }
-
+          // this.key++;
           // this.message = payload.toString();
         }
       });
@@ -838,7 +855,7 @@ export default {
         // this.connectMQTT();
       }
       let isConfigReceived = false;
-      const topic = `xtremevision/${this.editedItem.serial_number}/config/request`;
+      const topic = `xtremesos/${this.editedItem.serial_number}/config/request`;
       const payload = "GET_CONFIG";
 
       this.mqqtt_response_status =

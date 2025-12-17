@@ -23,8 +23,8 @@
       </v-col>
       <v-col cols="12" sm="6" md="6">
         <v-card class="dashboard-card" :style="isMobileView
-            ? 'height: auto;'
-            : 'height: 400px; border-radius: 10px;'
+          ? 'height: auto;'
+          : 'height: 400px; border-radius: 10px;'
           " elevation="24" loading="false" outlined style="border-radius: 10px">
           <v-row justify="end" style="display: none1; margin-top: -30px">
             <v-col></v-col>
@@ -35,13 +35,13 @@
             <v-col style="max-width: 300px; padding: 0px">
               <v-select style="z-index: 9999" @change="ChangeDevice()" v-model="device_serial_number_with_sensor"
                 :items="devicesList" dense small outlined hide-details label="Device" class="ma-2" :item-value="(item) =>
-                    `${item.serial_number}|${item.temperature_serial_address ?? 'null'
-                    }`
+                  `${item.serial_number}|${item.temperature_serial_address ?? 'null'
+                  }`
                   " :item-text="(item) =>
                     item.temperature_sensor_name
                       ? `${item.name} - ${item.temperature_sensor_name}`
                       : item.name
-                  "></v-select>
+                    "></v-select>
             </v-col>
             <v-col style="max-width: 50px">
               <v-icon :color="deviceOnline <= 60 && isMQTTConnected ? 'green' : 'red'">mdi-web-box</v-icon>
@@ -554,7 +554,7 @@ export default {
         console.log("✅ MQTT Connected");
 
         // // Subscribe to a topic
-        // const topic = `xtremevision/${this.editedItem.serial_number}/config`;
+        // const topic = `xtremesos/${this.editedItem.serial_number}/config`;
         // this.mqttClient.subscribe(topic, (err) => {
         //   if (err) console.error("❌ Subscribe failed:", err);
         //   else console.log(`📡 Subscribed to ${topic}`);
@@ -562,12 +562,12 @@ export default {
 
         // this.sendConfigRequest();
 
-        let topic = `xtremevision/+/config`;
+        let topic = `xtremesos/+/config`;
 
         console.log("this.devicesList.length", this.devicesList.length);
 
         if (this.devicesList.length == 1)
-          topic = `xtremevision/${this.device_serial_number}/config`;
+          topic = `xtremesos/${this.device_serial_number}/config`;
 
         this.mqttClient.subscribe(topic, (err) => {
           if (err) console.error("❌ Subscribe failed:", err);
@@ -662,7 +662,7 @@ export default {
 
         // this.sendMQTTConfigRequest();
       }
-      const topic = `xtremevision/${this.device_serial_number}/config/request`;
+      const topic = `xtremesos/${this.device_serial_number}/config/request`;
       const payload = "GET_CONFIG";
 
       this.mqttClient.publish(topic, payload, {}, (err) => {

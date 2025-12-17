@@ -1699,43 +1699,59 @@ class DeviceController extends Controller
 
         return  $this->callDeviceCommand($request->serial_number, $config);
     }
+
+    public function updateSOSDevicesToDeviceConfig(Request $request)
+    {
+
+        $serial_number = "XTSOS251000";
+        $config = [];
+
+        $configArray["sos_devices"] = $request->sos_devices;
+
+
+
+        // Send to device (your function should publish to: xtremesos/<serial>/set)
+        return $this->callDeviceCommand($serial_number, $configArray);
+
+        // return [];
+    }
     public function callDeviceCommand($serial_number, $config)
     {
-        // if ($serial_number &&  !env("DEVICE_CONFIG_MQTT")) {
-        $url = 'http://165.22.222.17:6000/device-config-update/' . $serial_number;
+        // // if ($serial_number &&  !env("DEVICE_CONFIG_MQTT")) {
+        // $url = 'http://165.22.222.17:6000/device-config-update/' . $serial_number;
 
-        $postData = [
-            "action" => "UPDATE_CONFIG",
-            "serialNumber" => $serial_number,
-            "config" => $config,
-        ];
-
-
+        // $postData = [
+        //     "action" => "UPDATE_CONFIG",
+        //     "serialNumber" => $serial_number,
+        //     "config" => $config,
+        // ];
 
 
-        $curl = curl_init();
 
-        curl_setopt_array($curl, [
-            CURLOPT_URL => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => json_encode($postData),
-            CURLOPT_HTTPHEADER => [
-                'Content-Type: application/json',
-                'Content-Length: ' . strlen(json_encode($postData))
-            ],
-        ]);
 
-        $response = curl_exec($curl);
-        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($curl);
+        // $curl = curl_init();
 
-        curl_close($curl);
+        // curl_setopt_array($curl, [
+        //     CURLOPT_URL => $url,
+        //     CURLOPT_RETURNTRANSFER => true,
+        //     CURLOPT_ENCODING => '',
+        //     CURLOPT_MAXREDIRS => 10,
+        //     CURLOPT_TIMEOUT => 30,
+        //     CURLOPT_FOLLOWLOCATION => true,
+        //     CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+        //     CURLOPT_CUSTOMREQUEST => 'POST',
+        //     CURLOPT_POSTFIELDS => json_encode($postData),
+        //     CURLOPT_HTTPHEADER => [
+        //         'Content-Type: application/json',
+        //         'Content-Length: ' . strlen(json_encode($postData))
+        //     ],
+        // ]);
+
+        // $response = curl_exec($curl);
+        // $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        // $curlError = curl_error($curl);
+
+        // curl_close($curl);
 
         // if ($response === false) {
         //     return $this->response('cURL Error: ' . $curlError, null, false);
@@ -1758,9 +1774,9 @@ class DeviceController extends Controller
 
         //}
 
-        if ($response === false) {
-            return $this->response('cURL Error: ' . $curlError, null, false);
-        }
+        // if ($response === false) {
+        //     return $this->response('cURL Error: ' . $curlError, null, false);
+        // }
 
         return $this->response('Updated Successfully', null, true);
     }

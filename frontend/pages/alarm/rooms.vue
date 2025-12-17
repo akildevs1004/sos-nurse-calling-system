@@ -282,7 +282,7 @@
         <v-spacer></v-spacer>
 
         <span>
-          <v-btn x-small :ripple="false" text title="Sync Devices" @click="updateDevicesHealth">
+          <v-btn x-small :ripple="false" text title="Sync Devices" @click="startHeartbeatWatcher()">
             <v-icon dark white>mdi-cached</v-icon>
           </v-btn>
         </span>
@@ -300,6 +300,7 @@
           <v-btn v-bind="attrs" text @click="snack = false"> Close </v-btn>
         </template>
       </v-snackbar>
+      {{ loading }}
       <v-data-table dense :headers="headers" :items="data" model-value="data.id" :loading="loading" :footer-props="{
         itemsPerPageOptions: [50, 100, 500, 1000],
       }" class="elevation-1 pt-5" :options.sync="options" :server-items-length="totalRowsCount" :height="tableHeight">
@@ -589,36 +590,36 @@ export default {
         filterable: false,
       },
 
-      {
-        text: "Smoke Alarm ",
-        align: "center",
-        sortable: false,
-        value: "smoke_alarm_status",
-        filterable: false,
-      },
-      {
-        text: "Water Leakage Alarm",
-        align: "center",
-        sortable: false,
-        value: "water_alarm_status",
-        filterable: false,
-      },
-      {
-        text: "AC Power Alarm ",
-        align: "center",
+      // {
+      //   text: "Smoke Alarm ",
+      //   align: "center",
+      //   sortable: false,
+      //   value: "smoke_alarm_status",
+      //   filterable: false,
+      // },
+      // {
+      //   text: "Water Leakage Alarm",
+      //   align: "center",
+      //   sortable: false,
+      //   value: "water_alarm_status",
+      //   filterable: false,
+      // },
+      // {
+      //   text: "AC Power Alarm ",
+      //   align: "center",
 
-        sortable: false,
-        value: "power_alarm_status",
-        filterable: false,
-      },
+      //   sortable: false,
+      //   value: "power_alarm_status",
+      //   filterable: false,
+      // },
 
-      {
-        text: "Door Open Alarm",
-        align: "center",
-        sortable: false,
-        value: "door_open_status",
-        filterable: false,
-      },
+      // {
+      //   text: "Door Open Alarm",
+      //   align: "center",
+      //   sortable: false,
+      //   value: "door_open_status",
+      //   filterable: false,
+      // },
 
       // {
       //   text: "Smoke  ",
@@ -1278,7 +1279,7 @@ export default {
         this.startHeartbeatWatcher();
 
         // // Subscribe to a topic
-        // const topic = `xtremevision/${this.editedItem.serial_number}/config`;
+        // const topic = `xtremesos/${this.editedItem.serial_number}/config`;
         // this.mqttClient.subscribe(topic, (err) => {
         //   if (err) console.error("❌ Subscribe failed:", err);
         //   else console.log(`📡 Subscribed to ${topic}`);
@@ -1286,12 +1287,12 @@ export default {
 
         // this.sendConfigRequest();
 
-        // let topic = `xtremevision/+/config`;
+        // let topic = `xtremesos/+/config`;
 
         // console.log("this.devicesList.length", this.devicesList.length);
 
         // if (this.devicesList.length == 1)
-        //   topic = `xtremevision/${this.device_serial_number}/config`;
+        //   topic = `xtremesos/${this.device_serial_number}/config`;
 
         // this.mqttClient.subscribe(topic, (err) => {
         //   if (err) console.error("❌ Subscribe failed:", err);
@@ -1376,6 +1377,7 @@ export default {
     },
 
     async getDataFromApi(
+
       url = this.endpoint,
       filter_column = "",
       filter_value = ""
@@ -1448,21 +1450,29 @@ export default {
 
         this.pagination.current = data.current_page;
         this.pagination.total = data.last_page;
-        this.loading = false;
 
         // Start (or keep) the heartbeat watcher
 
+
+
+
       });
+
+      await this.startHeartbeatWatcher();
+
+      this.loading = false;
     },
 
-    startHeartbeatWatcher() {
+    async startHeartbeatWatcher() {
       if (!this.mqttClient) {
         console.warn("MQTT client not available");
         return;
       }
 
+      this.loading = true;
+
       // Subscribe once globally to all heartbeats: "/<SERIAL>/heartbeat"
-      const hbTopic = "xtremevision/+/heartbeat";
+      const hbTopic = "xtremesos/+/heartbeat";
       if (!this._hbSubscribed) {
         this.mqttClient.subscribe(hbTopic, (err) => {
           if (err) {
@@ -1481,34 +1491,37 @@ export default {
 
       this._onMqttMessage = (topic, message) => {
 
-        // console.log
-        //   (`MQTT message on ${topic}: ${message.toString()}`);
-        // Expect "/SERIAL/heartbeat"
-        const m = topic.match(/^xtremevision\/([^/]+)\/heartbeat$/);
-
-        if (!m) return;
-        const serial = m[1];
-
-        // Only update if the serial exists in current page
-        const idx = this._indexBySerial[serial];
-        if (idx == null) return;
-
-        // Parse payload (optional)
-        let payload = null;
         try {
-          payload = JSON.parse(message.toString());
-        } catch (_) { }
 
-        const row = this.data[idx];
-        const updated = {
-          ...row,
-          status: 1,               // mark online
-          lastSeen: Date.now(),
-          lastPayload: payload || null,
-        };
+          console.log
+            (`MQTT message on ${topic}: ${message.toString()}`);
+          // Expect "/SERIAL/heartbeat"
+          const m = topic.match(/^xtremesos\/([^/]+)\/heartbeat$/);
 
-        // Vue reactivity
-        this.$set(this.data, idx, updated);
+          if (!m) return;
+          const serial = m[1];
+
+          // Only update if the serial exists in current page
+          const idx = this._indexBySerial[serial];
+          if (idx == null) return;
+
+          // Parse payload (optional)
+          let payload = null;
+          try {
+            payload = JSON.parse(message.toString());
+          } catch (_) { }
+
+          const row = this.data[idx];
+          const updated = {
+            ...row,
+            status: 1,               // mark online
+            lastSeen: Date.now(),
+            lastPayload: payload || null,
+          };
+
+          // Vue reactivity
+          this.$set(this.data, idx, updated);
+        } catch (e) { }
       };
 
 
@@ -1526,7 +1539,10 @@ export default {
             this.$set(this.data, i, { ...d, status: desired });
           }
         }
-      }, 10000); // check every 10s
+      }, 1000 * 60); // check every 10s
+
+      this.loading = false;
+
     },
 
 
@@ -1540,10 +1556,13 @@ export default {
       await this.$axios
         .get("/check_device_health", options)
         .then(({ data }) => {
-          this.snackbar = true;
-          this.response = data;
+          // this.snackbar = true;
+          // this.response = data;
           this.getDataFromApi();
         });
+
+      await this.startHeartbeatWatcher();
+      this.loading = false
     },
 
     searchIt(e) {
