@@ -124,14 +124,28 @@
 
 
                 <div class="mt-3">
-                  <v-icon :color="d.room_type === 'toilet' ? 'blue' : 'grey'">
-                    {{ d.room_type === 'toilet' ? 'mdi-toilet' : 'mdi-bed' }}
+                  <v-icon v-if="d.room_type == 'toilet'" color="yellow">
+                    mdi-toilet
                   </v-icon>
-                  <v-icon :color="d.room_type === 'room' ? 'blue' : 'grey'">
-                    {{ d.room_type === 'room' ? 'mdi-bed' : 'mdi-bed' }}
+                  <v-icon v-if="d.room_type == 'room'" color="blue">
+                    mdi-bed
+                  </v-icon>
+                  <v-icon v-if="d.room_type == 'room-pd'" color="red">
+                    mdi-bed
+                  </v-icon>
+                  <v-icon v-if="d.room_type == 'room-pd'" color="yellow">
+                    mdi-bed
+                  </v-icon>
+
+                  <v-icon v-if="d.room_type == 'toilet-pd'" color="yellow">
+                    mdi-toilet
                   </v-icon>
                   <v-icon color="red" v-if="d.room_type == 'toilet-pd'">
                     mdi-wheelchair
+                  </v-icon>
+
+                  <v-icon v-if="!d.room_type" color="blue">
+                    mdi-bed
                   </v-icon>
 
 
@@ -151,11 +165,15 @@
                   mdi-wifi-off
                 </v-icon>
               </div>
-              <div>
-                <v-chip x-small class="mt-2" :color="d.alarm_status === true ? 'red' : 'grey'" dark>
-                  {{ d.alarm_status === true ? 'PENDING' : 'RESOLVED' }}
-                </v-chip>
-              </div>
+
+
+
+            </div>
+
+            <div style="float: right;">
+              <v-chip x-small class="mt-2" :color="d.alarm_status === true ? 'red' : 'grey'" dark>
+                {{ d.alarm_status === true ? 'PENDING' : 'RESOLVED' }}
+              </v-chip>
             </div>
 
             <div class="mt-5 text-center" v-if="d.alarm_status === true">
@@ -169,7 +187,7 @@
             </div>
 
             <div class="mt-5 text-center grey--text" v-else>
-              <v-icon large color="grey">mdi-check-circle</v-icon>
+              <v-icon large color="green">mdi-check-circle</v-icon>
               <div class="text-body-2 font-weight-medium mt-1">No Active Call</div>
             </div>
           </v-card>
