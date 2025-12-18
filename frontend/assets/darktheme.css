@@ -93,7 +93,16 @@ color:#000!important;
 
 color:#FFF!important;
 }
+.popup_title, .v-dialog>.v-card>.v-card__title
+{
+color:#FFF!important;
 
+}
+
+.roomCardIndividual.theme--dark.v-card
+{
+  background-color: #101922!important;
+}
 /*
 :root {
     --v-anchor-base: #6946dd;

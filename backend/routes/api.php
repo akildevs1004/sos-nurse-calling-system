@@ -51,3 +51,4 @@ include('client_support_api.php');
 include('alarm/api_alarm.php');
 
 include('whatsapp_clients.php');
+include('devicesSos.php');

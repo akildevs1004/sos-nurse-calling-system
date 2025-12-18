@@ -281,4 +281,15 @@ export default ({ app }, inject) => {
       );
     },
   });
+
+  inject("utils", {
+    caps(str) {
+      if (str == "" || str == null) {
+        return "---";
+      } else {
+        let res = str.toString();
+        return res.replace(/\b\w/g, (c) => c.toUpperCase());
+      }
+    },
+  });
 };

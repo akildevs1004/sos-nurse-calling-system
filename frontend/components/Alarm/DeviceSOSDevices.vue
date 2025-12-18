@@ -15,7 +15,9 @@
           <span>{{ item.offCode }}</span>
         </div>
       </template>
-
+      <template v-slot:item.roomType="{ item }">
+        {{ $utils.caps(item.roomType) }}
+      </template>
       <template v-slot:item.status="{ item }">
         <v-chip small :color="statusColor(item.status)" dark class="px-2" style="width: 72px">
           <v-icon left small>{{ statusIcon(item.status) }}</v-icon>
@@ -52,7 +54,7 @@
     <!-- Edit dialog -->
     <v-dialog v-model="editDialog" max-width="520">
       <v-card>
-        <v-card-title class="d-flex align-center">
+        <v-card-title class="d-flex align-center" style="color:#FFF">
           Edit Room
           <v-spacer />
           <v-btn icon @click="editDialog = false"><v-icon>mdi-close</v-icon></v-btn>
@@ -63,6 +65,12 @@
 
           <v-text-field v-model="editForm.name" label="Room (Name)" outlined dense clearable />
           <v-text-field v-model.number="editForm.roomId" label="Room ID" outlined dense type="number" clearable />
+          <v-select v-model="editForm.roomType" abel="Room ID" outlined dense :items="[
+            { value: 'room', text: 'Room' },
+            { value: 'toilet', text: 'Toilet' },
+            { value: 'toilet-pd', text: 'Toilet For Disabled' },
+
+          ]" item-value="value" item-text="text"></v-select>
         </v-card-text>
 
         <v-divider />
@@ -103,6 +111,8 @@ export default {
         { text: "ID", value: "id", width: 70, sortable: false },
         { text: "Room", value: "name", sortable: false },
         { text: "Room ID", value: "roomId", sortable: false },
+        { text: "Room Type", value: "roomType", sortable: false },
+
         // { text: "Codes", value: "codes", sortable: false },
         { text: "SOS", value: "status", sortable: false },
         { text: "Actions", value: "actions", sortable: false, align: "end" },
@@ -119,7 +129,7 @@ export default {
 
       // Edit
       editDialog: false,
-      editForm: { id: null, name: "", roomId: null },
+      editForm: { id: null, name: "", roomId: null, roomType: null },
       editOriginal: null,
       saving: false,
       editError: "",
@@ -130,11 +140,15 @@ export default {
     canSave() {
       if (!this.editForm.id) return false;
       if (!String(this.editForm.name || "").trim()) return false;
+      if (!String(this.editForm.roomType || "").trim()) return false;
+
       if (this.editForm.roomId === null || this.editForm.roomId === "" || isNaN(Number(this.editForm.roomId))) return false;
 
       if (!this.editOriginal) return true;
       return (
         String(this.editForm.name).trim() !== String(this.editOriginal.name || "").trim() ||
+        String(this.editForm.roomType).trim() !== String(this.editOriginal.roomType || "").trim() ||
+
         Number(this.editForm.roomId) !== Number(this.editOriginal.roomId)
       );
     },
@@ -334,7 +348,7 @@ export default {
     openEdit(item) {
       this.editError = "";
       this.editOriginal = { ...item };
-      this.editForm = { id: item.id, name: item.name || "", roomId: item.roomId ?? "" };
+      this.editForm = { id: item.id, name: item.name || "", roomType: item.roomType || "", roomId: item.roomId ?? "" };
       this.editDialog = true;
     },
 
@@ -351,6 +365,8 @@ export default {
 
         const id = Number(this.editForm.id);
         const newName = String(this.editForm.name || "").trim();
+        const newRoomType = String(this.editForm.roomType || "").trim();
+
         const newRoomId = Number(this.editForm.roomId);
 
         const idx = cfg.sos_devices.findIndex((d) => Number(d.id) === id);
@@ -360,6 +376,8 @@ export default {
         cfg.sos_devices[idx] = {
           ...cfg.sos_devices[idx],
           name: newName,
+          roomType: newRoomType,
+
           roomId: newRoomId,
           // If your firmware uses room_id instead of roomId, replace above line with:
           // room_id: newRoomId,

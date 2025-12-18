@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Device;
 use App\Models\DeviceSosRoomLogs;
 use App\Models\DeviceSosRooms;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 
@@ -72,7 +73,7 @@ class MqttService
                         echo "\n";
                         $serialNumber = $this->extractSerial($topic);
                         echo $serialNumber . "-sosalarm\n";
-
+                        File::prepend($logPath, "------------------------------------------------------\n");
                         File::prepend($logPath, "[" . now() . "] Data: " . $message . "\n");
 
                         $json = json_decode($message, true);
@@ -83,6 +84,7 @@ class MqttService
                         }
 
                         if (($json['type'] ?? null) !== 'sos' || $serialNumber === '') {
+                            File::prepend($logPath, "[" . now() . "] ERROR: Type is Not SOS " . $json['type'] . "\n");
                             return;
                         }
 
@@ -92,7 +94,7 @@ class MqttService
                             return;
                         }
 
-                        File::prepend($logPath, "[" . now() . "] SOS alarm received from $serialNumber\n");
+                        $now = now()->setTimezone($device->utc_time_zone)->format('Y-m-d H:i:s');
 
                         // Payload fields
                         $name   = isset($json['name']) ? trim((string)$json['name']) : null;
@@ -100,6 +102,8 @@ class MqttService
 
                         $status = isset($json['status']) ? strtoupper(trim((string)$json['status'])) : null;
                         $code   = isset($json['code']) ? (string)$json['code'] : null;
+
+                        File::prepend($logPath, "[" . now() . "] SOS alarm received from $serialNumber " . $roomId . " " . $name . "\n");
 
                         // Validate minimum required fields
                         if (!$roomId || !$status || $code === null || $code === '') {
@@ -125,7 +129,9 @@ class MqttService
 
                         if ($status === "ON") {
 
-                            $now = now()->format("Y-m-d H:i:s");
+                            // $now = now()->format("Y-m-d H:i:s");
+
+
 
                             $data = [
                                 "company_id"               => $device->company_id,
@@ -142,15 +148,20 @@ class MqttService
                                 "alarm_start_datetime"     => $now,
                             ];
 
-                            DeviceSosRoomLogs::create($data);
+                            $alarmId = DeviceSosRoomLogs::create($data);
 
                             $deviceSosRoom->update([
                                 'status'     => true,
                                 'updated_at' => now(),
                             ]);
+
+                            File::prepend($logPath, "[" . now() . "] Info: SOS Alarm Is created $alarmId serial=$serialNumber room_id=$roomId\n");
                         } elseif ($status === "OFF") {
 
-                            $now = now()->format("Y-m-d H:i:s");
+
+
+
+                            // $now = now()->format("Y-m-d H:i:s");
 
                             // Find the latest OPEN alarm (ON) for this room
                             $openLog = DeviceSosRoomLogs::where("serial_number", $serialNumber)
@@ -160,15 +171,26 @@ class MqttService
                                 ->orderBy("alarm_start_datetime", "desc")
                                 ->first();
 
+                            $response_in_minutes = 0;
+
+                            if ($openLog) {
+                                $response_in_minutes = Carbon::parse($openLog->alarm_start_datetime)
+                                    ->diffInMinutes($now);
+                            }
+
                             if ($openLog) {
                                 $openLog->update([                          // FIX: update the instance
                                     "sos_status"          => false,
                                     "off_code"            => $code,
                                     "alarm_end_datetime"  => $now,
+                                    "response_in_minutes"  => $response_in_minutes,
+
                                 ]);
+
+                                File::prepend($logPath, "[" . now() . "] Info: SOS Alarm Is Updated  $openLog->id serial=$serialNumber room_id=$roomId\n");
                             } else {
                                 // Optional: if OFF arrives without an ON, you can still store it as standalone
-                                DeviceSosRoomLogs::create([
+                                $alarmId = DeviceSosRoomLogs::create([
                                     "company_id"               => $device->company_id,
                                     "device_id"                => $device->id,
                                     "device_sos_room_table_id" => $deviceSosRoom->id,
@@ -180,6 +202,8 @@ class MqttService
                                     "created_datetime"         => $now,
                                     "alarm_end_datetime"       => $now,
                                 ]);
+
+                                File::prepend($logPath, "[" . now() . "] Info: SOS Alarm Is created $alarmId serial=$serialNumber room_id=$roomId\n");
                             }
 
                             $deviceSosRoom->update([
@@ -228,7 +252,7 @@ class MqttService
                         File::prepend($logPath, "[" . now() . "] ❌ MQTT heartbeat Exception: " . $e->getMessage() . "\n");
                     }
                 });
-
+                //---------------------------CONFIG -------------------------------------------------------
                 $this->mqtt->subscribe($this->mqttDeviceClientId . '/+/config', function ($topic, $message) {
                     $logPath = base_path('../../logs/sos-nurse-calling-system/mqtt-config-logs/');
                     if (!File::exists($logPath)) {
@@ -313,6 +337,8 @@ class MqttService
                                 $rows[] = [
                                     'device_id'       => $device->id,
                                     'serial_number'   => $serialNumber,
+                                    'company_id'   =>  $device->company_id,
+                                    'room_type'   =>   $d['roomType']  ?? null,
 
                                     'room_id'         => isset($d['roomId']) ? (int)$d['roomId'] : null,
                                     'name'            => isset($d['name']) ? trim((string)$d['name']) : null,
@@ -331,7 +357,7 @@ class MqttService
                                 DB::table('device_sos_rooms')->upsert(
                                     $rows,
                                     ['device_id', 'room_id'],   // UNIQUE KEY
-                                    ['serial_number', 'room_id', 'name', 'on_code', 'off_code', 'status', 'updated_at']
+                                    ['serial_number', 'room_id', 'name', 'on_code', 'off_code', 'status', 'updated_at', 'room_type',]
                                 );
                             }
 

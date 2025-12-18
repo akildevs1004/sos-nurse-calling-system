@@ -21,7 +21,7 @@
           <v-tab>Alarms</v-tab>
           <!-- <v-tab>Phone Numbers</v-tab>
           <v-tab>Sensor Alerts</v-tab> -->
-          <v-tab>SOS List</v-tab>
+          <v-tab>SOS/Rooms List</v-tab>
 
           <v-tabs-items v-model="tab" :key="key">
             <v-tab-item>

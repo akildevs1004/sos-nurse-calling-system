@@ -77,7 +77,7 @@
     </v-row>
 
     <!-- ================= FILTER ROW ================= -->
-    <div class="d-flex flex-wrap align-center mt-4">
+    <div class="d-flex flex-wrap align-center mt-0 mb-4">
       <!-- Filter buttons -->
       <v-btn-toggle v-model="filterMode" mandatory class="mr-4">
         <v-btn small value="all">All</v-btn>
@@ -110,53 +110,72 @@
         </div>
       </div>
     </div>
+    <v-card outlined class="pa-4 roomCard" :class="cardClass(d)">
+      <!-- ================= CARDS GRID ================= -->
+      <div class="mt-4 gridWrap" :style="gridStyle">
+        <div v-for="d in filteredDevices" :key="d.id" class="gridItem">
+          <v-card outlined class="pa-4 roomCard roomCardIndividual" :class="cardClass(d)">
+            <div class="d-flex align-start roomCardIndividual">
+              <div class="min-w-0">
+                <div class="text-h6 font-weight-black text-truncate">
+                  {{ d.name }}
+                </div>
 
-    <!-- ================= CARDS GRID ================= -->
-    <div class="mt-4 gridWrap" :style="gridStyle">
-      <div v-for="d in filteredDevices" :key="d.id" class="gridItem">
-        <v-card outlined class="pa-4 roomCard" :class="cardClass(d)">
-          <div class="d-flex align-start">
-            <div class="min-w-0">
-              <div class="text-h6 font-weight-black text-truncate">
-                {{ d.name }}
+
+
+                <div class="mt-3">
+                  <v-icon :color="d.room_type === 'toilet' ? 'blue' : 'grey'">
+                    {{ d.room_type === 'toilet' ? 'mdi-toilet' : 'mdi-bed' }}
+                  </v-icon>
+                  <v-icon :color="d.room_type === 'room' ? 'blue' : 'grey'">
+                    {{ d.room_type === 'room' ? 'mdi-bed' : 'mdi-bed' }}
+                  </v-icon>
+                  <v-icon color="red" v-if="d.room_type == 'toilet-pd'">
+                    mdi-wheelchair
+                  </v-icon>
+
+
+                </div>
               </div>
 
-              <v-chip x-small class="mt-2" :color="d.status === 'ON' ? 'red' : 'grey'" dark>
-                {{ d.status === 'ON' ? 'PENDING' : 'RESOLVED' }}
-              </v-chip>
+              <v-spacer />
+              <div>
 
-              <div class="mt-3">
-                <v-icon :color="d.type === 'toilet' ? 'orange' : 'grey'">
-                  {{ d.type === 'toilet' ? 'mdi-wheelchair-accessibility' : 'mdi-bed' }}
+                <v-icon v-if="d.alarm_status === true" color="red">
+                  mdi-bell
+                </v-icon>
+                <v-icon v-if="d.device?.status_id == 1" color="green">
+                  mdi-wifi
+                </v-icon>
+                <v-icon v-else-if="d.device?.status_id == 2" color="red">
+                  mdi-wifi-off
                 </v-icon>
               </div>
+              <div>
+                <v-chip x-small class="mt-2" :color="d.alarm_status === true ? 'red' : 'grey'" dark>
+                  {{ d.alarm_status === true ? 'PENDING' : 'RESOLVED' }}
+                </v-chip>
+              </div>
             </div>
 
-            <v-spacer />
-
-            <v-btn icon small :color="d.status === 'ON' ? 'red' : 'grey'">
-              <v-icon>
-                {{ d.status === 'ON' ? 'mdi-bell-alert' : 'mdi-check-circle' }}
-              </v-icon>
-            </v-btn>
-          </div>
-
-          <div class="mt-5 text-center" v-if="d.status === 'ON'">
-            <div class="text-h4 font-weight-bold" style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">
-              {{ d.elapsed }}
+            <div class="mt-5 text-center" v-if="d.alarm_status === true">
+              <div class="text-h4 font-weight-bold"
+                style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">
+                {{ d.elapsed }}
+              </div>
+              <div class="text-caption red--text font-weight-bold text-uppercase" style="letter-spacing:.12em">
+                Elapsed Time
+              </div>
             </div>
-            <div class="text-caption red--text font-weight-bold text-uppercase" style="letter-spacing:.12em">
-              Elapsed Time
-            </div>
-          </div>
 
-          <div class="mt-5 text-center grey--text" v-else>
-            <v-icon large color="grey">mdi-check-circle</v-icon>
-            <div class="text-body-2 font-weight-medium mt-1">No Active Call</div>
-          </div>
-        </v-card>
+            <div class="mt-5 text-center grey--text" v-else>
+              <v-icon large color="grey">mdi-check-circle</v-icon>
+              <div class="text-body-2 font-weight-medium mt-1">No Active Call</div>
+            </div>
+          </v-card>
+        </div>
       </div>
-    </div>
+    </v-card>
   </v-container>
 </template>
 
@@ -169,36 +188,39 @@ export default {
       // filters
       filterMode: "all", // all | on | off
       perRow: 4,         // 4 | 6 | 8 | 10
-
+      d: {},
       // STATIC DATA (replace later with API/MQTT)
-      devices: [
-        { id: 1, name: "Room 101", type: "room", status: "ON", elapsed: "02:14" },
-        { id: 2, name: "Room 102", type: "room", status: "OFF", elapsed: "" },
-        { id: 3, name: "DT-01 (North)", type: "toilet", status: "ON", elapsed: "00:45" },
-        { id: 4, name: "Room 103", type: "room", status: "OFF", elapsed: "" },
-        { id: 5, name: "Room 104", type: "room", status: "OFF", elapsed: "" },
-        { id: 6, name: "DT-02 (South)", type: "toilet", status: "OFF", elapsed: "" },
-        { id: 7, name: "Room 105", type: "room", status: "ON", elapsed: "00:12" },
-        { id: 8, name: "Room 106", type: "room", status: "OFF", elapsed: "" },
-        { id: 10, name: "Room 102", type: "room", status: "OFF", elapsed: "" },
-        { id: 11, name: "DT-01 (North)", type: "toilet", status: "ON", elapsed: "00:45" },
-        { id: 12, name: "Room 103", type: "room", status: "OFF", elapsed: "" },
-        { id: 13, name: "Room 104", type: "room", status: "OFF", elapsed: "" },
-        { id: 14, name: "DT-02 (South)", type: "toilet", status: "OFF", elapsed: "" },
-        { id: 15, name: "Room 105", type: "room", status: "ON", elapsed: "00:12" },
-        { id: 16, name: "Room 106", type: "room", status: "OFF", elapsed: "" },
-        { id: 17, name: "Room 106", type: "room", status: "OFF", elapsed: "" },
-        { id: 18, name: "Room 101", type: "room", status: "ON", elapsed: "02:14" },
-        { id: 19, name: "Room 105", type: "room", status: "ON", elapsed: "00:12" },
-        { id: 20, name: "Room 105", type: "room", status: "ON", elapsed: "00:12" },
+      devices: [],
+      // { id: 1, name: "Room 101", type: "room", alarm_status: true, elapsed: "02:14" },
+      // { id: 2, name: "Room 102", type: "room", status: "OFF", elapsed: "" },
+      // { id: 3, name: "DT-01 (North)", type: "toilet", status: "ON", elapsed: "00:45" },
+      // { id: 4, name: "Room 103", type: "room", status: "OFF", elapsed: "" },
+      // { id: 5, name: "Room 104", type: "room", status: "OFF", elapsed: "" },
+      // { id: 6, name: "DT-02 (South)", type: "toilet", status: "OFF", elapsed: "" },
+      // { id: 7, name: "Room 105", type: "room", status: "ON", elapsed: "00:12" },
+      // { id: 8, name: "Room 106", type: "room", status: "OFF", elapsed: "" },
+      // { id: 10, name: "Room 102", type: "room", status: "OFF", elapsed: "" },
+      // { id: 11, name: "DT-01 (North)", type: "toilet", status: "ON", elapsed: "00:45" },
+      // { id: 12, name: "Room 103", type: "room", status: "OFF", elapsed: "" },
+      // { id: 13, name: "Room 104", type: "room", status: "OFF", elapsed: "" },
+      // { id: 14, name: "DT-02 (South)", type: "toilet", status: "OFF", elapsed: "" },
+      // { id: 15, name: "Room 105", type: "room", status: "ON", elapsed: "00:12" },
+      // { id: 16, name: "Room 106", type: "room", status: "OFF", elapsed: "" },
+      // { id: 17, name: "Room 106", type: "room", status: "OFF", elapsed: "" },
+      // { id: 18, name: "Room 101", type: "room", status: "ON", elapsed: "02:14" },
+      // { id: 19, name: "Room 105", type: "room", status: "ON", elapsed: "00:12" },
+      // { id: 20, name: "Room 105", type: "room", status: "ON", elapsed: "00:12" },
 
-      ],
+      // ],
+      options: [],
     };
   },
 
   computed: {
     activeSosCount() {
-      return this.devices.filter(d => d.status === "ON").length;
+
+      if (this.devices.length == 0) return 0;
+      return this.devices.filter(d => d.alarm_status === true).length;
     },
 
     stats() {
@@ -210,8 +232,8 @@ export default {
     },
 
     filteredDevices() {
-      if (this.filterMode === "on") return this.devices.filter(d => d.status === "ON");
-      if (this.filterMode === "off") return this.devices.filter(d => d.status === "OFF");
+      if (this.filterMode === "on") return this.devices.filter(d => d.alarm_status === true);
+      if (this.filterMode === "off") return this.devices.filter(d => d.alarm_status === false);
       return this.devices;
     },
 
@@ -223,11 +245,44 @@ export default {
     },
   },
 
+
+  created() {
+    this.getDataFromApi();
+  },
+
   methods: {
     cardClass(d) {
-      if (d.status === "ON") return "cardOn";
+      if (!d) return "cardOff";
+      if (d.alarm_status === true) return "cardOn";
       return "cardOff";
     },
+
+
+
+    async getDataFromApi() {
+      const { sortBy, sortDesc, page, itemsPerPage } = this.options;
+
+      let sortedBy = sortBy ? sortBy[0] : "";
+      let sortedDesc = sortDesc ? sortDesc[0] : "";
+
+      this.payloadOptions = {
+        params: {
+          page: page,
+          sortBy: sortedBy,
+          sortDesc: sortedDesc,
+          per_page: itemsPerPage,
+          company_id: this.$auth.user.company_id,
+
+        },
+      };
+
+      this.loading = true;
+      await this.$axios.get("dashboard_rooms", this.payloadOptions).then(({ data }) => {
+
+        this.devices = data;
+      });
+    },
+
   },
 };
 </script>
@@ -261,6 +316,7 @@ export default {
 .roomCard {
   border-radius: 12px;
   min-height: 170px;
+
 }
 
 .cardOn {
