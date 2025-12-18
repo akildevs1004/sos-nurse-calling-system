@@ -1,9 +1,13 @@
 <template>
   <v-container fluid class="pa-4">
 
+    <SosAlarmPopupMqtt v-if="companyDeviceSerials" :allowedSerials="companyDeviceSerials"
+      @triggerUpdateDashboard="RefreshDashboard()" />
+
     <!-- ================= TOP STATISTICS ================= -->
     <v-row dense>
       <v-col cols="12" sm="6" md="3">
+
         <v-card outlined class="pa-4">
           <div class="d-flex align-center">
             <div>
@@ -159,11 +163,17 @@
 </template>
 
 <script>
+
+import SosAlarmPopupMqtt from '../../components/SOS/SosAlarmPopupMqtt.vue';
+
 export default {
   name: "SosFloorView",
+  components: { SosAlarmPopupMqtt },
 
   data() {
     return {
+      companyDeviceSerials: null,
+
       filterMode: "all",
       perRow: 4,
 
@@ -204,6 +214,7 @@ export default {
   async created() {
     await this.getDataFromApi();
     await this.getStatsApi();
+    await this.getDevicesFromApi();
   },
 
   mounted() {
@@ -218,6 +229,11 @@ export default {
   },
 
   methods: {
+    async RefreshDashboard() {
+      await this.getDataFromApi();
+      await this.getStatsApi();
+
+    },
     cardClass(d) {
       return d?.alarm_status === true ? "cardOn" : "cardOff";
     },
@@ -335,6 +351,30 @@ export default {
         this.loading = false;
       }
 
+    },
+    async getDevicesFromApi() {
+      this.loading = true;
+      this.apiError = "";
+
+      try {
+        const { data } = await this.$axios.get("device-list", {
+          params: {
+            company_id: this.$auth.user.company_id,
+
+          },
+        });
+
+        // supports array or paginator {data:[...]}
+        this.companyDeviceSerials = data.map(d => d.serial_number);
+        this.devices
+      } catch (err) {
+        this.apiError =
+          err?.response?.data?.message ||
+          err?.message ||
+          "Failed to load dashboard rooms";
+      } finally {
+        this.loading = false;
+      }
     },
     async getDataFromApi() {
       this.loading = true;
