@@ -69,7 +69,7 @@
     </v-row>
 
     <!-- ================= FILTER ROW ================= -->
-    <div class="d-flex flex-wrap align-center mt-0 mb-3">
+    <div class="d-flex flex-wrap align-center mt-2 mb-3">
       <v-btn-toggle v-model="filterMode" mandatory class="mr-4">
         <v-btn small value="all">All</v-btn>
         <v-btn small value="on">SOS ON</v-btn>
@@ -103,54 +103,57 @@
     <v-progress-linear v-if="loading" indeterminate height="3" class="mb-2" />
 
     <!-- ================= CARDS GRID ================= -->
-    <div class="gridWrap" :style="gridStyle">
-      <div v-for="d in filteredDevices" :key="d.id" class="gridItem">
-        <v-card outlined class="pa-4 roomCard" :class="cardClass(d)">
-          <div class="d-flex align-start">
-            <div class="min-w-0">
-              <div class="text-h6 font-weight-black text-truncate">{{ d.name }}</div>
+    <v-card outlined class="pa-4 roomCard">
+      <div class="gridWrap" :style="gridStyle">
+        <div v-for="d in filteredDevices" :key="d.id" class="gridItem">
+          <v-card outlined class="pa-4 roomCard roomCardIndividual" :class="cardClass(d)">
+            <div class="d-flex align-start">
+              <div class="min-w-0">
+                <div class="text-h6 font-weight-black text-truncate">{{ d.name }}</div>
 
-              <div class="mt-3">
-                <v-icon v-if="d.room_type == 'toilet'" color="yellow"> mdi-toilet </v-icon> <v-icon
-                  v-if="d.room_type == 'room'" color="blue"> mdi-bed </v-icon> <v-icon v-if="d.room_type == 'room-pd'"
-                  color="red"> mdi-bed </v-icon> <v-icon v-if="d.room_type == 'toilet-pd'" color="yellow"> mdi-toilet
-                </v-icon> <v-icon color="red" v-if="d.room_type == 'toilet-pd'"> mdi-wheelchair </v-icon> <v-icon
-                  v-if="!d.room_type" color="blue"> mdi-bed </v-icon>
+                <div class="mt-3">
+                  <v-icon v-if="d.room_type == 'toilet'" color="yellow"> mdi-toilet </v-icon> <v-icon
+                    v-if="d.room_type == 'room'" color="blue"> mdi-bed </v-icon> <v-icon v-if="d.room_type == 'room-pd'"
+                    color="red"> mdi-bed </v-icon> <v-icon v-if="d.room_type == 'toilet-pd'" color="yellow"> mdi-toilet
+                  </v-icon> <v-icon color="red" v-if="d.room_type == 'toilet-pd'"> mdi-wheelchair </v-icon> <v-icon
+                    v-if="!d.room_type" color="blue"> mdi-bed </v-icon>
+                </div>
+              </div>
+
+              <v-spacer />
+
+              <div>
+                <v-icon v-if="d.alarm_status === true" color="red">mdi-bell</v-icon>
+                <v-icon v-if="d.device?.status_id == 1" color="green">mdi-wifi</v-icon>
+                <v-icon v-else-if="d.device?.status_id == 2" color="red">mdi-wifi-off</v-icon>
               </div>
             </div>
 
-            <v-spacer />
-
-            <div>
-              <v-icon v-if="d.alarm_status === true" color="red">mdi-bell</v-icon>
-              <v-icon v-if="d.device?.status_id == 1" color="green">mdi-wifi</v-icon>
-              <v-icon v-else-if="d.device?.status_id == 2" color="red">mdi-wifi-off</v-icon>
+            <div style="width:100%; text-align:right;">
+              <v-chip x-small class="mt-2" :color="d.alarm_status === true ? 'red' : 'grey'" dark>
+                {{ d.alarm_status === true ? 'PENDING' : 'RESOLVED' }}
+              </v-chip>
             </div>
-          </div>
 
-          <div style="width:100%; text-align:right;">
-            <v-chip x-small class="mt-2" :color="d.alarm_status === true ? 'red' : 'grey'" dark>
-              {{ d.alarm_status === true ? 'PENDING' : 'RESOLVED' }}
-            </v-chip>
-          </div>
-
-          <div class="mt-5 text-center" v-if="d.alarm_status === true">
-            <div class="text-h4 font-weight-bold" style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">
-              {{ d.duration || "00:00:00" }}
+            <div class="mt-5 text-center" v-if="d.alarm_status === true">
+              <div class="text-h4 font-weight-bold"
+                style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">
+                {{ d.duration || "00:00:00" }}
+              </div>
+              <div class="text-caption red--text font-weight-bold text-uppercase" style="letter-spacing:.12em">
+                {{ d.alarm?.alarm_start_datetime }}
+              </div>
             </div>
-            <div class="text-caption red--text font-weight-bold text-uppercase" style="letter-spacing:.12em">
-              {{ d.alarm?.alarm_start_datetime }}
+
+            <div class="mt-5 text-center grey--text" v-else>
+              <v-icon large color="green">mdi-check-circle</v-icon>
+              <div class="text-body-2 font-weight-medium mt-1">No Active Call</div>
             </div>
-          </div>
 
-          <div class="mt-5 text-center grey--text" v-else>
-            <v-icon large color="green">mdi-check-circle</v-icon>
-            <div class="text-body-2 font-weight-medium mt-1">No Active Call</div>
-          </div>
-
-        </v-card>
+          </v-card>
+        </div>
       </div>
-    </div>
+    </v-card>
 
   </v-container>
 </template>
