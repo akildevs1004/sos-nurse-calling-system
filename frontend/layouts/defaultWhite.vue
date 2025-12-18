@@ -151,7 +151,7 @@
           <span style="font-size: 30px; color: #fff"> {{ currentTime }}</span>
           <span style="font-size: 16px; color: #fff; font-weight: 200">{{
             todayDate
-            }}</span>
+          }}</span>
         </div>
       </span>
       <v-menu nudge-bottom="50" transition="scale-transition" origin="center center" bottom left min-width="200"
@@ -504,10 +504,10 @@
     </v-app-bar>
 
     <v-main :class="'main_bg main_bg_' + pagename" :style="miniVariant && drawer
-        ? 'padding-left: 60px;'
-        : !drawer
-          ? 'padding-left: 5px;'
-          : 'padding-left: 140px;'
+      ? 'padding-left: 60px;'
+      : !drawer
+        ? 'padding-left: 5px;'
+        : 'padding-left: 140px;'
       ">
       <v-container style="max-width: 100%">
         <nuxt />
@@ -1406,7 +1406,7 @@ header i {
 
 .popup_title,
 .v-dialog>.v-card>.v-card__title {
-  color: black !important;
+  color: black;
   font-weight: 400 !important;
 
   font-size: 1.25rem !important;
