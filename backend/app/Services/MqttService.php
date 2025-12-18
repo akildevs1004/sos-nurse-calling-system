@@ -151,7 +151,7 @@ class MqttService
                             $alarmId = DeviceSosRoomLogs::create($data);
 
                             $deviceSosRoom->update([
-                                'status'     => true,
+                                'alarm_status'     => true,
                                 'updated_at' => now(),
                             ]);
 
@@ -207,7 +207,7 @@ class MqttService
                             }
 
                             $deviceSosRoom->update([
-                                'status'     => false,
+                                'alarm_status'     => false,
                                 'updated_at' => now(),
                             ]);
                         }
