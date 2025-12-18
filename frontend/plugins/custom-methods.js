@@ -229,6 +229,15 @@ export default ({ app }, inject) => {
       return formattedDate;
       //console.log(formattedDate); // Output: e.g., 02-04-2024, Monday
     },
+    minutesToHHMM: (minutes) => {
+      if (minutes == null || isNaN(minutes)) return "00:00";
+
+      const totalMinutes = Math.floor(Number(minutes));
+      const hh = Math.floor(totalMinutes / 60);
+      const mm = totalMinutes % 60;
+
+      return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+    },
     format_month_name_year: (inputdate) => {
       // Create a Date object with the date "2023-09-13"  Output: "23-09-13"
       const date = new Date(inputdate);

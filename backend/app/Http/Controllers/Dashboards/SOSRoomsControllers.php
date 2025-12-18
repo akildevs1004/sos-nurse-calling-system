@@ -23,7 +23,31 @@ class SOSRoomsControllers extends Controller
 
 
 
+    public function dashboardStats(Request $request)
+    {
+        $companyId = (int) $request->company_id;
+        $slaMinutes = 5;
 
+        // total responded calls
+        $total = DeviceSosRoomLogs::where('company_id', $companyId)
+            ->whereNotNull('response_in_minutes')
+            ->count();
+
+        // responded within SLA
+        $withinSla = DeviceSosRoomLogs::where('company_id', $companyId)
+            ->whereNotNull('response_in_minutes')
+            ->where('response_in_minutes', '<=', $slaMinutes)
+            ->count();
+
+        $percentage = $total > 0
+            ? round(($withinSla / $total) * 100, 2)
+            : 0;
+
+        return response()->json([
+            'sla_percentage' => $percentage,   // e.g. 82.45
+            'sla_minutes'    => $slaMinutes,
+        ]);
+    }
 
 
 

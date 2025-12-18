@@ -40,11 +40,11 @@
           <div class="d-flex align-center">
             <div style="width:100%">
               <div class="text-caption text-uppercase font-weight-bold orange--text">Avg Response</div>
-              <div class="d-flex align-baseline mt-2">
+              <div class="d-flex align-baseline mt-0">
                 <div class="text-h4 font-weight-bold">{{ avgResponseText }}</div>
                 <div class="ml-2 orange--text">min</div>
               </div>
-              <v-progress-linear class="mt-3" height="4" :value="avgResponsePct" color="orange" rounded />
+              <v-progress-linear class="mt-1" height="4" :value="avgResponsePct" color="orange" rounded />
             </div>
             <v-spacer />
             <v-icon color="orange">mdi-timer</v-icon>
@@ -172,8 +172,8 @@ export default {
       TIMER_MS: 1000, // 1 second refresh
 
       // demo values
-      avgResponseText: "1:45",
-      avgResponsePct: 45,
+      avgResponseText: "00:00",
+      avgResponsePct: 100,
     };
   },
 
@@ -198,8 +198,9 @@ export default {
     },
   },
 
-  created() {
-    this.getDataFromApi();
+  async created() {
+    await this.getDataFromApi();
+    await this.getStatsApi();
   },
 
   mounted() {
@@ -302,7 +303,36 @@ export default {
         }
       });
     },
+    async getStatsApi() {
+      this.loading = true;
+      this.apiError = "";
 
+      try {
+        const { data } = await this.$axios.get("dashboard_stats", {
+          params: {
+            company_id: this.$auth.user.company_id,
+
+          },
+        });
+
+        // supports array or paginator {data:[...]}
+        const list = data;
+
+
+        this.avgResponseText = this.$dateFormat.minutesToHHMM(list.sla_percentage);
+        this.avgResponsePct = list.sla_minutes;
+
+
+      } catch (err) {
+        this.apiError =
+          err?.response?.data?.message ||
+          err?.message ||
+          "Failed to load dashboard rooms";
+      } finally {
+        this.loading = false;
+      }
+
+    },
     async getDataFromApi() {
       this.loading = true;
       this.apiError = "";
