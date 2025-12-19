@@ -7,7 +7,7 @@
   }
   .custom-card .menu {
     padding: 5px;
-   
+
   }
   .opener {
     width: 2.5rem;
@@ -37,7 +37,7 @@
    .opener span:nth-child(3) {
     top: 1.65rem;
   }
-  
+
   .custom-card .title {
     color: #a0a0a0;
     font-size: 0.85rem;
@@ -81,3 +81,4 @@
   .follow-info h2 a:hover {
     background: #f2f2f2;
   }
+

@@ -1,62 +1,72 @@
 <template>
-  <v-card outlined class="pa-4 mt-2  " style="border-radius: 12px;;">
+  <v-card outlined class="pa-4 mt-2" style="border-radius: 12px;">
     <v-card-title class="d-flex align-center">
-      <div>
-        <div class="text-h6 font-weight-bold">SOS Alarm Reports</div>
-      </div>
-
+      <div class="text-h6 font-weight-bold">SOS Alarm Reports</div>
       <v-spacer />
-      <v-row>
-        <v-col style="margin: auto">
-          <v-icon loading="true" @click="getDataFromApi()" class="mt-2 pull-right ">mdi-reload</v-icon>
 
-          <v-text-field style="padding-top: 7px; float: right; width: 250px;height:40px" height="20"
+      <v-row class="align-center" dense>
+        <!-- Refresh + Search -->
+        <v-col style="margin:auto">
+          <!-- <v-btn icon class="mr-2" @click="getDataFromApi" :disabled="loading" title="Refresh">
+            <v-progress-circular v-if="loading" indeterminate size="18" width="2" />
+            <v-icon v-else>mdi-reload</v-icon>
+          </v-btn> -->
+
+          <v-text-field style="padding-top: 7px; float: right; width: 250px; height:40px"
             class="employee-schedule-search-box" v-model="commonSearch" label="Room Number, Room Name ..."
-            placeholder="Room Number, Room Name ..." dense outlined type="text" append-icon="mdi-magnify" clearable
-            hide-details></v-text-field></v-col>
-
-        <v-col style="max-width: 200px; padding-right: 0px; margin: auto">
-
-
-          <v-select small class="employee-schedule-search-box" style="
-                        padding-top: 7px;
-                        z-index: 999;
-                        min-width: 100%;
-                        width: 200px;height:40px;
-                      " height="20" outlined v-model="filterSOSStatus" dense
-            :items="[{ 'name': 'All SOS', 'value': '' }, { 'name': 'Pending', 'value': 'true' }, { 'name': 'Resolved', 'value': 'false' }, { 'name': 'Acknowledged', 'value': 'acknowledged' }]"
-            item-text="name" item-value="value" hide-details></v-select>
+            placeholder="Room Number, Room Name ..." dense outlined append-icon="mdi-magnify" clearable hide-details />
         </v-col>
-        <v-col style="max-width: 230px; margin: auto">
-          <CustomFilter style="float: left; padding-top: 5px; z-index: 999" @filter-attr="filterAttr"
-            :default_date_from="date_from" :default_date_to="date_to" :defaultFilterType="1" :height="'40px'" />
+
+        <!-- SOS Status -->
+        <v-col style="max-width: 200px; padding-right: 0px; margin:auto">
+          <v-select class="employee-schedule-search-box"
+            style="padding-top: 7px; z-index: 999; min-width: 100%; width: 200px; height:40px;" dense outlined
+            v-model="filterSOSStatus" :items="sosStatusItems" item-text="name" item-value="value" hide-details
+            label="SOS Status" />
         </v-col>
-        <v-col style="max-width: 100px; padding-top: 18px; margin: auto">
-          <v-btn desne color="primary" @click="getDataFromApi()">Submit</v-btn>
+
+        <!-- Date Range -->
+        <v-col style="max-width: 230px; margin:auto;">
+          <CustomFilter style="padding-top:10px;" @filter-attr="filterAttr" :default_date_from="date_from"
+            :default_date_to="date_to" :defaultFilterType="1" :height="40" :width="200" />
         </v-col>
-        <v-col style="max-width: 90px; padding-top: 18px; margin: auto"> <v-menu bottom right>
+
+        <!-- Submit -->
+        <v-col style="max-width: 100px; padding-top: 18px; margin:auto">
+          <v-btn dense color="primary" @click="submitFilters" :loading="loading">
+            Submit
+          </v-btn>
+        </v-col>
+
+        <!-- Print menu (kept) -->
+        <v-col style="max-width: 60px; padding-top: 18px; margin:auto">
+          <v-menu bottom right>
             <template v-slot:activator="{ on, attrs }">
-              <span v-bind="attrs" v-on="on">
-                <v-icon dark-2 icon color="violet">mdi-printer-outline</v-icon>
+              <span v-bind="attrs" v-on="on" style="cursor:pointer">
+                <v-icon color="violet">mdi-printer-outline</v-icon>
                 Print
               </span>
             </template>
             <v-list width="100" dense>
-              <v-list-item @click="downloadOptions(`print`)">
+              <v-list-item @click="downloadOptions('print')">
                 <v-list-item-title style="cursor: pointer">
                   <v-row>
-                    <v-col cols="5"><img style="padding-top: 5px" src="/icons/icon_print.png"
-                        class="iconsize" /></v-col>
+                    <v-col cols="5">
+                      <img style="padding-top: 5px" src="/icons/icon_print.png" class="iconsize" />
+                    </v-col>
                     <v-col cols="7" style="padding-left: 0px; padding-top: 19px">
                       Print
                     </v-col>
                   </v-row>
                 </v-list-item-title>
               </v-list-item>
+
               <v-list-item @click="downloadOptions('download')">
                 <v-list-item-title style="cursor: pointer">
                   <v-row>
-                    <v-col cols="5"><img style="padding-top: 5px" src="/icons/icon_pdf.png" class="iconsize" /></v-col>
+                    <v-col cols="5">
+                      <img style="padding-top: 5px" src="/icons/icon_pdf.png" class="iconsize" />
+                    </v-col>
                     <v-col cols="7" style="padding-left: 0px; padding-top: 19px">
                       PDF
                     </v-col>
@@ -67,8 +77,9 @@
               <v-list-item @click="downloadOptions('excel')">
                 <v-list-item-title style="cursor: pointer">
                   <v-row>
-                    <v-col cols="5"><img style="padding-top: 5px" src="/icons/icon_excel.png"
-                        class="iconsize" /></v-col>
+                    <v-col cols="5">
+                      <img style="padding-top: 5px" src="/icons/icon_excel.png" class="iconsize" />
+                    </v-col>
                     <v-col cols="7" style="padding-left: 0px; padding-top: 19px">
                       EXCEL
                     </v-col>
@@ -76,85 +87,91 @@
                 </v-list-item-title>
               </v-list-item>
             </v-list>
-          </v-menu></v-col>
-
+          </v-menu>
+        </v-col>
       </v-row>
-
     </v-card-title>
 
     <v-divider />
 
-    <v-data-table dense :headers="headers" :items="logs" :loading="loading" :options.sync="options" :footer-props="{
-      itemsPerPageOptions: [20, 100, 500, 1000],
-    }" class="elevation-1" :server-items-length="totalRowsCount">
-
-
-      <template v-slot:item.sno="{ item, index }">
-        {{
-          currentPage
-            ? (currentPage - 1) * itemsPerPage +
-            (cumulativeIndex + index)
-            : ""
-        }}
-      </template>
-
-      <!-- Room Type Icon -->
-      <template v-slot:item.room_type="{ item }">
-        <div v-if="item.room?.room_type">{{ $utils.caps(item.room.room_type) }}
-          <br /><v-icon size="20" :color="roomTypeColor(item.room.room_type)">
-            {{ roomTypeIcon(item.room.room_type) }}
-
-
-          </v-icon><v-icon size="20" :color="roomTypeColor(item.room.room_type)">
-            {{ roomTypeIcon2(item.room.room_type) }}
-
-
-          </v-icon>
-        </div>
-        <div v-else>---</div>
-
-
+    <v-data-table dense class="elevation-1" :headers="headers" :items="logs" :loading="loading" :options.sync="options"
+      :server-items-length="totalRowsCount" :footer-props="{ itemsPerPageOptions: [20, 100, 500, 1000] }">
+      <!-- S.No -->
+      <template v-slot:item.sno="{ index }">
+        {{ ((options.page || 1) - 1) * (options.itemsPerPage || 20) + index + 1 }}
       </template>
 
       <!-- Location -->
       <template v-slot:item.device_location="{ item }">
-        <div class="font-weight-medium" v-if="item.device">
-          {{ item.device.location || '-' }}
+        <div class="font-weight-medium">
+          {{ $utils.caps(item.room_name) }}
+
         </div>
+        <div style="" class="secondvalue" v-if="item.device">{{ $utils.caps(item.device.location) }} ({{
+          $utils.caps(item.room_id) }})</div>
       </template>
 
-      <!-- Room -->
+      <!-- Room Name -->
       <template v-slot:item.room_name="{ item }">
-        <div class="font-weight-medium">{{ item.room_name || '-' }}</div>
+        <div class="font-weight-medium">{{ item.room_name || "-" }}</div>
       </template>
 
+      <!-- Room Type -->
+      <template v-slot:item.room_type="{ item }">
+        <div v-if="item.room?.room_type">
+
+
+          <v-icon size="10" :color="roomTypeColor(item.room.room_type)">
+            {{ roomTypeIcon(item.room.room_type) }}
+          </v-icon>
+          <v-icon v-if="roomTypeIcon2(item.room.room_type)" size="10" :color="roomTypeColor(item.room.room_type)">
+            {{ roomTypeIcon2(item.room.room_type) }}
+          </v-icon>
+          {{ $utils.caps(item.room.room_type.replace(/-pd$/i, '')) }}
+        </div>
+        <div v-else>---</div>
+      </template>
+
+      <!-- Room ID -->
       <template v-slot:item.room_id="{ item }">
-        <v-chip small outlined>{{ item.room_id ?? '-' }}</v-chip>
+        <v-chip small outlined>{{ item.room_id ?? "-" }}</v-chip>
       </template>
 
-      <!-- Dates -->
+      <!-- Alarm Start -->
       <template v-slot:item.alarm_start_datetime="{ item }">
-        <span>{{ fmt(item.alarm_start_datetime) }}</span>
+        {{ $dateFormat.formatTime(item.alarm_start_datetime) }}
+        <div style="" class="secondvalue">{{ $dateFormat.formatDate(item.alarm_start_datetime) }}</div>
       </template>
 
+      <!-- Alarm End -->
       <template v-slot:item.alarm_end_datetime="{ item }">
-        <span>{{ fmt(item.alarm_end_datetime) }}</span>
+
+
+        {{ $dateFormat.formatTime(item.alarm_end_datetime) }}
+        <div class="secondvalue">{{ $dateFormat.formatDate(item.alarm_end_datetime) }}</div>
       </template>
 
-      <template v-slot:item.responded_datetime="{ item }">
-        <span>{{ fmt(item.responded_datetime) }}</span>
-      </template>
-
-      <!-- Response minutes -->
+      <!-- Response (min) -->
       <template v-slot:item.response_in_minutes="{ item }">
         <v-chip small outlined :class="responseChipClass(item)">
           {{ $dateFormat.minutesToHHMM(item.response_in_minutes) }}
         </v-chip>
       </template>
 
+      <!-- Acknowledged -->
+      <template v-slot:item.responded_datetime="{ item }">
+
+        {{ $dateFormat.formatTime(item.responded_datetime) }}
+        <div style="" class="secondvalue">{{ $dateFormat.formatDate(item.responded_datetime) }}</div>
+      </template>
+
       <!-- Status -->
       <template v-slot:item.ui_status="{ item }">
-        <v-chip small :class="alarmStatusClass(item)">
+        <!-- <v-chip small :class="alarmStatusClass(item)">
+          {{ alarmStatusLabel(item) }}
+        </v-chip> -->
+
+        <v-chip small class="sos-chip" :class="sosChipClass(item)">
           {{ alarmStatusLabel(item) }}
         </v-chip>
       </template>
@@ -167,73 +184,63 @@
 </template>
 
 <script>
-import CustomFilter from '../../components/CustomFilter.vue';
+import CustomFilter from "../../components/CustomFilter.vue";
 
 export default {
   name: "SosAlarmReports",
-
   components: { CustomFilter },
 
   data() {
     return {
-      options: { perPage: 20 },
-
-      slaMinutes: 1,
       loading: false,
       logs: [],
-
-      search: "",
-      from: null,
-      to: null,
-      menuFrom: false,
-      menuTo: false,
-
-      statusFilter: "ALL",
-      statusItems: [
-        { text: "All", value: "ALL" },
-        { text: "Pending", value: "PENDING" },
-        { text: "Acknowledged", value: "ACKNOWLEDGED" },
-        { text: "Resolved", value: "RESOLVED" },
-      ],
-
-      // Pagination tracking for correct S.No
-      page: 1,
-      itemsPerPage: 20,
       totalRowsCount: 0,
-      page: 1,
-      perPage: 0,
-      currentPage: 1,
-      cumulativeIndex: 1,
-      totalTableRowsCount: 0,
-      options: {},
+
+      // Server table options (Vuetify)
+      options: {
+        page: 1,
+        itemsPerPage: 20,
+        sortBy: [],
+        sortDesc: [],
+      },
 
       headers: [
-        { text: "#", value: "sno", sortable: false, },
-        { text: "Location", value: "device_location", sortable: false },
-        { text: "Room Name", value: "room_name", sortable: false },
-        { text: "Room Type", value: "room_type", sortable: false, },
-
-
-        { text: "Room ID", value: "room_id", sortable: false },
+        { text: "#", value: "sno", sortable: false },
         { text: "Alarm Start", value: "alarm_start_datetime", sortable: false },
         { text: "Alarm End", value: "alarm_end_datetime", sortable: false },
+        { text: "Location/Room", value: "device_location", sortable: false },
+        // { text: "Room Name", value: "room_name", sortable: false },
+        { text: "Room Type", value: "room_type", sortable: false },
+        // { text: "Room ID", value: "room_id", sortable: false },
 
-        { text: "Response (min)", value: "response_in_minutes", sortable: false },
-        { text: "Acknowledged", value: "responded_datetime", sortable: false },
+        { text: "Response (HH:MM)", value: "response_in_minutes", sortable: false },
         { text: "Status", value: "ui_status", sortable: false },
+        { text: "Acknowledged", value: "responded_datetime", sortable: false },
+
       ],
 
+      // Filters
       commonSearch: "",
-      filterSOSStatus: '',
-      date_to: null,
+      filterSOSStatus: "",
       date_from: null,
+      date_to: null,
 
+      sosStatusItems: [
+        { name: "All SOS", value: "" },
+        { name: "Pending", value: "true" },
+        { name: "Resolved", value: "false" },
+        // Your backend expects alarm_status="none" for acknowledged
+        { name: "Acknowledged", value: "acknowledged" },
+      ],
+
+      slaMinutes: 1,
     };
   },
 
   mounted() {
     this.getDataFromApi();
   },
+
   watch: {
     options: {
       handler() {
@@ -242,75 +249,54 @@ export default {
       deep: true,
     },
   },
-  methods: {
-    filterAttr(data) {
-      this.date_from = data.from;
-      this.date_to = data.to;
 
-      //this.getDataFromApi(0);
+  methods: {
+    submitFilters() {
+      // reset to first page when applying new filters
+      this.options.page = 1;
+      this.getDataFromApi();
     },
+
+    filterAttr(data) {
+      this.date_from = data?.from || null;
+      this.date_to = data?.to || null;
+    },
+
     async getDataFromApi() {
       this.loading = true;
       try {
+        const { page, itemsPerPage } = this.options;
 
-
-
-
-        let { sortBy, sortDesc, page, itemsPerPage } = this.options;
-        const sortedBy = Array.isArray(sortBy) ? sortBy[0] : "";
-        const sortedDesc = Array.isArray(sortDesc) ? sortDesc[0] : "";
-
-
-
-
-
-        this.currentPage = page;
-        this.itemsPerPage = itemsPerPage;
-
-
-        let options = {
+        const { data } = await this.$axios.get("sos_logs_reports", {
           params: {
             company_id: this.$auth.user.company_id,
             page,
             perPage: itemsPerPage,
             pagination: true,
-            common_search: this.commonSearch != "" ? this.commonSearch : null,
 
+            common_search: this.commonSearch || null,
+            date_from: this.date_from || null,
+            date_to: this.date_to || null,
+            alarm_status: this.filterSOSStatus || null,
           },
-        };
-
-        this.$axios.get("sos_logs_reports", options).then(({ data }) => {
-          this.logs = data.data;
-          this.totalRowsCount = data.total;
-
-
-          this.totalRowsCount = data.total;
         });
 
-
-
-
+        this.logs = data?.data || [];
+        this.totalRowsCount = data?.total || 0;
       } catch (e) {
         console.error("SOS reports fetch failed:", e);
         this.logs = [];
+        this.totalRowsCount = 0;
       } finally {
         this.loading = false;
       }
     },
-
 
     fmt(v) {
       if (!v) return "-";
       const d = new Date(v);
       if (isNaN(d.getTime())) return String(v);
       return d.toLocaleString();
-    },
-
-    displayMinutes(v) {
-      if (v === null || v === undefined || v === "") return "-";
-      const n = Number(v);
-      if (!Number.isFinite(n)) return String(v);
-      return n.toFixed(0);
     },
 
     roomTypeIcon(type) {
@@ -327,20 +313,20 @@ export default {
           return "mdi-bed";
       }
     },
+
     roomTypeIcon2(type) {
       switch ((type || "").toLowerCase()) {
-
         case "room-pd":
-          return "mdi-wheelchair";
         case "toilet-pd":
           return "mdi-wheelchair";
-
+        default:
+          return "";
       }
     },
+
     roomTypeColor(type) {
       switch ((type || "").toLowerCase()) {
         case "toilet":
-          return "yellow";
         case "toilet-pd":
           return "yellow";
         case "room":
@@ -351,40 +337,10 @@ export default {
           return "blue";
       }
     },
-    downloadOptions(option) {
-      // let filterSensorname = this.tab > 0 ? this.sensorItems[this.tab] : null;
 
-      // if (this.eventFilter) {
-      //   filterSensorname = this.eventFilter;
-      // }
-
-      // let url = process.env.BACKEND_URL;
-      // if (option == "print") url += "/parking_camera_logs_print_pdf";
-      // if (option == "excel") url += "/parking_camera_logs_export_excel";
-      // if (option == "download")
-      //   url += "/parking_camera_logs_download_pdf";
-      // //if (option == "download") url += "/alarm_events_download_pdf";
-
-      // url += "?company_id=" + this.$auth.user.company_id;
-      // url += "&date_from=" + this.date_from;
-      // url += "&date_to=" + this.date_to;
-      // if (this.commonSearch) url += "&common_search=" + this.commonSearch;
-      // if (this.filterAlarmStatus)
-      //   url += "&alarm_status=" + this.filterAlarmStatus;
-      // if (filterSensorname != "null" && filterSensorname)
-      //   url += "&filterSensorname=" + filterSensorname;
-      // if (this.filterResponseInMinutes)
-      //   url += "&filterResponseInMinutes=" + this.filterResponseInMinutes;
-      // url += "&tab=" + this.tab;
-      // //  url += "&alarm_status=" + this.filterAlarmStatus;
-
-      // window.open(url, "_blank");
-    },
     alarmStatusLabel(row) {
       const isActive = row.sos_status === true;
-      if (isActive) {
-        return row.responded_datetime ? "ACKNOWLEDGED" : "PENDING";
-      }
+      if (isActive) return row.responded_datetime ? "ACKNOWLEDGED" : "PENDING";
       return "RESOLVED";
     },
 
@@ -394,7 +350,13 @@ export default {
       if (label === "ACKNOWLEDGED") return "chip-warning";
       return "chip-muted";
     },
+    sosChipClass(row) {
+      const status = this.alarmStatusLabel(row);
 
+      if (status === "PENDING") return "sos-pending";
+      if (status === "ACKNOWLEDGED") return "sos-ack";
+      return "sos-resolved";
+    },
     responseChipClass(row) {
       const v = row.response_in_minutes;
       if (v === null || v === undefined) return "chip-muted-outline";
@@ -404,19 +366,14 @@ export default {
       return n <= this.slaMinutes ? "chip-success-outline" : "chip-warning-outline";
     },
 
-    resetFilters() {
-      this.search = "";
-      this.from = null;
-      this.to = null;
-      this.statusFilter = "ALL";
-      this.page = 1;
+    downloadOptions(option) {
+      // keep your existing implementation here
     },
   },
 };
 </script>
 
 <style scoped>
-/* Status chips (solid) */
 .chip-critical {
   background-color: #ef4444 !important;
   color: #fff !important;
@@ -432,7 +389,6 @@ export default {
   color: #fff !important;
 }
 
-/* Response chips (outlined) */
 .chip-success-outline {
   border-color: #22c55e !important;
   color: #22c55e !important;
