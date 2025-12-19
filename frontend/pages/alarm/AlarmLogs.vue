@@ -39,7 +39,7 @@
         </v-col>
 
         <!-- Print menu (kept) -->
-        <v-col style="max-width: 60px; padding-top: 18px; margin:auto">
+        <v-col style="max-width: 90px; padding-top: 18px; margin:auto;font-size:15px">
           <v-menu bottom right>
             <template v-slot:activator="{ on, attrs }">
               <span v-bind="attrs" v-on="on" style="cursor:pointer">
@@ -367,7 +367,33 @@ export default {
     },
 
     downloadOptions(option) {
-      // keep your existing implementation here
+      let filterSensorname = this.tab > 0 ? this.sensorItems[this.tab] : null;
+
+      if (this.eventFilter) {
+        filterSensorname = this.eventFilter;
+      }
+
+      let url = process.env.BACKEND_URL;
+      if (option == "print") url += "/sos_logs_print_pdf";
+      if (option == "excel") url += "/sos_logs_print_excel";
+      if (option == "download")
+        url += "/sos_logs_download_pdf";
+      //if (option == "download") url += "/alarm_events_download_pdf";
+
+      url += "?company_id=" + this.$auth.user.company_id;
+      if (this.date_from)
+        url += "&date_from=" + this.date_from;
+      if (this.date_to)
+        url += "&date_to=" + this.date_to;
+
+      if (this.commonSearch) url += "&common_search=" + this.commonSearch;
+      if (this.filterAlarmStatus)
+        url += "&alarm_status=" + this.filterAlarmStatus;
+
+      url += "&tab=" + this.tab;
+      //  url += "&alarm_status=" + this.filterAlarmStatus;
+
+      window.open(url, "_blank");
     },
   },
 };

@@ -16,7 +16,9 @@ Route::post('/dashboard_alarm_response', [SOSRoomsControllers::class, 'updateRes
 Route::get('/sos_logs_reports', [SOSRoomsControllers::class, 'SosLogsReports']);
 
 
-
+Route::get('/sos_logs_print_pdf', [SOSRoomsControllers::class, 'SosLogsPrintPdf']);
+Route::get('/sos_logs_download_pdf', [SOSRoomsControllers::class, 'SosLogsDownloadPdf']);
+Route::get('/sos_logs_export_excel', [SOSRoomsControllers::class, 'SosLogsDownloadCSV']);
 
 
 // Route::post('/update_sos_devices_to_deviceConfig', [DeviceController::class, 'updateSOSDevicesToDeviceConfig']);

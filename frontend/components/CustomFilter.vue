@@ -45,12 +45,12 @@ export default {
 
     const today = new Date().toISOString().slice(0, 10);
 
-    this.from_date = this.default_date_from || today;
-    this.to_date = this.default_date_to || today;
+    // this.from_date = this.default_date_from || today;
+    // this.to_date = this.default_date_to || today;
 
-    this.time3 = [this.from_date, this.to_date];
+    // this.time3 = [this.from_date, this.to_date];
 
-    this.emitFilter(); // initial emit
+    // this.emitFilter(); // initial emit
   },
 
   methods: {
