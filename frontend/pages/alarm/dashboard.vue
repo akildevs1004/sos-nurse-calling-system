@@ -54,7 +54,7 @@
           <div class="d-flex align-center">
             <div>
               <div class="text-caption text-uppercase font-weight-bold stat-title success-text">
-                Responded (Ack)
+                Acknowledged (Ack)
               </div>
               <div class="d-flex align-baseline mt-2">
                 <div class="text-h4 font-weight-bold">{{ stats.ackCount }}</div>

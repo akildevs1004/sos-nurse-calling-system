@@ -13,4 +13,8 @@ class DeviceSosRoomLogs extends Model
     {
         return $this->belongsTo(Device::class);
     }
+    public function room()
+    {
+        return $this->belongsTo(DeviceSosRooms::class, "device_sos_room_table_id");
+    }
 }

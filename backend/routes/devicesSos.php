@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/dashboard_rooms', [SOSRoomsControllers::class, 'dashboardRooms']);
 Route::get('/dashboard_stats', [SOSRoomsControllers::class, 'dashboardStats']);
 Route::post('/dashboard_alarm_response', [SOSRoomsControllers::class, 'updateResponseDatetime']);
+Route::get('/sos_logs_reports', [SOSRoomsControllers::class, 'SosLogsReports']);
 
 
 

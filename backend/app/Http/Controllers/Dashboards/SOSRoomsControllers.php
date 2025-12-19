@@ -52,7 +52,7 @@ class SOSRoomsControllers extends Controller
             ->count();
 
         $repeatedCalls = DeviceSosRoomLogs::where('company_id', $companyId)->whereDate('alarm_start_datetime', date("Y-m-d"))
-            ->whereNotNull('response_in_minutes')
+            ->whereNotNull('alarm_start_datetime')
             ->select('room_id')
             ->groupBy('room_id')
             ->havingRaw('COUNT(*) > 1')
@@ -136,5 +136,61 @@ class SOSRoomsControllers extends Controller
         // }
 
         // return $deviceRooms;
+    }
+    public function SosLogsReports(Request $request)
+    {
+        $companyId = (int) $request->company_id;
+
+        $model = DeviceSosRoomLogs::query()
+            ->with(['room', 'device'])
+            ->where('company_id', $companyId);
+
+        // Common search
+        $model->when($request->filled('common_search'), function ($q) use ($request) {
+            $s = trim($request->common_search);
+
+            $q->where(function ($qq) use ($s) {
+                $qq->where('room_id', 'ILIKE', "%{$s}%")
+                    ->orWhere('serial_number', 'ILIKE', "%{$s}%")
+                    ->orWhere('room_name', 'ILIKE', "%{$s}%")
+                    // IMPORTANT: use correct relation name (likely "room")
+                    ->orWhereHas('room', function ($rq) use ($s) {
+                        $rq->where('room_type', 'ILIKE', "%{$s}%");
+                    })
+                    // Optional: device location search
+                    ->orWhereHas('device', function ($dq) use ($s) {
+                        $dq->where('location', 'ILIKE', "%{$s}%");
+                    });
+            });
+        });
+
+        // Date range (safe)
+        $model->when($request->filled('date_from'), function ($q) use ($request) {
+            $q->whereDate('alarm_start_datetime', '>=', $request->date_from);
+
+            if ($request->filled('date_to')) {
+                $q->whereDate('alarm_start_datetime', '<=', $request->date_to);
+            }
+        });
+
+        // Alarm status filter (keeping your semantics)
+        if ($request->filled('alarm_status')) {
+            if ($request->alarm_status === "true") {
+                $model->where('sos_status', true);
+            } elseif ($request->alarm_status === "false") {
+                $model->where('sos_status', false);
+            } elseif ($request->alarm_status === "acknowledged") {
+                // Your "none" means acknowledged (active + responded)
+                $model->whereNotNull('responded_datetime');
+            }
+        }
+
+
+        $model->orderBy('alarm_start_datetime', 'desc');
+
+
+        $perPage = (int) ($request->perPage ?: 20);
+
+        return $model->paginate($perPage);
     }
 }

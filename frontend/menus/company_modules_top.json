@@ -7,14 +7,7 @@
     "menu": "dashboard",
     "module": "dashboard"
   },
-  {
-    "icon": "mdi mdi-temperature-celsius",
-    "title": "Logs",
-    "to": "/alarm/temperatureLogs",
-    "menu": "logs",
-    "submenu": "leftmenu",
-    "module": "dashboard"
-  },
+
   {
     "icon": "mdi-alarm-light",
     "title": "Reports",
@@ -25,24 +18,10 @@
   },
 
   {
-    "icon": "mdi-email",
-    "title": "Notifications",
-    "to": "/automation",
-    "menu": "notifications",
-    "module": "settings"
-  },
-  {
     "icon": "mdi mdi-server",
-    "title": "Devices",
+    "title": "Gateways",
     "to": "/alarm/rooms",
     "menu": "rooms",
-    "module": "settings"
-  },
-  {
-    "icon": "mdi mdi-whatsapp",
-    "title": "Whatsapp",
-    "to": "/whatsapp",
-    "menu": "whatsapp",
     "module": "settings"
   }
 ]
