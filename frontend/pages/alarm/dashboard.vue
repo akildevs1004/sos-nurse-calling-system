@@ -1,76 +1,93 @@
 <template>
   <v-container fluid class="pa-4">
-
+    <div class="text-center ma-2">
+      <v-snackbar v-model="snackbar" top="top" elevation="24">
+        {{ snackbarResponse }}
+      </v-snackbar>
+    </div>
     <SosAlarmPopupMqtt v-if="companyDeviceSerials" :allowedSerials="companyDeviceSerials"
       @triggerUpdateDashboard="RefreshDashboard()" />
 
     <!-- ================= TOP STATISTICS ================= -->
+    <!-- ================= TOP STATISTICS ================= -->
     <v-row dense>
+      <!-- Active SOS – Critical (Red) -->
       <v-col cols="12" sm="6" md="3">
-
-        <v-card outlined class="pa-4">
+        <v-card outlined class="pa-4 stat-card stat-critical">
           <div class="d-flex align-center">
             <div>
-              <div class="text-caption grey--text text-uppercase font-weight-bold">Total Rooms</div>
-              <div class="d-flex align-baseline mt-2">
-                <div class="text-h4 font-weight-bold">{{ stats.totalPoints }}</div>
-                <!-- <div class="ml-2 grey--text">Rooms & Toilets</div> -->
+              <div class="text-caption text-uppercase font-weight-bold stat-title critical-text">
+                Active SOS
               </div>
-            </div>
-            <v-spacer />
-            <v-icon color="grey">mdi-grid</v-icon>
-          </div>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" sm="6" md="3">
-        <v-card outlined class="pa-4" :class="activeSosCount ? 'sos-border-red' : ''">
-          <div class="d-flex align-center">
-            <div>
-              <div class="text-caption text-uppercase font-weight-bold red--text">Active SOS</div>
               <div class="d-flex align-baseline mt-2">
                 <div class="text-h4 font-weight-bold">{{ stats.activeSos }}</div>
-                <div class="ml-2 red--text">Calls Active</div>
+                <div class="ml-2 stat-sub critical-text">Calls Active</div>
               </div>
             </div>
             <v-spacer />
-            <v-icon color="red">mdi-bell-alert</v-icon>
+            <v-icon class="stat-icon critical-text">mdi-bell-alert</v-icon>
           </div>
         </v-card>
       </v-col>
 
+      <!-- Repeated – Info (Blue) -->
       <v-col cols="12" sm="6" md="3">
-        <v-card outlined class="pa-4 sos-border-orange">
-          <div class="d-flex align-center">
-            <div style="width:100%">
-              <div class="text-caption text-uppercase font-weight-bold orange--text">Avg Response</div>
-              <div class="d-flex align-baseline mt-0">
-                <div class="text-h4 font-weight-bold">{{ avgResponseText }}</div>
-                <div class="ml-2 orange--text">min</div>
-              </div>
-              <v-progress-linear class="mt-1" height="4" :value="avgResponsePct" color="orange" rounded />
-            </div>
-            <v-spacer />
-            <v-icon color="orange">mdi-timer</v-icon>
-          </div>
-        </v-card>
-      </v-col>
-
-      <v-col cols="12" sm="6" md="3">
-        <v-card outlined class="pa-4">
+        <v-card outlined class="pa-4 stat-card stat-info">
           <div class="d-flex align-center">
             <div>
-              <div class="text-caption grey--text text-uppercase font-weight-bold">Staff on Floor</div>
-              <div class="d-flex align-center mt-2">
-                <div class="text-h4 font-weight-bold">{{ stats.staffOnFloor }}</div>
+              <div class="text-caption text-uppercase font-weight-bold stat-title info-text">
+                Repeated
+              </div>
+              <div class="d-flex align-baseline mt-2">
+                <div class="text-h4 font-weight-bold">{{ stats.repeated }}</div>
               </div>
             </div>
             <v-spacer />
-            <v-icon color="grey">mdi-badge-account</v-icon>
+            <v-icon class="stat-icon info-text">mdi-alarm-light</v-icon>
+          </div>
+        </v-card>
+      </v-col>
+
+      <!-- Responded (Ack) – Success (Green) -->
+      <v-col cols="12" sm="6" md="3">
+        <v-card outlined class="pa-4 stat-card stat-success">
+          <div class="d-flex align-center">
+            <div>
+              <div class="text-caption text-uppercase font-weight-bold stat-title success-text">
+                Responded (Ack)
+              </div>
+              <div class="d-flex align-baseline mt-2">
+                <div class="text-h4 font-weight-bold">{{ stats.ackCount }}</div>
+              </div>
+            </div>
+            <v-spacer />
+            <v-icon class="stat-icon success-text">mdi-check-circle</v-icon>
+          </div>
+        </v-card>
+      </v-col>
+
+      <!-- Avg Response – Warning (Orange) -->
+      <v-col cols="12" sm="6" md="3">
+        <v-card outlined class="pa-4 stat-card stat-warning">
+          <div class="d-flex align-center">
+            <div style="width:100%">
+              <div class="text-caption text-uppercase font-weight-bold stat-title warning-text">
+                Avg Response
+              </div>
+              <div class="d-flex align-baseline mt-0">
+                <div class="text-h4 font-weight-bold">{{ avgResponseText }}</div>
+                <div class="ml-2 stat-sub warning-text">min</div>
+              </div>
+              <v-progress-linear class="mt-1" height="4" :value="avgResponsePct" color="warning" rounded />
+            </div>
+            <v-spacer />
+            <v-icon class="stat-icon warning-text">mdi-timer</v-icon>
           </div>
         </v-card>
       </v-col>
     </v-row>
+
+
 
     <!-- ================= FILTER ROW ================= -->
     <div class="d-flex flex-wrap align-center mt-2 mb-3">
@@ -81,8 +98,9 @@
       </v-btn-toggle>
 
       <div class="d-flex align-center">
-        <div class="text-caption grey--text mr-2 font-weight-bold">Grid / row:</div>
+
         <v-btn-toggle v-model="perRow" mandatory>
+          <v-btn small readonly :value="4">Split <v-icon>mdi-view-grid</v-icon> </v-btn>
           <v-btn small :value="2">2</v-btn>
           <v-btn small :value="4">4</v-btn>
           <v-btn small :value="6">6</v-btn>
@@ -101,9 +119,9 @@
       </div>
     </div>
 
-    <v-alert v-if="apiError" type="error" dense text class="mb-2">
+    <!-- <v-alert v-if="apiError" type="error" dense text class="mb-2">
       {{ apiError }}
-    </v-alert>
+    </v-alert> -->
     <v-progress-linear v-if="loading" indeterminate height="3" class="mb-2" />
 
     <!-- ================= CARDS GRID ================= -->
@@ -113,14 +131,16 @@
           <v-card outlined class="pa-4 roomCard roomCardIndividual" :class="cardClass(d)">
             <div class="d-flex align-start">
               <div class="min-w-0">
-                <div class="text-h6 font-weight-black text-truncate">{{ d.name }}</div>
+                <div class="text-h6 font-weight-black text-truncate">{{ d.name }} {{ cardClass(d) }}</div>
 
                 <div class="mt-3">
-                  <v-icon v-if="d.room_type == 'toilet'" color="yellow"> mdi-toilet </v-icon> <v-icon
-                    v-if="d.room_type == 'room'" color="blue"> mdi-bed </v-icon> <v-icon v-if="d.room_type == 'room-pd'"
-                    color="red"> mdi-bed </v-icon> <v-icon v-if="d.room_type == 'toilet-pd'" color="yellow"> mdi-toilet
-                  </v-icon> <v-icon color="red" v-if="d.room_type == 'toilet-pd'"> mdi-wheelchair </v-icon> <v-icon
-                    v-if="!d.room_type" color="blue"> mdi-bed </v-icon>
+                  <v-icon size="40" v-if="d.room_type == 'toilet'" color="yellow"> mdi-toilet </v-icon>
+                  <v-icon size="40" v-if="d.room_type == 'room'" color="blue"> mdi-bed </v-icon>
+                  <v-icon size="40" v-if="d.room_type == 'room-pd'" color="red"> mdi-bed </v-icon>
+                  <v-icon size="40" v-if="d.room_type == 'toilet-pd'" color="yellow"> mdi-toilet </v-icon>
+                  <v-icon size="40" color="red" v-if="d.room_type == 'toilet-pd'"> mdi-wheelchair </v-icon>
+
+                  <v-icon v-if="!d.room_type" size="40" color="blue"> mdi-bed </v-icon>
                 </div>
               </div>
 
@@ -133,10 +153,17 @@
               </div>
             </div>
 
-            <div style="width:100%; text-align:right;">
-              <v-chip x-small class="mt-2" :color="d.alarm_status === true ? 'red' : 'grey'" dark>
-                {{ d.alarm_status === true ? 'PENDING' : 'RESOLVED' }}
+            <div style="width:100%; text-align:right;margin-top:-50px;height:50px">
+              <v-chip small class="mt-2"
+                :color="d.alarm_status === true ? d.alarm?.responded_datetime ? '#f97316' : 'red' : 'grey'">
+                {{ d.alarm_status === true ? d.alarm?.responded_datetime ? 'ACKNOWLEDGED' : 'PENDING' : 'RESOLVED' }}
               </v-chip>
+
+              <div v-if="!d.alarm?.responded_datetime">
+                <v-btn class="mt-2 blink-btn" small v-if="d.alarm_status === true" @click="udpateResponse(d.alarm.id)">
+                  <v-icon>mdi-cursor-default-click</v-icon> Acknowledge
+                </v-btn>
+              </div>
             </div>
 
             <div class="mt-5 text-center" v-if="d.alarm_status === true">
@@ -163,12 +190,16 @@
 </template>
 
 <script>
+// import { VTabItem } from 'vuetify/lib';
 
-import SosAlarmPopupMqtt from '../../components/SOS/SosAlarmPopupMqtt.vue';
+
+// import SosAlarmPopupMqtt from '../../components/SOS/SosAlarmPopupMqtt.vue';
+
+
 
 export default {
   name: "SosFloorView",
-  components: { SosAlarmPopupMqtt },
+  // components: { SosAlarmPopupMqtt },
 
   data() {
     return {
@@ -187,6 +218,11 @@ export default {
       // demo values
       avgResponseText: "00:00",
       avgResponsePct: 100,
+      repeated: 0,
+      ackCount: 0,
+      snackbar: false,
+      snackbarResponse: '',
+      averageMinutes: 0,
     };
   },
 
@@ -198,6 +234,9 @@ export default {
       return {
         totalPoints: this.devices.length,
         activeSos: this.activeSosCount,
+        repeated: this.repeated,
+        ackCount: this.ackCount,
+
         staffOnFloor: 6,
       };
     },
@@ -235,7 +274,8 @@ export default {
 
     },
     cardClass(d) {
-      return d?.alarm_status === true ? "cardOn" : "cardOff";
+      return d?.alarm_status === true ? d.alarm?.responded_datetime != null ? "cardAck" : "cardOn" : "cardOff";
+
     },
 
     // normalize alarm_status to boolean (handles true/false, 1/0, "ON"/"OFF")
@@ -322,8 +362,37 @@ export default {
         }
       });
     },
-    async getStatsApi() {
+
+    async udpateResponse(alarmId) {
       this.loading = true;
+      this.apiError = "";
+
+      try {
+        const { data } = await this.$axios.post("dashboard_alarm_response", {
+
+          company_id: this.$auth.user.company_id,
+          alarmId: alarmId,
+        });
+
+        //if (data.status) {
+        this.snackbar = true;
+        this.snackbarResponse = data.message;
+        //  }
+
+        await this.getDataFromApi();
+        await this.getStatsApi();
+      } catch (err) {
+        this.apiError =
+          err?.response?.data?.message ||
+          err?.message ||
+          "Failed to load dashboard rooms";
+      } finally {
+        this.loading = false;
+      }
+
+    },
+    async getStatsApi() {
+      // this.loading = true;
       this.apiError = "";
 
       try {
@@ -336,10 +405,10 @@ export default {
 
         // supports array or paginator {data:[...]}
         const list = data;
-
-
-        this.avgResponseText = this.$dateFormat.minutesToHHMM(list.sla_percentage);
-        this.avgResponsePct = list.sla_minutes;
+        this.repeated = data.repeated;
+        this.ackCount = data.ackCount;
+        this.avgResponseText = this.$dateFormat.minutesToHHMM(list.averageMinutes);
+        this.avgResponsePct = list.sla_percentage;
 
 
       } catch (err) {
@@ -353,7 +422,7 @@ export default {
 
     },
     async getDevicesFromApi() {
-      this.loading = true;
+      // this.loading = true;
       this.apiError = "";
 
       try {
@@ -445,12 +514,17 @@ export default {
   border: 1px solid rgba(148, 163, 184, 0.35);
 }
 
+.cardAck {
+
+  border: 2px solid #f97316;
+}
+
 .sos-border-red {
   border-color: rgba(239, 68, 68, 0.35) !important;
 }
 
 .sos-border-orange {
-  border-color: rgba(249, 115, 22, 0.35) !important;
+  border-color: #f97316 !important;
 }
 
 .dot {
@@ -467,5 +541,81 @@ export default {
 
 .dot-grey {
   background: #64748b;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.blink-btn {
+  animation: blink 1s infinite;
+}
+
+.stat-card {
+  border-radius: 14px;
+  border: 1px solid transparent !important;
+}
+
+/* ===== Full Border Colors ===== */
+.stat-critical {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.stat-warning {
+  border-color: #f97316 !important;
+  background: rgba(249, 115, 22, 0.05);
+}
+
+.stat-success {
+  border-color: #22c55e !important;
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.stat-info {
+  border-color: #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+/* ===== Text & Icon Colors ===== */
+.critical-text {
+  color: #ef4444 !important;
+}
+
+.warning-text {
+  color: #f97316 !important;
+}
+
+.success-text {
+  color: #22c55e !important;
+}
+
+.info-text {
+  color: #3b82f6 !important;
+}
+
+/* Typography */
+.stat-title {
+  letter-spacing: 0.06em;
+}
+
+.stat-sub {
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.stat-icon {
+  font-size: 34px;
+  opacity: 0.95;
 }
 </style>

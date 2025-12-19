@@ -21,7 +21,25 @@ use Illuminate\Http\Request;
 class SOSRoomsControllers extends Controller
 {
 
+    public function updateResponseDatetime(Request $request)
+    {
 
+
+        $companyId =  (int) $request->company_id;
+        $alarmId =  (int) $request->alarmId;
+
+        $alarmLog = DeviceSosRoomLogs::with(["device"])->where("id", $alarmId)->where("company_id", $companyId)->where("sos_status", true)->first();
+
+
+        if ($alarmLog && $alarmLog["device"]) {
+
+            $now = now()->setTimezone($alarmLog->device->utc_time_zone)->format('Y-m-d H:i:s');
+
+            $alarmLog->update(["responded_datetime" => $now]);
+            return $this->response('Acknowledgement Updated Successfully', null, true);
+        }
+        return $this->response('Not Updated.Try Again ', null, false);
+    }
 
     public function dashboardStats(Request $request)
     {
@@ -32,6 +50,24 @@ class SOSRoomsControllers extends Controller
         $total = DeviceSosRoomLogs::where('company_id', $companyId)
             ->whereNotNull('response_in_minutes')
             ->count();
+
+        $repeatedCalls = DeviceSosRoomLogs::where('company_id', $companyId)->whereDate('alarm_start_datetime', date("Y-m-d"))
+            ->whereNotNull('response_in_minutes')
+            ->select('room_id')
+            ->groupBy('room_id')
+            ->havingRaw('COUNT(*) > 1')
+            ->count();
+        $ackCount = DeviceSosRoomLogs::where('company_id', $companyId)->whereDate('alarm_start_datetime', date("Y-m-d"))
+            ->whereNotNull('responded_datetime')
+            ->select('id')
+            ->groupBy('id')
+            ->havingRaw('COUNT(*) > 0')
+            ->count();
+
+        $averageMinutes = DeviceSosRoomLogs::where('company_id', $companyId)
+            ->whereNotNull('response_in_minutes')
+
+            ->avg('response_in_minutes');
 
         // responded within SLA
         $withinSla = DeviceSosRoomLogs::where('company_id', $companyId)
@@ -46,6 +82,16 @@ class SOSRoomsControllers extends Controller
         return response()->json([
             'sla_percentage' => $percentage,   // e.g. 82.45
             'sla_minutes'    => $slaMinutes,
+            'averageMinutes'    => $averageMinutes,
+
+
+
+            'repeated'    => $repeatedCalls,
+            'ackCount'    => $ackCount,
+
+
+
+
         ]);
     }
 
@@ -63,6 +109,8 @@ class SOSRoomsControllers extends Controller
                 }
             ])
             ->where('company_id', $companyId)
+            ->orderby('room_id', "asc")
+
             ->get()
             ->map(function ($room) {
                 // keep your output key name: alarm

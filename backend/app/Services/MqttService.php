@@ -131,35 +131,44 @@ class MqttService
 
                             // $now = now()->format("Y-m-d H:i:s");
 
+                            $openLog = DeviceSosRoomLogs::where("serial_number", $serialNumber)
+                                ->where("room_id", $roomId)
+                                ->where("sos_status", true)                 // FIX: correct column
+                                ->whereNull("alarm_end_datetime")           // RECOMMENDED: only open alarms
+                                ->orderBy("alarm_start_datetime", "desc")
+                                ->first();
 
+                            if (!$openLog) {
+                                $data = [
+                                    "company_id"               => $device->company_id,
+                                    "device_id"                => $device->id,
+                                    "device_sos_room_table_id" => $deviceSosRoom->id,
+                                    "room_id"                  => $roomId,
+                                    "room_name"                => $name,
+                                    "serial_number"            => $serialNumber,
 
-                            $data = [
-                                "company_id"               => $device->company_id,
-                                "device_id"                => $device->id,
-                                "device_sos_room_table_id" => $deviceSosRoom->id,
-                                "room_id"                  => $roomId,
-                                "room_name"                => $name,
-                                "serial_number"            => $serialNumber,
+                                    "sos_status"               => true,
+                                    "on_code"                  => $code,
 
-                                "sos_status"               => true,
-                                "on_code"                  => $code,
+                                    "created_datetime"         => $now,
+                                    "alarm_start_datetime"     => $now,
+                                ];
 
-                                "created_datetime"         => $now,
-                                "alarm_start_datetime"     => $now,
-                            ];
+                                $alarmId = DeviceSosRoomLogs::create($data);
 
-                            $alarmId = DeviceSosRoomLogs::create($data);
+                                $deviceSosRoom->update([
+                                    'alarm_status'     => true,
+                                    'updated_at' => now(),
+                                ]);
 
-                            $deviceSosRoom->update([
-                                'alarm_status'     => true,
-                                'updated_at' => now(),
-                            ]);
-
-                            File::prepend($logPath, "[" . now() . "] Info: SOS Alarm Is created $alarmId serial=$serialNumber room_id=$roomId\n");
+                                File::prepend($logPath, "[" . now() . "] Info: SOS Alarm Is created $alarmId serial=$serialNumber room_id=$roomId\n");
+                            } else {
+                                File::prepend($logPath, "[" . now() . "] Info: SOS Alarm Is Already  created $openLog->id serial=$serialNumber room_id=$roomId\n");
+                            }
                         } elseif ($status === "OFF") {
 
 
-
+                            echo "\nOFF 11111111" . $deviceSosRoom->id;
 
                             // $now = now()->format("Y-m-d H:i:s");
 
@@ -169,49 +178,55 @@ class MqttService
                                 ->where("sos_status", true)                 // FIX: correct column
                                 ->whereNull("alarm_end_datetime")           // RECOMMENDED: only open alarms
                                 ->orderBy("alarm_start_datetime", "desc")
-                                ->first();
+                                ->get();
 
-                            $response_in_minutes = 0;
+                            foreach ($openLog as $key => $log) {
+                                # code...
 
-                            if ($openLog) {
-                                $response_in_minutes = Carbon::parse($openLog->alarm_start_datetime)
-                                    ->diffInMinutes($now);
+
+                                $response_in_minutes = 0;
+
+                                if ($log) {
+                                    $response_in_minutes = Carbon::parse($log->alarm_start_datetime)
+                                        ->diffInMinutes($now);
+
+                                    DeviceSosRoomLogs::where("id", $log->id)->update([                          // FIX: update the instance
+                                        "sos_status"          => false,
+                                        "off_code"            => $code,
+                                        "alarm_end_datetime"  => $now,
+                                        "response_in_minutes"  => $response_in_minutes,
+
+                                    ]);
+
+                                    File::prepend($logPath, "[" . now() . "] Info: SOS Alarm Is Updated  $log->id serial=$serialNumber room_id=$roomId\n");
+                                }
                             }
 
-                            if ($openLog) {
-                                $openLog->update([                          // FIX: update the instance
-                                    "sos_status"          => false,
-                                    "off_code"            => $code,
-                                    "alarm_end_datetime"  => $now,
-                                    "response_in_minutes"  => $response_in_minutes,
+                            // if (count($openLog) == 0) {
+                            //     // Optional: if OFF arrives without an ON, you can still store it as standalone
+                            //     $alarmId = DeviceSosRoomLogs::create([
+                            //         "company_id"               => $device->company_id,
+                            //         "device_id"                => $device->id,
+                            //         "device_sos_room_table_id" => $deviceSosRoom->id,
+                            //         "room_id"                  => $roomId,
+                            //         "room_name"                => $name,
+                            //         "serial_number"            => $serialNumber,
+                            //         "sos_status"               => false,
+                            //         "off_code"                 => $code,
+                            //         "created_datetime"         => $now,
+                            //         "alarm_end_datetime"       => $now,
+                            //     ]);
 
-                                ]);
-
-                                File::prepend($logPath, "[" . now() . "] Info: SOS Alarm Is Updated  $openLog->id serial=$serialNumber room_id=$roomId\n");
-                            } else {
-                                // Optional: if OFF arrives without an ON, you can still store it as standalone
-                                $alarmId = DeviceSosRoomLogs::create([
-                                    "company_id"               => $device->company_id,
-                                    "device_id"                => $device->id,
-                                    "device_sos_room_table_id" => $deviceSosRoom->id,
-                                    "room_id"                  => $roomId,
-                                    "room_name"                => $name,
-                                    "serial_number"            => $serialNumber,
-                                    "sos_status"               => false,
-                                    "off_code"                 => $code,
-                                    "created_datetime"         => $now,
-                                    "alarm_end_datetime"       => $now,
-                                ]);
-
-                                File::prepend($logPath, "[" . now() . "] Info: SOS Alarm Is created $alarmId serial=$serialNumber room_id=$roomId\n");
-                            }
-
-                            $deviceSosRoom->update([
+                            //     File::prepend($logPath, "[" . now() . "] Info: SOS Alarm Is created $alarmId serial=$serialNumber room_id=$roomId\n");
+                            // }
+                            echo "\nOFF " . $deviceSosRoom->id;
+                            echo  $deviceSosRoom->update([
                                 'alarm_status'     => false,
                                 'updated_at' => now(),
                             ]);
                         }
                     } catch (\Throwable $e) {
+                        echo $e->getMessage();
                         File::prepend($logPath, "[" . now() . "] EXCEPTION: " . $e->getMessage() . "\n");
                     }
                 });
