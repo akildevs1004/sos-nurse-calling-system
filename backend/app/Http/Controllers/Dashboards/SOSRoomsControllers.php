@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Dashboards;
 
+use App\Exports\SOSExcelReports;
 use App\Http\Controllers\Controller;
 
 use App\Models\Attendance;
@@ -19,6 +20,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SOSRoomsControllers extends Controller
 {
@@ -140,7 +142,7 @@ class SOSRoomsControllers extends Controller
         // return $deviceRooms;
     }
 
-    public function  getRecords($request, $perpage = 20)
+    public function  getRecords($request, $perpage = null)
     {
 
         $companyId = (int) $request->company_id;
@@ -213,6 +215,8 @@ class SOSRoomsControllers extends Controller
     public function SosLogsPrintPdf(Request $request)
     {
 
+
+
         $report =  $this->getRecords($request);
         $company = Company::whereId($request->company_id)->with('contact:id,company_id,number')->first();
 
@@ -221,22 +225,23 @@ class SOSRoomsControllers extends Controller
 
         return   Pdf::loadview("sos/sos-reports", ["request" => $request, "reports" => $report, "company" => $company])->setpaper("A4", "potrait")->stream($fileName);
     }
-    public function ParkingCameraLogsDownloadPdf(Request $request)
+    public function SosLogsDownloadPdf(Request $request)
     {
 
-        // $report =  (new ParkingCameraLogsController)->getRecords($request);
-        // $company = Company::whereId($request->company_id)->with('contact:id,company_id,number')->first();
+        $report =  $this->getRecords($request);
+        $company = Company::whereId($request->company_id)->with('contact:id,company_id,number')->first();
 
-        // $fileName = "Parking List.pdf";
-        // return   Pdf::loadview("parking/parking-reports", ["request" => $request, "reports" => $report, "company" => $company])->setpaper("A4", "potrait")->download($fileName);
+        $fileName = "SOS Reports List.pdf";
+
+
+        return   Pdf::loadview("sos/sos-reports", ["request" => $request, "reports" => $report, "company" => $company])->setpaper("A4", "potrait")->download($fileName);
     }
-    public function ParkingCameraLogsDownloadCSV(Request $request)
+    public function SosLogsDownloadCSV(Request $request)
     {
 
-        // $reports =  (new ParkingCameraLogsController)->getRecords($request);
+        $reports =   $this->getRecords($request);
+        $fileName = "SOS Reports List.xlsx";
 
-        // $fileName = "Parking Reports.xlsx";
-
-        // return Excel::download((new ParkingReports($reports)), $fileName);
+        return Excel::download((new SOSExcelReports($reports)), $fileName);
     }
 }

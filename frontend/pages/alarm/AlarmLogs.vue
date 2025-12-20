@@ -127,7 +127,7 @@
           <v-icon v-if="roomTypeIcon2(item.room.room_type)" size="10" :color="roomTypeColor(item.room.room_type)">
             {{ roomTypeIcon2(item.room.room_type) }}
           </v-icon>
-          {{ $utils.caps(item.room.room_type.replace(/-pd$/i, '')) }}
+          {{ $utils.caps(item.room.room_type.replace(/-ph$/i, '')) }}
         </div>
         <div v-else>---</div>
       </template>
@@ -305,9 +305,9 @@ export default {
           return "mdi-toilet";
         case "room":
           return "mdi-bed";
-        case "room-pd":
+        case "room-ph":
           return "mdi-bed";
-        case "toilet-pd":
+        case "toilet-ph":
           return "mdi-toilet";
         default:
           return "mdi-bed";
@@ -316,8 +316,8 @@ export default {
 
     roomTypeIcon2(type) {
       switch ((type || "").toLowerCase()) {
-        case "room-pd":
-        case "toilet-pd":
+        case "room-ph":
+        case "toilet-ph":
           return "mdi-wheelchair";
         default:
           return "";
@@ -327,11 +327,11 @@ export default {
     roomTypeColor(type) {
       switch ((type || "").toLowerCase()) {
         case "toilet":
-        case "toilet-pd":
+        case "toilet-ph":
           return "yellow";
         case "room":
           return "blue";
-        case "room-pd":
+        case "room-ph":
           return "red";
         default:
           return "blue";
@@ -375,7 +375,7 @@ export default {
 
       let url = process.env.BACKEND_URL;
       if (option == "print") url += "/sos_logs_print_pdf";
-      if (option == "excel") url += "/sos_logs_print_excel";
+      if (option == "excel") url += "/sos_logs_export_excel";
       if (option == "download")
         url += "/sos_logs_download_pdf";
       //if (option == "download") url += "/alarm_events_download_pdf";
@@ -390,7 +390,7 @@ export default {
       if (this.filterAlarmStatus)
         url += "&alarm_status=" + this.filterAlarmStatus;
 
-      url += "&tab=" + this.tab;
+      // url += "&tab=" + this.tab;
       //  url += "&alarm_status=" + this.filterAlarmStatus;
 
       window.open(url, "_blank");

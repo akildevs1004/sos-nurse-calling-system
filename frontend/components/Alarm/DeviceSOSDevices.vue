@@ -68,7 +68,7 @@
           <v-select v-model="editForm.roomType" abel="Room ID" outlined dense :items="[
             { value: 'room', text: 'Room' },
             { value: 'toilet', text: 'Toilet' },
-            { value: 'toilet-pd', text: 'Toilet For Disabled' },
+            { value: 'toilet-ph', text: 'Toilet For Disabled' },
 
           ]" item-value="value" item-text="text"></v-select>
         </v-card-text>

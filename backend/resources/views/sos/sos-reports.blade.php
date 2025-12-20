@@ -1,251 +1,298 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <title>SOS Reports</title>
+    <meta charset="UTF-8">
+    <title>Parking Reports</title>
 
     <style>
         @page {
-            margin: 18px 18px;
+            margin: 20px 20px 20px 20px;
         }
 
         body {
             font-family: DejaVu Sans, sans-serif;
             font-size: 11px;
-            background: #ffffff;
-            color: #111827;
+            color: #222;
         }
 
-        /* ===== HEADER ===== */
         .header {
-            margin-bottom: 14px;
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 8px;
+            width: 100%;
+            margin-bottom: 0px;
         }
 
-        .company {
+        .header-left {
+            float: left;
+            width: 60%;
+        }
+
+        .header-right {
+            float: right;
+            width: 40%;
+            text-align: right;
+        }
+
+        .company-name {
+            font-weight: bold;
             font-size: 16px;
-            font-weight: 700;
         }
 
-        .subtitle {
-            font-size: 11px;
-            color: #6b7280;
-            margin-top: 2px;
+        .report-title {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 5px;
         }
 
-        /* ===== TABLE ===== */
+        .clearfix {
+            clear: both;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 12px;
+            margin-top: 0px;
         }
 
-        thead th {
-            /* background: #f9fafb; */
-            color: #6b7280;
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            padding: 10px 8px;
-            border-bottom: 1px solid #e5e7eb;
-            text-align: left;
-        }
-
-        tbody td {
-            padding: 9px 8px;
-            border-bottom: 1px solid #e5e7eb;
-            vertical-align: middle;
-        }
-
-        tbody tr:nth-child(even) {
-            /* background: #f9fafb; */
-        }
-
-        /* ===== DATE / TIME ===== */
-        .time {
-            font-weight: 700;
-            font-size: 12px;
-        }
-
-        .date {
-            font-size: 10px;
-            color: #6b7280;
-            margin-top: 2px;
-        }
-
-        /* ===== ROOM / LOCATION ===== */
-        .room {
-            font-weight: 700;
-        }
-
-        .location {
-            font-size: 10px;
-            color: #6b7280;
-            margin-top: 2px;
-        }
-
-        /* ===== STATUS CHIPS ===== */
-        .chip {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 999px;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            border: 1px solid;
-            background: #ffffff;
-        }
-
-        .pending {
-            color: #dc2626;
-            border-color: #dc2626;
-        }
-
-        .resolved {
-            color: #059669;
-            border-color: #059669;
-        }
-
-        .ack {
-            color: #d97706;
-            border-color: #d97706;
-        }
-
-        /* ===== RESPONSE TIME ===== */
-        .resp {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 999px;
-            font-weight: 700;
-            font-size: 10px;
-            border: 1px solid;
-            background: #ffffff;
-        }
-
-        .resp-ok {
-            color: #059669;
-            border-color: #059669;
-        }
-
-        .resp-warn {
-            color: #ea580c;
-            border-color: #ea580c;
-        }
-
-        .center {
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 4px;
             text-align: center;
+            word-wrap: break-word;
+        }
+
+        th {
+            background: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .badge {
+            padding: 2px 5px;
+            font-size: 9px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .green {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #bcd0c7;
+        }
+
+        .red {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #e4b9be;
+        }
+
+        .outline-green {
+            background: #fff;
+            color: #155724;
+            border: 1px solid #155724;
+        }
+
+        .photo img {
+            max-width: 90px;
+            max-height: 30px;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 5px;
+            right: 0;
+            font-size: 9px;
+            text-align: right;
+            color: #777;
         }
     </style>
 </head>
 
 <body>
 
-    <!-- HEADER -->
-    <div class="header">
-        <div class="company">{{ $company->name }}</div>
-        <div class="subtitle">
-            SOS Alarm Reports
-            @if ($request->date_from)
-                | {{ $request->date_from }}
-                @if ($request->date_to)
-                    – {{ $request->date_to }}
-                @endif
-            @endif
-        </div>
-    </div>
+    @php
+        if (!function_exists('changeDateformatTime')) {
+            function changeDateformatTime($date)
+            {
+                if ($date == '') {
+                    return '---';
+                }
+                $date = new DateTime($date);
 
-    <!-- TABLE -->
-    <table>
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Alarm Start</th>
-                <th>Alarm End</th>
-                <th>Location / Room</th>
-                <th>Room Type</th>
-                <th class="center">Response (HH:MM)</th>
-                <th>Status</th>
-                <th>ACK</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($reports as $i => $r)
-                @php
-                    $status = $r->sos_status ? ($r->responded_datetime ? 'ACKNOWLEDGED' : 'PENDING') : 'RESOLVED';
+                // Format the date to the desired format
+                return $date->format('M j, Y') . ' ' . $date->format('H:i');
+            }
+        }
 
-                    $statusClass =
-                        $status === 'PENDING' ? 'pending' : ($status === 'ACKNOWLEDGED' ? 'ack' : 'resolved');
+        if (!function_exists('changeDateformat')) {
+            function changeDateformat($date)
+            {
+                if ($date == '') {
+                    return ['---', '---'];
+                }
+                $date = new DateTime($date);
 
-                    $respMin = $r->response_in_minutes;
-                    $respClass = $respMin !== null && $respMin > 5 ? 'resp-warn' : 'resp-ok';
+                // Format the date to the desired format
+                return [$date->format('M j, Y'), $date->format('H:i')];
+            }
+        }
+        if (!function_exists('minutesToTime')) {
+            function minutesToTime($totalMinutes)
+            {
+                if ($totalMinutes == 0) {
+                    return '00:00';
+                }
+                if ($totalMinutes == null) {
+                    return '---';
+                }
+                // Calculate hours and minutes
+                $hours = intdiv($totalMinutes, 60); // Integer division to get hours
+                $minutes = $totalMinutes % 60; // Remainder to get minutes
 
-                    $roomType = $r->room?->room_type ? strtoupper(str_replace('-PD', '', $r->room->room_type)) : '--';
-                @endphp
+                // Format hours and minutes to HH:MM
+                return $formattedTime = sprintf('%02d:%02d', $hours, $minutes);
+            }
+        }
+    @endphp
+    @php
+        $title2 = '';
+        // Check if the request has 'date_from' and 'date_to' parameters
+        if ($request->date_from && $request->date_to) {
+            // Assuming changeDateformat returns an array, so accessing the first element
+            $fromDate = changeDateformat($request->date_from)[0];
+            $toDate = changeDateformat($request->date_to)[0];
+            $title2 = "From $fromDate to $toDate";
+        }
+    @endphp
+    @php
+        $title1 = 'SOS  Reports';
 
+    @endphp
+    <!-- Header -->
+    <header>
+
+        @include('header', [
+            'company' => $company,
+            'title1' => $title1,
+
+            'title2' => $title2,
+            'request' => $request,
+        ])
+
+
+
+    </header>
+
+    <!-- Footer -->
+    <footer>
+
+        @include('footer', [
+            'company' => $company,
+        ])
+
+    </footer>
+
+    <main>
+
+        <div class="clearfix"></div>
+
+
+        <!-- TABLE -->
+        <table>
+            <thead>
                 <tr>
-                    <td>{{ $i + 1 }}</td>
-
-                    <td>
-                        @if ($r->alarm_start_datetime)
-                            <div class="time">{{ \Carbon\Carbon::parse($r->alarm_start_datetime)->format('H:i') }}
-                            </div>
-                            <div class="date">{{ \Carbon\Carbon::parse($r->alarm_start_datetime)->format('M d, Y') }}
-                            </div>
-                        @else
-                            --
-                        @endif
-                    </td>
-
-                    <td>
-                        @if ($r->alarm_end_datetime)
-                            <div class="time">{{ \Carbon\Carbon::parse($r->alarm_end_datetime)->format('H:i') }}</div>
-                            <div class="date">{{ \Carbon\Carbon::parse($r->alarm_end_datetime)->format('M d, Y') }}
-                            </div>
-                        @else
-                            --
-                        @endif
-                    </td>
-
-                    <td>
-                        <div class="room">{{ $r->room_name ?? '--' }}</div>
-                        <div class="location">{{ $r->device?->location ?? '--' }}</div>
-                    </td>
-
-                    <td>{{ $roomType }}</td>
-
-                    <td class="center">
-                        @if ($respMin !== null)
-                            <span class="resp {{ $respClass }}">
-                                {{ gmdate('H:i', $respMin * 60) }}
-                            </span>
-                        @else
-                            --
-                        @endif
-                    </td>
-
-                    <td>
-                        <span class="chip {{ $statusClass }}">
-                            {{ $status }}
-                        </span>
-                    </td>
-
-                    <td>
-                        @if ($r->responded_datetime)
-                            <div class="time">{{ \Carbon\Carbon::parse($r->responded_datetime)->format('H:i') }}
-                            </div>
-                            <div class="date">{{ \Carbon\Carbon::parse($r->responded_datetime)->format('M d, Y') }}
-                            </div>
-                        @else
-                            --
-                        @endif
-                    </td>
+                    <th>#</th>
+                    <th>Alarm Start</th>
+                    <th>Alarm End</th>
+                    <th>Location / Room</th>
+                    <th>Room Type</th>
+                    <th class="center">Response (HH:MM)</th>
+                    <th>Status</th>
+                    <th>ACK</th>
                 </tr>
-            @endforeach
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach ($reports as $i => $r)
+                    @php
+                        $status = $r->sos_status ? ($r->responded_datetime ? 'ACKNOWLEDGED' : 'PENDING') : 'RESOLVED';
+
+                        $statusClass =
+                            $status === 'PENDING' ? 'pending' : ($status === 'ACKNOWLEDGED' ? 'ack' : 'resolved');
+
+                        $respMin = $r->response_in_minutes;
+                        $respClass = $respMin !== null && $respMin > 5 ? 'resp-warn' : 'resp-ok';
+
+                        $roomType = $r->room?->room_type
+                            ? strtoupper(str_replace('-PH', '', $r->room->room_type))
+                            : '--';
+                    @endphp
+
+                    <tr>
+                        <td>{{ $i + 1 }}</td>
+
+                        <td>
+                            @if ($r->alarm_start_datetime)
+                                <div class="time">{{ \Carbon\Carbon::parse($r->alarm_start_datetime)->format('H:i') }}
+                                </div>
+                                <div class="date">
+                                    {{ \Carbon\Carbon::parse($r->alarm_start_datetime)->format('M d, Y') }}
+                                </div>
+                            @else
+                                --
+                            @endif
+                        </td>
+
+                        <td>
+                            @if ($r->alarm_end_datetime)
+                                <div class="time">{{ \Carbon\Carbon::parse($r->alarm_end_datetime)->format('H:i') }}
+                                </div>
+                                <div class="date">
+                                    {{ \Carbon\Carbon::parse($r->alarm_end_datetime)->format('M d, Y') }}
+                                </div>
+                            @else
+                                --
+                            @endif
+                        </td>
+
+                        <td>
+                            <div class="room">{{ $r->room_name ?? '--' }}</div>
+                            <div class="location">{{ $r->device?->location ?? '--' }}</div>
+                        </td>
+
+                        <td>{{ $roomType }}</td>
+
+                        <td class="center">
+                            @if ($respMin !== null)
+                                <span class="resp {{ $respClass }}">
+                                    {{ gmdate('H:i', $respMin * 60) }}
+                                </span>
+                            @else
+                                --
+                            @endif
+                        </td>
+
+                        <td>
+                            <span class="chip {{ $statusClass }}">
+                                {{ $status }}
+                            </span>
+                        </td>
+
+                        <td>
+                            @if ($r->responded_datetime)
+                                <div class="time">{{ \Carbon\Carbon::parse($r->responded_datetime)->format('H:i') }}
+                                </div>
+                                <div class="date">
+                                    {{ \Carbon\Carbon::parse($r->responded_datetime)->format('M d, Y') }}
+                                </div>
+                            @else
+                                --
+                            @endif
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </main>
+
 
 </body>
 
