@@ -136,6 +136,7 @@
               </v-chip>
 
               <div class="mt-3">
+                {{ d.type }}
                 <v-icon :color="d.type === 'toilet' ? 'orange' : 'grey'">
                   {{ d.type === 'toilet' ? 'mdi-wheelchair-accessibility' : 'mdi-bed' }}
                 </v-icon>

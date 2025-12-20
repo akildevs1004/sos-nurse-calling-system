@@ -163,16 +163,24 @@
         </v-card>
       </v-col>
     </v-row>
-    <v-progress-linear v-if="loading" indeterminate height="3" class="mb-2" />
 
+
+    <v-progress-linear v-if="loading" indeterminate height="3" class="mb-2" />
+    <v-row>
+      <v-col>
+        <SOSLogs :key="loading" />
+      </v-col>
+    </v-row>
   </div>
 </template>
 
 <script>
 
 import SosChart1 from "../../components/SOS/SosChart1.vue";
+import SOSLogs from "../../components/SOS/SOSLogs.vue";
+
 export default {
-  components: { SosChart1 },
+  components: { SosChart1, SOSLogs },
   name: "SosCallReportFull",
   data() {
     return {
