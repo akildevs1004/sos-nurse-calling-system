@@ -23,6 +23,9 @@ Route::get('/sos_logs_export_excel', [SOSRoomsControllers::class, 'SosLogsDownlo
 //monitor
 
 Route::get('/sos_monitor_statistics', [SOSRoomsControllers::class, 'SOSMonitorStatistics']);
+Route::get('/sos_hourly_report', [SOSRoomsControllers::class, 'sosHourlyReport']);
+
+
 
 
 

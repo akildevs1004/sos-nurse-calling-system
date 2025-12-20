@@ -20,6 +20,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 
 class SOSRoomsControllers extends Controller
@@ -259,18 +260,24 @@ class SOSRoomsControllers extends Controller
         // total responded calls
         $totalSOSCount = DeviceSosRoomLogs::where('company_id', $companyId)
             ->where('alarm_start_datetime', ">=", $date_from . " 00:00:00")
-            ->where('alarm_end_datetime', "<=", $date_to . " 24:00:00")
+            ->where('alarm_start_datetime', "<=", $date_to . " 24:00:00")
             ->count();
 
 
         $totalResolved = DeviceSosRoomLogs::where('company_id', $companyId)
-            ->where('alarm_start_datetime', ">=", $date_from . " 00:00:00")
+            ->where('alarm_end_datetime', ">=", $date_from . " 00:00:00")
             ->where('alarm_end_datetime', "<=", $date_to . " 24:00:00")
             ->where('alarm_end_datetime', "!=", null)
 
             ->count();
 
-        $totalSOSActive = $totalSOSCount - $totalResolved;
+
+        $totalSOSActive = DeviceSosRoomLogs::where('company_id', $companyId)
+
+            ->where('alarm_end_datetime',   null)
+
+            ->count();
+
 
 
         $averageMinutes = DeviceSosRoomLogs::where('company_id', $companyId)
@@ -280,10 +287,10 @@ class SOSRoomsControllers extends Controller
             ->avg('response_in_minutes');
 
 
-        $totalDeviceOnline = DeviceSosRooms::where('company_id', $companyId)
+        $totalDeviceOnline = Device::where('company_id', $companyId)
             ->where('status_id', 1)
             ->count();
-        $totalDeviceOffline = DeviceSosRooms::where('company_id', $companyId)
+        $totalDeviceOffline = Device::where('company_id', $companyId)
             ->where('status_id', 2)
             ->count();
 
@@ -305,6 +312,88 @@ class SOSRoomsControllers extends Controller
 
 
 
+        ]);
+    }
+
+    public function sosHourlyReport(Request $request)
+    {
+        $from = date("Y-m-d");
+        $to = date("Y-m-d");
+
+
+        $from = Carbon::parse($from)->startOfDay();
+        $to   = Carbon::parse($to)->endOfDay();
+
+
+
+        $query = DB::table('device_sos_room_logs as l')
+            ->join('device_sos_rooms as r', 'r.id', '=', 'l.device_sos_room_table_id')
+            ->whereBetween('l.alarm_start_datetime', [$from, $to]);
+
+        if ($request->company_id) {
+            $query->where('l.company_id', $request->company_id);
+        }
+
+        // OPTIONAL: count only SOS ON
+        // $query->where('l.sos_status', true);
+
+        $hourExpr = "EXTRACT(HOUR FROM l.alarm_start_datetime)";
+
+        $rows = $query
+            ->selectRaw("
+            r.room_type AS room_type,
+            $hourExpr   AS hour,
+            COUNT(*)    AS total
+        ")
+
+            ->where("r.room_type", "!=", null)
+            ->groupBy('r.room_type', DB::raw($hourExpr))
+            ->orderBy('r.room_type')
+            ->orderBy(DB::raw($hourExpr))
+            ->get();
+
+        /*
+     * Categories: 0 → 23 (plain integers / strings)
+     */
+        $categories = array_map('strval', range(0, 23));
+
+        /*
+     * Collect unique room types
+     */
+        $roomTypes = collect($rows)->pluck('room_type')->unique()->values();
+
+        /*
+     * Initialize each room_type with 24 zeros
+     */
+        $seriesMap = [];
+        foreach ($roomTypes as $rt) {
+            $seriesMap[$rt] = array_fill(0, 24, 0);
+        }
+
+        /*
+     * Fill data
+     */
+        foreach ($rows as $row) {
+            $h = (int) $row->hour; // 0–23
+            if ($h >= 0 && $h <= 23) {
+                $seriesMap[$row->room_type][$h] = (int) $row->total;
+            }
+        }
+
+        /*
+     * Convert to ApexCharts format
+     */
+        $series = [];
+        foreach ($seriesMap as $roomType => $data) {
+            $series[] = [
+                'name' => $roomType,
+                'data' => $data,
+            ];
+        }
+
+        return response()->json([
+            'categories' => $categories, // ["0","1","2",...,"23"]
+            'series'     => $series,
         ]);
     }
 }

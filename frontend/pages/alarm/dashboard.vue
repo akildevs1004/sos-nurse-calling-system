@@ -5,8 +5,7 @@
         {{ snackbarResponse }}
       </v-snackbar>
     </div>
-    <SosAlarmPopupMqtt v-if="companyDeviceSerials" :allowedSerials="companyDeviceSerials"
-      @triggerUpdateDashboard="RefreshDashboard()" />
+    <SosAlarmPopupMqtt @triggerUpdateDashboard="RefreshDashboard()" />
 
     <!-- ================= TOP STATISTICS ================= -->
     <!-- ================= TOP STATISTICS ================= -->
@@ -122,7 +121,6 @@
     <!-- <v-alert v-if="apiError" type="error" dense text class="mb-2">
       {{ apiError }}
     </v-alert> -->
-    <v-progress-linear v-if="loading" indeterminate height="3" class="mb-2" />
 
     <!-- ================= CARDS GRID ================= -->
     <v-card outlined class="pa-4 roomCard">
@@ -187,6 +185,7 @@
         </div>
       </div>
     </v-card>
+    <v-progress-linear v-if="loading" indeterminate height="3" class="mb-2" />
 
   </v-container>
 </template>
@@ -205,7 +204,7 @@ export default {
 
   data() {
     return {
-      companyDeviceSerials: null,
+      // companyDeviceSerials: null,
 
       filterMode: "all",
       perRow: 4,
@@ -255,7 +254,7 @@ export default {
   async created() {
     await this.getDataFromApi();
     await this.getStatsApi();
-    await this.getDevicesFromApi();
+    // await this.getDevicesFromApi();
   },
 
   mounted() {
@@ -423,30 +422,30 @@ export default {
       }
 
     },
-    async getDevicesFromApi() {
-      // this.loading = true;
-      this.apiError = "";
+    // async getDevicesFromApi() {
+    //   // this.loading = true;
+    //   this.apiError = "";
 
-      try {
-        const { data } = await this.$axios.get("device-list", {
-          params: {
-            company_id: this.$auth.user.company_id,
+    //   try {
+    //     const { data } = await this.$axios.get("device-list", {
+    //       params: {
+    //         company_id: this.$auth.user.company_id,
 
-          },
-        });
+    //       },
+    //     });
 
-        // supports array or paginator {data:[...]}
-        this.companyDeviceSerials = data.map(d => d.serial_number);
-        this.devices
-      } catch (err) {
-        this.apiError =
-          err?.response?.data?.message ||
-          err?.message ||
-          "Failed to load dashboard rooms";
-      } finally {
-        this.loading = false;
-      }
-    },
+    //     // supports array or paginator {data:[...]}
+    //     this.companyDeviceSerials = data.map(d => d.serial_number);
+    //     this.devices
+    //   } catch (err) {
+    //     this.apiError =
+    //       err?.response?.data?.message ||
+    //       err?.message ||
+    //       "Failed to load dashboard rooms";
+    //   } finally {
+    //     this.loading = false;
+    //   }
+    // },
     async getDataFromApi() {
       this.loading = true;
       this.apiError = "";

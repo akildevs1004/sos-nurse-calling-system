@@ -63,15 +63,17 @@ export default {
   name: "SosAlarmPopupMqtt",
 
   props: {
-    allowedSerials: { type: Array, default: () => [] },
-    mqttUrl: {
-      type: String,
-      default: () => process.env.MQTT_SOCKET_HOST || "wss://YOUR_BROKER:8083/mqtt",
-    },
+    // allowedSerials: { type: Array, default: () => [] },
+    // mqttUrl: {
+    //   type: String,
+    //   default: () => process.env.MQTT_SOCKET_HOST || "wss://YOUR_BROKER:8083/mqtt",
+    // },
   },
 
   data() {
     return {
+      mqttUrl: null,
+      allowedSerials: [],
       dialog2: false,
       client: null,
       isConnected: false,
@@ -97,8 +99,17 @@ export default {
   //   },
   // },
 
-  mounted() {
-    this.connectMqtt();
+  async mounted() {
+
+
+    await this.getDevicesFromApi();
+
+
+    if ((this.allowedSerials.length)) {
+      this.mqttUrl = process.env.MQTT_SOCKET_HOST;
+      this.connectMqtt();
+    }
+
 
     // Duration timer
     this.tick = setInterval(this.updateCurrentDuration, 1000);
@@ -109,6 +120,31 @@ export default {
   // MQTT remains alive even if popup closes or page navigates
 
   methods: {
+
+    async getDevicesFromApi() {
+      // this.loading = true;
+      // this.apiError = "";
+
+      try {
+        const { data } = await this.$axios.get("device-list", {
+          params: {
+            company_id: this.$auth.user.company_id,
+
+          },
+        });
+
+        // supports array or paginator {data:[...]}
+        this.allowedSerials = data.map(d => d.serial_number);
+
+      } catch (err) {
+        // this.apiError =
+        //   err?.response?.data?.message ||
+        //   err?.message ||
+        //   "Failed to load dashboard rooms";
+      } finally {
+        // this.loading = false;
+      }
+    },
     // ================= MQTT =================
     connectMqtt() {
       if (this.client) return;

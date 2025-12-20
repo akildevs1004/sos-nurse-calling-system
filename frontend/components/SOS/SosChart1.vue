@@ -1,70 +1,156 @@
 <template>
-  <div style="width: 100%; height: 400px; padding: 10px">
-    <v-row>
-      <v-col cols="12">
-        Temperature and Humidity History (Sample)
-      </v-col>
-    </v-row>
-
-    <div :id="nameChart" style="width: 100%;" class="pt-2"></div>
-  </div>
+  <div class="pt-2" :id="nameChart" :style="{ width: '100%', height: height + 'px' }" />
 </template>
 
 <script>
 export default {
+  name: "SosHourlyRoomTypeChart",
+
   props: {
     nameChart: {
       type: String,
-      default: "tempHumChart",
+      default: "sosHourlyRoomTypeChart",
     },
     height: {
       type: Number,
-      default: 320,
+      default: 220,
+    },
+
+    // Optional: allow passing data from parent instead of API
+    seriesProp: {
+      type: Array,
+      default: null,
+    },
+    categoriesProp: {
+      type: Array,
+      default: null,
     },
   },
 
   data() {
     return {
       chart: null,
+      _resizeTimer: null,
+      _destroyed: false,
+      loading: false,
 
-      // ✅ Sample static series
-      series: [
-        {
-          name: "Temperature",
-          data: [26, 27, 28, 30, 29, 31, 32],
-        },
-        {
-          name: "Humidity",
-          data: [60, 62, 65, 63, 61, 64, 66],
-        },
-      ],
-
-      // ✅ Sample dates
-      categories: [
-        "2024-01-01",
-        "2024-01-02",
-        "2024-01-03",
-        "2024-01-04",
-        "2024-01-05",
-        "2024-01-06",
-        "2024-01-07",
-      ],
+      // Live data from API (hours 0..23)
+      categories: Array.from({ length: 24 }, (_, i) => String(i)),
+      series: [],
     };
   },
 
-  mounted() {
-    this.initChart();
+  computed: {
+    isDark() {
+      return !!this.$vuetify?.theme?.dark;
+    },
+
+    labelColor() {
+      return this.isDark ? "rgba(255,255,255,0.75)" : "rgba(0,0,0,0.70)";
+    },
+
+    gridColor() {
+      return this.isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)";
+    },
+
+    finalCategories() {
+      if (Array.isArray(this.categoriesProp)) return this.categoriesProp.map((h) => String(h));
+      return this.categories;
+    },
+
+    finalSeries() {
+      if (Array.isArray(this.seriesProp)) return this.normalizeSeries(this.seriesProp);
+      return this.series;
+    },
+  },
+
+  watch: {
+    // Full reload on theme change (safe)
+    isDark() {
+      this.reloadChart();
+    },
+
+    // If parent provides series/categories props, update chart
+    seriesProp: {
+      deep: true,
+      handler() {
+        this.applyToChart();
+      },
+    },
+    categoriesProp: {
+      deep: true,
+      handler() {
+        this.applyToChart();
+      },
+    },
+
+    // Height change => rebuild
+    height() {
+      this.reloadChart();
+    },
+  },
+
+  async mounted() {
+    this._destroyed = false;
+
+    // 1) Create chart ONCE
+    await this.initChartSafe();
+
+    // 2) Load API data (unless parent passes props)
+    if (!Array.isArray(this.seriesProp) || !Array.isArray(this.categoriesProp)) {
+      await this.getDatafromAPI();
+    }
+
+    // 3) Apply data to chart
+    this.applyToChart();
+
+    window.addEventListener("resize", this.onResize, { passive: true });
   },
 
   beforeDestroy() {
-    if (this.chart) {
-      this.chart.destroy();
-    }
+    this._destroyed = true;
+    window.removeEventListener("resize", this.onResize);
+    if (this._resizeTimer) clearTimeout(this._resizeTimer);
+    this.destroyChart();
   },
 
   methods: {
-    initChart() {
-      if (this.chart) this.chart.destroy();
+    getApex() {
+      return window.ApexCharts || (typeof ApexCharts !== "undefined" ? ApexCharts : null);
+    },
+
+    onResize() {
+      if (!this.chart) return;
+      if (this._resizeTimer) clearTimeout(this._resizeTimer);
+      this._resizeTimer = setTimeout(() => {
+        try {
+          this.chart?.resize();
+        } catch (_) { }
+      }, 120);
+    },
+
+    destroyChart() {
+      if (!this.chart) return;
+      try {
+        this.chart.destroy();
+      } catch (_) { }
+      this.chart = null;
+    },
+
+    async initChartSafe() {
+      // Ensure DOM is ready and stable before render
+      await this.$nextTick();
+      await new Promise((r) => requestAnimationFrame(() => r()));
+
+      if (this._destroyed) return;
+
+      const Apex = this.getApex();
+      const el = document.getElementById(this.nameChart);
+      if (!Apex || !el) return;
+
+      // Prevent duplicate SVG
+      this.destroyChart();
+      el.innerHTML = "";
 
       const options = {
         chart: {
@@ -72,67 +158,165 @@ export default {
           height: this.height,
           toolbar: { show: false },
           animations: { enabled: false },
+          background: "transparent",
+          zoom: { enabled: false },
+          selection: { enabled: false },
         },
 
-        dataLabels: {
-          enabled: false,
+        theme: {
+          mode: this.isDark ? "dark" : "light",
         },
 
-        stroke: {
-          curve: "smooth",
-          width: 2,
-        },
+        dataLabels: { enabled: false },
+
+        stroke: { curve: "smooth", width: 2 },
 
         fill: {
           type: "gradient",
-          gradient: {
-            opacityFrom: 0.4,
-            opacityTo: 0.05,
-            stops: [20, 100],
-          },
+          gradient: { opacityFrom: 0.30, opacityTo: 0.05, stops: [20, 100] },
         },
-
-        colors: ["#ff4a4a", "#00C1D4"],
 
         xaxis: {
-          type: "datetime",
-          categories: this.categories,
+          type: "category", // hours 0..23
+          categories: this.finalCategories,
+          labels: { style: { colors: this.labelColor } },
+          axisBorder: { show: false },
+          axisTicks: { show: false },
+          title: { text: "Hour", style: { color: this.labelColor } },
         },
 
+        yaxis: {
+          labels: {
+            style: { colors: this.labelColor },
+            formatter: (v) => `${Math.round(v)}`,
+          },
+          title: { text: "SOS Count", style: { color: this.labelColor } },
+        },
+
+        // CRITICAL: disable x-axis tooltip to avoid Apex internal null classList bug
         tooltip: {
           shared: true,
           intersect: false,
-          x: {
-            format: "dd MMM yyyy",
-          },
-          y: {
-            formatter: (val, opts) => {
-              return opts.seriesIndex === 0
-                ? `${val} °C`
-                : `${val} %`;
-            },
-          },
+          x: { show: false },
+          y: { formatter: (val) => `${val}` },
         },
 
         legend: {
           position: "top",
           horizontalAlign: "right",
+          labels: { colors: this.labelColor },
         },
 
         grid: {
+          borderColor: this.gridColor,
           strokeDashArray: 3,
         },
 
-        series: this.series,
+        // Start empty; we update right after data loads
+        series: [],
       };
 
-      this.chart = new ApexCharts(
-        document.querySelector("#" + this.nameChart),
-        options
-      );
+      this.chart = new Apex(el, options);
 
-      this.chart.render();
+      try {
+        await this.chart.render();
+      } catch (_) {
+        // If component unmounted during render, ignore
+      }
+    },
+
+    async reloadChart() {
+      if (this._destroyed) return;
+      await this.initChartSafe();
+      this.applyToChart();
+    },
+
+    normalizeSeries(series) {
+      // Ensures each series has 24 points (0..23)
+      return (Array.isArray(series) ? series : []).map((s) => ({
+        name: s?.name ?? "Unknown",
+        data: Array.isArray(s?.data)
+          ? [...s.data, ...Array(Math.max(0, 24 - s.data.length)).fill(0)].slice(0, 24)
+          : Array(24).fill(0),
+      }));
+    },
+
+    applyToChart() {
+      if (!this.chart || this._destroyed) return;
+
+      const cats = this.finalCategories?.length
+        ? this.finalCategories.map((h) => String(h))
+        : Array.from({ length: 24 }, (_, i) => String(i));
+
+      const ser = this.finalSeries?.length ? this.finalSeries : [];
+
+      try {
+        this.chart.updateOptions(
+          {
+            theme: { mode: this.isDark ? "dark" : "light" },
+            xaxis: {
+              type: "category",
+              categories: cats,
+              labels: { style: { colors: this.labelColor } },
+              title: { text: "Hour", style: { color: this.labelColor } },
+            },
+            yaxis: {
+              labels: { style: { colors: this.labelColor } },
+              title: { text: "SOS Count", style: { color: this.labelColor } },
+            },
+            legend: { labels: { colors: this.labelColor } },
+            grid: { borderColor: this.gridColor },
+            tooltip: {
+              shared: true,
+              intersect: false,
+              x: { show: false },
+              y: { formatter: (val) => `${val}` },
+            },
+          },
+          false,
+          true
+        );
+
+        this.chart.updateSeries(ser, true);
+      } catch (_) { }
+    },
+
+    async getDatafromAPI() {
+      if (this.loading || this._destroyed) return;
+      this.loading = true;
+
+      try {
+        const res = await this.$axios.get("sos_hourly_report", {
+          params: {
+            company_id: this.$auth.user.company_id,
+            // from_date: this.fromDate,
+            // to_date: this.toDate,
+          },
+        });
+
+        if (this._destroyed) return;
+
+        const categories = Array.isArray(res.data?.categories) ? res.data.categories : [];
+        const series = Array.isArray(res.data?.series) ? res.data.series : [];
+
+        // Enforce 0..23 categories if API returns empty
+        this.categories = categories.length
+          ? categories.map((h) => String(h))
+          : Array.from({ length: 24 }, (_, i) => String(i));
+
+        this.series = this.normalizeSeries(series);
+      } catch (e) {
+        // Optional: handle errors
+        // console.error(e);
+        this.series = [];
+      } finally {
+        this.loading = false;
+      }
     },
   },
 };
 </script>
+
+<style scoped>
+/* No extra styling needed; Vuetify theme controls surrounding UI */
+</style>

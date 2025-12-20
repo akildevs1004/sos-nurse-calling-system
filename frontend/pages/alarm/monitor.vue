@@ -2,86 +2,126 @@
   <div class="sos-app mt-2">
 
 
-    <SosAlarmPopupMqtt v-if="companyDeviceSerials" :allowedSerials="companyDeviceSerials"
-      @triggerUpdateDashboard="RefreshDashboard()" />
+    <SosAlarmPopupMqtt @triggerUpdateDashboard="RefreshDashboard()" />
     <!-- FILTER BAR -->
-    <v-card class="panel mb-8" outlined>
-      <v-card-text class="d-flex align-center flex-wrap">
-        <span class="font-weight-bold text-uppercase muted-text mr-4">
-          Filters
-        </span>
 
-        <v-btn class="chip-btn mr-2">Last 7 Days</v-btn>
-        <v-btn class="chip-btn mr-2">All Rooms</v-btn>
-        <v-btn class="chip-btn mr-2">All Sources</v-btn>
-        <v-btn class="chip-btn mr-2">All Status</v-btn>
 
-        <v-spacer />
-
-        <!-- <v-switch v-model="isDark" inset hide-details label="Dark Mode" /> -->
-      </v-card-text>
-    </v-card>
 
     <!-- KPI CARDS (FULL BORDER COLORS) -->
     <v-row dense class="mb-8">
+
+      <!-- Active SOS -->
       <v-col cols="12" sm="6" lg="2">
         <v-card class="metric panel metric-border-danger" outlined>
-          <v-card-text>
-            <div class="metric-title">Active SOS</div>
-            <div class="metric-value">{{ totalSOSActive }}</div>
-            <!-- <v-chip small outlined color="error">Immediate Action</v-chip> -->
+          <v-card-text class="kpi-row">
+            <div>
+              <div class="metric-title">Active SOS</div>
+              <div class="metric-value-xl danger-text">
+                {{ totalSOSActive }}
+              </div>
+            </div>
+            <v-avatar size="48" class="metric-icon error">
+              <v-icon dark size="26">mdi-bell</v-icon>
+            </v-avatar>
+
           </v-card-text>
         </v-card>
       </v-col>
 
-
+      <!-- Resolved -->
       <v-col cols="12" sm="6" lg="2">
         <v-card class="metric panel metric-border-success" outlined>
-          <v-card-text>
-            <div class="metric-title">Resolved</div>
-            <div class="metric-value">{{ totalResolved }}</div>
-            <v-progress-linear :value="97" height="6" rounded />
+          <v-card-text class="kpi-row">
+            <div>
+              <div class="metric-title">Resolved</div>
+              <div class="metric-value-xl success-text">
+                {{ totalResolved }}
+              </div>
+            </div>
+
+            <v-avatar size="48" class="metric-icon success">
+              <v-icon dark size="26">mdi-check-circle</v-icon>
+            </v-avatar>
           </v-card-text>
         </v-card>
       </v-col>
 
+      <!-- Total Calls -->
       <v-col cols="12" sm="6" lg="2">
         <v-card class="metric panel metric-border-primary" outlined>
-          <v-card-text>
-            <div class="metric-title">Total Calls</div>
-            <div class="metric-value">{{ totalSOSCount }}</div>
-            <!-- <div class="metric-sub">+12% vs last week</div> -->
+          <v-card-text class="kpi-row">
+            <div>
+              <div class="metric-title">Total Calls</div>
+              <div class="metric-value-xl primary-text">
+                {{ totalSOSCount }}
+              </div>
+            </div>
+
+            <v-avatar size="48" class="metric-icon primary">
+              <v-icon dark size="26">mdi-phone-in-talk</v-icon>
+            </v-avatar>
           </v-card-text>
         </v-card>
       </v-col>
 
+      <!-- Avg Response -->
       <v-col cols="12" sm="6" lg="2">
         <v-card class="metric panel metric-border-warning" outlined>
-          <v-card-text>
-            <div class="metric-title">Avg Response Time</div>
-            <div class="metric-value">{{ averageMinutes }}</div>
-            <!-- <div class="metric-sub">Target &lt; 1m 30s</div> -->
+          <v-card-text class="kpi-row">
+            <div>
+              <div class="metric-title">Avg Response</div>
+              <div class="metric-value-xl warning-text">
+                {{ averageMinutes }}
+              </div>
+            </div>
+
+            <v-avatar size="48" class="metric-icon warning">
+              <v-icon dark size="26">mdi-timer-outline</v-icon>
+            </v-avatar>
           </v-card-text>
         </v-card>
       </v-col>
+
+      <!-- Gateways Online -->
       <v-col cols="12" sm="6" lg="2">
-        <v-card class="metric panel metric-border-warning" outlined>
-          <v-card-text>
-            <div class="metric-title">Gateways Online</div>
-            <div class="metric-value">{{ totalDeviceOnline }}</div>
-            <!-- <div class="metric-sub">Target &lt; 1m 30s</div> -->
-          </v-card-text>
-        </v-card>
-      </v-col><v-col cols="12" sm="6" lg="2">
-        <v-card class="metric panel metric-border-warning" outlined>
-          <v-card-text>
-            <div class="metric-title">Gateways Offline</div>
-            <div class="metric-value">{{ totalDeviceOffline }}</div>
-            <!-- <div class="metric-sub">Target &lt; 1m 30s</div> -->
+        <v-card class="metric panel metric-border-info" outlined>
+          <v-card-text class="kpi-row">
+            <div>
+              <div class="metric-title">Gateways Online</div>
+              <div class="metric-value-xl info-text">
+                {{ totalDeviceOnline }}
+              </div>
+            </div>
+
+            <v-avatar size="48" class="metric-icon info">
+              <v-icon dark size="26">mdi-wifi</v-icon>
+            </v-avatar>
           </v-card-text>
         </v-card>
       </v-col>
+
+      <!-- Gateways Offline -->
+      <v-col cols="12" sm="6" lg="2">
+        <v-card class="metric panel metric-border-danger" outlined>
+          <v-card-text class="kpi-row">
+            <div>
+              <div class="metric-title">Gateways Offline</div>
+              <div class="metric-value-xl danger-text">
+                {{ totalDeviceOffline }}
+              </div>
+            </div>
+
+            <v-avatar size="48" class="metric-icon error">
+              <v-icon dark size="26">mdi-wifi-off</v-icon>
+            </v-avatar>
+
+
+          </v-card-text>
+        </v-card>
+      </v-col>
+
     </v-row>
+
 
     <!-- CHARTS -->
     <v-row dense>
@@ -94,7 +134,7 @@
             </div>
 
             <div class="bar-wrap">
-              <SosChart1 />
+              <SosChart1 :key="loading" style="height:250px!important" />
             </div>
           </v-card-text>
         </v-card>
@@ -123,6 +163,7 @@
         </v-card>
       </v-col>
     </v-row>
+    <v-progress-linear v-if="loading" indeterminate height="3" class="mb-2" />
 
   </div>
 </template>
@@ -135,7 +176,7 @@ export default {
   name: "SosCallReportFull",
   data() {
     return {
-
+      loading: false,
       totalSOSCount: 0,
       totalResolved: 0,
       totalSOSActive: 0,
@@ -182,6 +223,9 @@ export default {
   },
 
   methods: {
+    RefreshDashboard() {
+      this.getDataFromApi();
+    },
     async getDataFromApi() {
       this.loading = true;
       try {
@@ -332,5 +376,124 @@ export default {
 
 .chip-btn {
   text-transform: none
+}
+
+/* ===== KPI ICONS ===== */
+.metric-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.metric-icon.primary {
+  background: var(--c-primary);
+}
+
+.metric-icon.info {
+  background: var(--c-info);
+}
+
+.metric-icon.success {
+  background: var(--c-success);
+}
+
+.metric-icon.warning {
+  background: var(--c-warning);
+}
+
+.metric-icon.danger {
+  background: var(--c-error);
+}
+
+/* ===== KPI COUNT COLORS ===== */
+.primary-text {
+  color: var(--c-primary);
+}
+
+.info-text {
+  color: var(--c-info);
+}
+
+.success-text {
+  color: var(--c-success);
+}
+
+.warning-text {
+  color: var(--c-warning);
+}
+
+.danger-text {
+  color: var(--c-error);
+}
+
+/* tighten layout slightly */
+.metric-value {
+  line-height: 1.1;
+}
+
+/* KPI row layout */
+.kpi-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Extra large numbers */
+.metric-value-xl {
+  font-size: 38px;
+  font-weight: 900;
+  line-height: 1.05;
+  margin-top: 4px;
+}
+
+/* Icons */
+.metric-icon {
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* icon backgrounds */
+.metric-icon.primary {
+  background: var(--c-primary);
+}
+
+.metric-icon.info {
+  background: var(--c-info);
+}
+
+.metric-icon.success {
+  background: #4caf5042;
+}
+
+.metric-icon.warning {
+  background: var(--c-warning);
+}
+
+.metric-icon.danger {
+  background: var(--c-error);
+}
+
+/* number colors */
+.primary-text {
+  color: var(--c-primary);
+}
+
+.info-text {
+  color: var(--c-info);
+}
+
+.success-text {
+  color: var(--c-success);
+}
+
+.warning-text {
+  color: var(--c-warning);
+}
+
+.danger-text {
+  color: var(--c-error);
 }
 </style>
