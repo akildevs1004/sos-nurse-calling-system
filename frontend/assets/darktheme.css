@@ -142,6 +142,66 @@ color:#FFF!important;
   border-color: rgba(16, 185, 129, 0.3) !important;
 }
 
+
+/* dMonitor */
+/* Dark only. Keep minimal; you said you will change yourself. */
+.report-wrap {
+  background: #0b1220;
+  min-height: 100vh;
+}
+
+.filterCard,
+.stat-card,
+.panelCard {
+  background: #101a2a !important;
+  border-color: rgba(148, 163, 184, 0.18) !important;
+  border-radius: 12px;
+}
+
+.filterSelect {
+  min-width: 180px;
+  max-width: 220px;
+}
+
+.resetBtn {
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  color: #60a5fa;
+}
+
+.stat-title {
+  letter-spacing: 0.12em;
+}
+
+.stat-icon {
+  opacity: 0.9;
+}
+
+.chartPlaceholder {
+  height: 220px;
+  border-radius: 10px;
+  border: 1px dashed rgba(148, 163, 184, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0f172a;
+}
+
+/* small legend dots */
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.dot-blue {
+  background: #38bdf8;
+}
+
+.dot-grey {
+  background: rgba(148, 163, 184, 0.55);
+}
 /*
 :root {
     --v-anchor-base: #6946dd;

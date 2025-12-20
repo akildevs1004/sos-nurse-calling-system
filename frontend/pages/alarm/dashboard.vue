@@ -131,16 +131,18 @@
           <v-card outlined class="pa-4 roomCard roomCardIndividual" :class="cardClass(d)">
             <div class="d-flex align-start">
               <div class="min-w-0">
-                <div class="text-h6 font-weight-black text-truncate">{{ d.name }} {{ cardClass(d) }}</div>
+                <div class="text-h6 font-weight-black text-truncate">{{ d.name }} </div>
 
-                <div class="mt-3">
-                  <v-icon size="40" v-if="d.room_type == 'toilet'" color="yellow"> mdi-toilet </v-icon>
-                  <v-icon size="40" v-if="d.room_type == 'room'" color="blue"> mdi-bed </v-icon>
-                  <v-icon size="40" v-if="d.room_type == 'room-ph'" color="red"> mdi-bed </v-icon>
-                  <v-icon size="40" v-if="d.room_type == 'toilet-ph'" color="yellow"> mdi-toilet </v-icon>
-                  <v-icon size="40" color="red" v-if="d.room_type == 'toilet-ph'"> mdi-wheelchair </v-icon>
+                <div class="mt-3" style="">
 
-                  <v-icon v-if="!d.room_type" size="40" color="blue"> mdi-bed </v-icon>
+
+
+                  <v-icon size="40" v-if="d.room_type == 'toilet || toilet-ph'" color="yellow"> mdi-toilet </v-icon>
+                  <v-icon size="40" v-if="d.room_type == 'room room-ph'" color="blue"> mdi-bed </v-icon>
+                  <v-icon size="40" v-if="d.room_type == 'room-ph || toilet-ph'" color="red"> mdi-wheelchair </v-icon>
+
+
+                  <v-icon v-if="!d.room_type || d.room_type == ''" size="40" color="blue"> mdi-bed </v-icon>
                 </div>
               </div>
 

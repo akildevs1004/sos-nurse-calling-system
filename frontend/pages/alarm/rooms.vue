@@ -394,7 +394,7 @@
                 </v-btn>
               </div>
             </template>
-            <v-list width="120" dense>
+            <v-list dense>
               <!-- <v-list-item v-if="can(`device_edit`)" @click="SensorsList(item)">
                 <v-list-item-title style="cursor: pointer">
                   <v-icon small> mdi-leak </v-icon>

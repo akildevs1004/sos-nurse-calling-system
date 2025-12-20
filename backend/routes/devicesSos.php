@@ -20,5 +20,10 @@ Route::get('/sos_logs_print_pdf', [SOSRoomsControllers::class, 'SosLogsPrintPdf'
 Route::get('/sos_logs_download_pdf', [SOSRoomsControllers::class, 'SosLogsDownloadPdf']);
 Route::get('/sos_logs_export_excel', [SOSRoomsControllers::class, 'SosLogsDownloadCSV']);
 
+//monitor
+
+Route::get('/sos_monitor_statistics', [SOSRoomsControllers::class, 'SOSMonitorStatistics']);
+
+
 
 // Route::post('/update_sos_devices_to_deviceConfig', [DeviceController::class, 'updateSOSDevicesToDeviceConfig']);

@@ -1062,6 +1062,9 @@ export default {
         whatsapp: {
           elevation: 0,
           selected: "",
+        }, monitor: {
+          elevation: 0,
+          selected: "",
         },
       },
 
@@ -2581,6 +2584,149 @@ body {
 /* .livedateTime span {
   color: #fff !important;
 } */
+</style>
+<style>
+.gridWrap {
+  display: grid;
+  gap: 14px;
+}
+
+@media (max-width: 1400px) {
+  .gridWrap {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 960px) {
+  .gridWrap {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .gridWrap {
+    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+  }
+}
+
+.roomCard {
+  border-radius: 12px;
+
+}
+
+.cardOn {
+  border: 2px solid rgba(239, 68, 68, 0.95);
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.18);
+}
+
+.cardOff {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.cardAck {
+
+  border: 2px solid #f97316;
+}
+
+.sos-border-red {
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+.sos-border-orange {
+  border-color: #f97316 !important;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.dot-red {
+  background: #ef4444;
+  box-shadow: 0 0 10px rgba(239, 68, 68, .25);
+}
+
+.dot-grey {
+  background: #64748b;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.3;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+.blink-btn {
+  animation: blink 1s infinite;
+}
+
+.stat-card {
+  border-radius: 14px;
+  border: 1px solid transparent !important;
+}
+
+/* ===== Full Border Colors ===== */
+.stat-critical {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.stat-warning {
+  border-color: #f97316 !important;
+  background: rgba(249, 115, 22, 0.05);
+}
+
+.stat-success {
+  border-color: #22c55e !important;
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.stat-info {
+  border-color: #3b82f6 !important;
+  background: rgba(59, 130, 246, 0.05);
+}
+
+/* ===== Text & Icon Colors ===== */
+.critical-text {
+  color: #ef4444 !important;
+}
+
+.warning-text {
+  color: #f97316 !important;
+}
+
+.success-text {
+  color: #22c55e !important;
+}
+
+.info-text {
+  color: #3b82f6 !important;
+}
+
+/* Typography */
+.stat-title {
+  letter-spacing: 0.06em;
+}
+
+.stat-sub {
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+.stat-icon {
+  font-size: 34px;
+  opacity: 0.95;
+}
 </style>
 <style scoped>
 @import "@../../assets/whitetheme.css";

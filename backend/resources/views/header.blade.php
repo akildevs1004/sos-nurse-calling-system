@@ -110,7 +110,7 @@
             @endif
 
             <div style="font-size:10px; margin-top:5px;">
-                {{ !empty($alarm_id) ? 'SCAN' : '' }}
+                Printed on<br />
                 {{ date('d M Y') }}
             </div>
         </td>

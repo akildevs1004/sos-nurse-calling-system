@@ -16,6 +16,14 @@
     "submenu": "leftmenu",
     "module": "dashboard"
   },
+  {
+    "icon": "mdi-alarm-light",
+    "title": "Monitor",
+    "to": "/alarm/monitor",
+    "menu": "monitor",
+    "submenu": "leftmenu",
+    "module": "dashboard"
+  },
 
   {
     "icon": "mdi mdi-server",

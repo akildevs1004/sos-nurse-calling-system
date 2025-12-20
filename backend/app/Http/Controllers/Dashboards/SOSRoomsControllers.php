@@ -48,7 +48,7 @@ class SOSRoomsControllers extends Controller
     public function dashboardStats(Request $request)
     {
         $companyId = (int) $request->company_id;
-        $slaMinutes = 5;
+        $slaMinutes = 1;
 
         // total responded calls
         $total = DeviceSosRoomLogs::where('company_id', $companyId)
@@ -243,5 +243,68 @@ class SOSRoomsControllers extends Controller
         $fileName = "SOS Reports List.xlsx";
 
         return Excel::download((new SOSExcelReports($reports)), $fileName);
+    }
+
+    //-[[----------------------------------------------------------]]
+    public function SOSMonitorStatistics(Request $request)
+    {
+
+        $date_from = date("Y-m-d");
+        $date_to = date("Y-m-d");
+
+
+        $companyId = (int) $request->company_id;
+        $slaMinutes = 5;
+
+        // total responded calls
+        $totalSOSCount = DeviceSosRoomLogs::where('company_id', $companyId)
+            ->where('alarm_start_datetime', ">=", $date_from . " 00:00:00")
+            ->where('alarm_end_datetime', "<=", $date_to . " 24:00:00")
+            ->count();
+
+
+        $totalResolved = DeviceSosRoomLogs::where('company_id', $companyId)
+            ->where('alarm_start_datetime', ">=", $date_from . " 00:00:00")
+            ->where('alarm_end_datetime', "<=", $date_to . " 24:00:00")
+            ->where('alarm_end_datetime', "!=", null)
+
+            ->count();
+
+        $totalSOSActive = $totalSOSCount - $totalResolved;
+
+
+        $averageMinutes = DeviceSosRoomLogs::where('company_id', $companyId)
+            ->whereNotNull('response_in_minutes')
+            ->where('alarm_start_datetime', ">=", $date_from . " 00:00:00")
+            ->where('alarm_end_datetime', "<=", $date_to . " 24:00:00")
+            ->avg('response_in_minutes');
+
+
+        $totalDeviceOnline = DeviceSosRooms::where('company_id', $companyId)
+            ->where('status_id', 1)
+            ->count();
+        $totalDeviceOffline = DeviceSosRooms::where('company_id', $companyId)
+            ->where('status_id', 2)
+            ->count();
+
+
+
+
+        return response()->json([
+            'totalSOSCount' => $totalSOSCount,   // e.g. 82.45
+            'totalResolved'    => $totalResolved,
+            'totalSOSActive'    => $totalSOSActive,
+            'totalDeviceOnline'    => $totalDeviceOnline,
+            'totalDeviceOffline'    => $totalDeviceOffline,
+
+
+
+
+            'averageMinutes'    => round($averageMinutes, 2),
+
+
+
+
+        ]);
     }
 }
