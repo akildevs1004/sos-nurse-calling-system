@@ -223,23 +223,29 @@
 
       <!-- CALL SOURCES -->
       <v-col cols="12" lg="4">
-        <v-card class="panel" outlined height="320">
+        <v-card class="panel" outlined height="320" :key="key">
           <v-card-text>
-            <div class="font-weight-bold mb-6">Call Sources</div>
+            <div class="font-weight-bold mb-6">SOS Rooms / Sources</div>
 
-            <div v-for="s in sources" :key="s.name" class="mb-5">
-              <div class="d-flex justify-space-between align-center">
-                <div class="font-weight-medium">
-                  <v-icon small :class="s.color" class="mr-1">
-                    {{ s.icon }}
-                  </v-icon>
-                  {{ s.name }}
+            <template v-if="normalizedItems.length">
+              <div v-for="s in normalizedItems" :key="s.room_type" class="mb-5">
+                <div class="d-flex justify-space-between align-center">
+                  <div class="font-weight-medium d-flex align-center">
+                    <v-icon small class="mr-1" :class="s.color">
+                      {{ roomTypeIcon(s.room_type) }}
+                    </v-icon>
+
+                    <span>{{ s.label }} ({{ s.count }})</span>
+                  </div>
+
+                  <div class="muted-text">{{ formatPct(s.percentage) }}%</div>
                 </div>
-                <div class="muted-text">{{ s.pct }}%</div>
-              </div>
 
-              <v-progress-linear :value="s.pct" height="8" rounded :class="s.bar" />
-            </div>
+                <v-progress-linear :value="clampPct(s.percentage)" height="8" rounded class="mt-2" :class="s.bar" />
+              </div>
+            </template>
+
+            <div v-else class="muted-text">No data available</div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -278,7 +284,7 @@ export default {
       // demo lists (replace with your API data)
       rooms: [{ value: "room", name: "Rooms" }, { value: "toilet", name: "Toilets" }, { value: "toilet-ph", name: "Toilets - Handicapped" }],
 
-
+      roomTypeStats: null,
 
       loading: false,
       totalSOSCount: 0,
@@ -322,16 +328,37 @@ export default {
     };
   },
 
-  mounted() {
+  async mounted() {
 
     const today = new Date();
 
 
     this.date_from = today.toISOString().slice(0, 10); // YYYY-MM-DD
     this.date_to = today.toISOString().slice(0, 10);
-    this.getDataFromApi();
+    await this.getDataFromApi();
+    await this.getRoomWiseStatsApi();
+
   },
   computed: {
+
+    normalizedItems() {
+      const items = this.roomTypeStats?.items || [];
+      return items.map((s) => {
+        const rt = String(s.room_type || "").trim();
+        const pct = Number(s.percentage ?? 0);
+        const count = Number(s.count ?? 0);
+
+        return {
+          ...s,
+          room_type: rt,
+          count: isFinite(count) ? count : 0,
+          percentage: isFinite(pct) ? pct : 0,
+          color: this.roomTypeColor(rt),
+          bar: this.roomTypeBar(rt),
+        };
+      });
+    },
+
     filterRangeLabel() {
       if (this.range === "7") return "Last 7 Days";
       if (this.range === "30") return "Last 30 Days";
@@ -356,12 +383,68 @@ export default {
 
   },
   methods: {
+    roomTypeIcon(rt) {
+      switch (rt) {
+        case "room":
+          return "mdi-door";
+        case "toilet":
+          return "mdi-toilet";
+        case "toilet-ph":
+          return "mdi-wheelchair-accessibility";
+        default:
+          return "mdi-map-marker";
+      }
+    },
+
+    // EXACTLY 3 COLORS (Room=Blue, Toilet=Green, Disabled=Red)
+    roomTypeColor(rt) {
+      switch (rt) {
+        case "room":
+          return "sos-blue-text";
+        case "toilet":
+          return "sos-green-text";
+        case "toilet-ph":
+          return "sos-red-text";
+        default:
+          return "sos-grey-text";
+      }
+    },
+
+    roomTypeBar(rt) {
+      switch (rt) {
+        case "room":
+          return "sos-blue-bar";
+        case "toilet":
+          return "sos-green-bar";
+        case "toilet-ph":
+          return "sos-red-bar";
+        default:
+          return "sos-grey-bar";
+      }
+    },
+
+    clampPct(v) {
+      const n = Number(v);
+      if (!isFinite(n)) return 0;
+      return Math.max(0, Math.min(100, n));
+    },
+
+    formatPct(v) {
+      const n = Number(v);
+      if (!isFinite(n)) return "0.00";
+      return n.toFixed(2);
+    },
+
+    clampPct(v) {
+      const n = Number(v);
+      return isFinite(n) ? Math.min(100, Math.max(0, n)) : 0;
+    },
     async loadData() {
 
       // console.log("this.room", this.room);
 
       await this.getDataFromApi();
-      // await this.getStatsApi();
+      await this.getRoomWiseStatsApi();
     },
     filterAttr(data) {
       if (data?.from)
@@ -430,8 +513,49 @@ export default {
       this.sosStatus = "";
       this.loadData();
     },
-    RefreshDashboard() {
-      this.getDataFromApi();
+    async RefreshDashboard() {
+      await this.getDataFromApi();
+      await this.getRoomWiseStatsApi();
+    },
+    async getRoomWiseStatsApi() {
+      this.loading = true;
+      try {
+
+
+
+
+        const { data } = await this.$axios.get("sos_room_percentage_roomtypes", {
+          params: {
+            company_id: this.$auth.user.company_id,
+
+            date_from: this.date_from || null,
+            date_to: this.date_to || null,
+            sosStatus: this.status || null,
+            roomType: this.room?.value || null,
+
+          },
+        });
+
+        if (data) {
+
+          this.roomTypeStats = data;
+        }
+        else {
+          this.roomTypeStats = null;
+        }
+
+
+
+        // setTimeout(() => {
+        //   this.logskey++;
+        // }, 3000);
+
+      } catch (e) {
+        console.error("SOS reports fetch failed:", e);
+
+      } finally {
+        this.loading = false;
+      }
     },
     async getDataFromApi() {
       this.loading = true;
@@ -467,9 +591,9 @@ export default {
           this.key++;
         }, 1000);
 
-        setTimeout(() => {
-          this.logskey++;
-        }, 3000);
+        // setTimeout(() => {
+        //   this.logskey++;
+        // }, 3000);
 
       } catch (e) {
         console.error("SOS reports fetch failed:", e);
@@ -796,5 +920,43 @@ export default {
 .customFilterdate .backgroundcolordate {
   background-color: red !important;
   padding: 10px;
+}
+</style>
+<style scoped>
+/* TEXT COLORS */
+.sos-blue-text {
+  color: #1e88e5;
+}
+
+/* Room */
+.sos-green-text {
+  color: #2e7d32;
+}
+
+/* Toilet */
+.sos-red-text {
+  color: #d32f2f;
+}
+
+/* Disabled Toilet */
+.sos-grey-text {
+  color: rgba(127, 127, 127, 0.9);
+}
+
+/* PROGRESS BARS */
+.sos-blue-bar :deep(.v-progress-linear__determinate) {
+  background-color: #1e88e5 !important;
+}
+
+.sos-green-bar :deep(.v-progress-linear__determinate) {
+  background-color: #2e7d32 !important;
+}
+
+.sos-red-bar :deep(.v-progress-linear__determinate) {
+  background-color: #d32f2f !important;
+}
+
+.sos-grey-bar :deep(.v-progress-linear__determinate) {
+  background-color: rgba(127, 127, 127, 0.8) !important;
 }
 </style>

@@ -27,6 +27,7 @@ Route::get('/sos_hourly_report', [SOSRoomsControllers::class, 'sosHourlyReport']
 
 Route::get('/sos_room_types', [SOSRoomsControllers::class, 'roomTypes']);
 
+Route::get('/sos_room_percentage_roomtypes', [SOSRoomsControllers::class, 'roomTypesPercentages']);
 
 
 

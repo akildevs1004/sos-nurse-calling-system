@@ -408,110 +408,228 @@ class SOSRoomsControllers extends Controller
 
         ]);
     }
-
+    private function roomTypeLabels(): array
+    {
+        return [
+            "room"      => "Room",
+            "toilet"    => "Toilet",
+            "toilet-ph" => "Toilet For Disabled",
+        ];
+    }
     public function sosHourlyReport(Request $request)
     {
-        $from = $request->date_from;;
-        $to =  $request->date_to;;
-
-
-        $from = Carbon::parse($from)->startOfDay();
-        $to   = Carbon::parse($to)->endOfDay();
 
 
 
+        $companyId = (int) $request->company_id;
+
+        // Date range
+        $from = Carbon::parse($request->date_from)->startOfDay();
+        $to   = Carbon::parse($request->date_to)->endOfDay();
+
+        // Labels
+        $labels = $this->roomTypeLabels();
+
+        // Base query
         $query = DB::table('device_sos_room_logs as l')
             ->join('device_sos_rooms as r', 'r.id', '=', 'l.device_sos_room_table_id')
             ->whereBetween('l.alarm_start_datetime', [$from, $to])
+            ->whereNotNull('r.room_type');
 
-
-            ->when($request->filled('sosStatus'), function ($q) use ($request) {
-                if ($request->sosStatus == "ON")
-                    $q->where("sos_status", true);
-                if ($request->sosStatus == "OFF")
-                    $q->where("sos_status", false);
-                if ($request->sosStatus == "PENDING")
-                    $q->where("sos_status", true)->where("responded_datetime", "!=", null);
-            })
-
-            ->when($request->filled('roomType'), function ($q) use ($request) {
-                $q->whereHas('room', function ($qr) use ($request) {
-                    $qr->where('room_type', $request->roomType);
-                });
-            });
-
-
-
-        if ($request->company_id) {
-            $query->where('l.company_id', $request->company_id);
+        if ($companyId) {
+            $query->where('l.company_id', $companyId);
         }
 
-        // OPTIONAL: count only SOS ON
-        // $query->where('l.sos_status', true);
+        // SOS status filter
+        $query->when($request->filled('sosStatus'), function ($q) use ($request) {
+            if ($request->sosStatus === "ON") {
+                $q->where('l.sos_status', true);
+            } elseif ($request->sosStatus === "OFF") {
+                $q->where('l.sos_status', false);
+            } elseif ($request->sosStatus === "PENDING") {
+                // ON but not responded
+                $q->where('l.sos_status', true)
+                    ->whereNull('l.responded_datetime');
+            } elseif ($request->sosStatus === "RESPONDED") {
+                $q->whereNotNull('l.responded_datetime');
+            }
+        });
 
-        $hourExpr = "EXTRACT(HOUR FROM l.alarm_start_datetime)";
+        // Room type filter
+        $query->when($request->filled('roomType'), function ($q) use ($request) {
+            $q->where('r.room_type', $request->roomType);
+        });
 
+        // DB-specific hour extraction
+        $driver = DB::getDriverName();
+        $hourExpr = ($driver === 'pgsql')
+            ? "EXTRACT(HOUR FROM l.alarm_start_datetime)"
+            : "HOUR(l.alarm_start_datetime)";
+
+        // Aggregate
         $rows = $query
             ->selectRaw("
-            r.room_type AS room_type,
-            $hourExpr   AS hour,
-            COUNT(*)    AS total
-        ")
-
-            ->where("r.room_type", "!=", null)
+                r.room_type AS room_type,
+                $hourExpr   AS hour,
+                COUNT(*)    AS total
+            ")
             ->groupBy('r.room_type', DB::raw($hourExpr))
             ->orderBy('r.room_type')
             ->orderBy(DB::raw($hourExpr))
             ->get();
 
-        /*
-     * Categories: 0 → 23 (plain integers / strings)
-     */
+        // X-axis categories (0–23)
         $categories = array_map('strval', range(0, 23));
 
-        /*
-     * Collect unique room types
-     */
-        $roomTypes = collect($rows)->pluck('room_type')->unique()->values();
+        // Use all known room types so zero-value series still appear
+        $roomTypes = array_keys($labels);
 
-        /*
-     * Initialize each room_type with 24 zeros
-     */
+        // Initialize series map
         $seriesMap = [];
         foreach ($roomTypes as $rt) {
             $seriesMap[$rt] = array_fill(0, 24, 0);
         }
 
-        /*
-     * Fill data
-     */
+        // Fill data
         foreach ($rows as $row) {
-            $h = (int) $row->hour; // 0–23
+            $rt = (string) $row->room_type;
+            $h  = (int) $row->hour;
+
             if ($h >= 0 && $h <= 23) {
-                $seriesMap[$row->room_type][$h] = (int) $row->total;
+                // Include unexpected room types safely
+                if (!isset($seriesMap[$rt])) {
+                    $seriesMap[$rt] = array_fill(0, 24, 0);
+                }
+                $seriesMap[$rt][$h] = (int) $row->total;
             }
         }
 
-        /*
-     * Convert to ApexCharts format
-     */
+        // Build ApexCharts series
         $series = [];
         foreach ($seriesMap as $roomType => $data) {
             $series[] = [
-                'name' => $roomType,
+                'name' => $labels[$roomType] ?? ucfirst(str_replace('-', ' ', $roomType)),
                 'data' => $data,
             ];
         }
 
         return response()->json([
-            'categories' => $categories, // ["0","1","2",...,"23"]
+            'categories' => $categories,
             'series'     => $series,
+            'meta'       => [
+                'company_id' => $companyId,
+                'date_from'  => $from->toDateTimeString(),
+                'date_to'    => $to->toDateTimeString(),
+                'db_driver'  => $driver,
+            ],
         ]);
     }
+    public function roomTypesPercentages(Request $request)
+    {
+        $companyId = (int) $request->company_id;
 
+        $from = Carbon::parse($request->date_from)->startOfDay();
+        $to   = Carbon::parse($request->date_to)->endOfDay();
+
+        $labels = $this->roomTypeLabels();
+
+        /*
+         * Base query
+         */
+        $base = DB::table('device_sos_room_logs as l')
+            ->join('device_sos_rooms as r', 'r.id', '=', 'l.device_sos_room_table_id')
+            ->whereBetween('l.alarm_start_datetime', [$from, $to])
+            ->whereNotNull('r.room_type');
+
+        if ($companyId) {
+            $base->where('l.company_id', $companyId);
+        }
+
+        /*
+         * SOS status filter
+         */
+        $base->when($request->filled('sosStatus'), function ($q) use ($request) {
+            if ($request->sosStatus === 'ON') {
+                $q->where('l.sos_status', true);
+            } elseif ($request->sosStatus === 'OFF') {
+                $q->where('l.sos_status', false);
+            } elseif ($request->sosStatus === 'PENDING') {
+                // ON but not responded yet
+                $q->where('l.sos_status', true)
+                    ->whereNull('l.responded_datetime');
+            } elseif ($request->sosStatus === 'RESPONDED') {
+                $q->whereNotNull('l.responded_datetime');
+            }
+        });
+
+        /*
+         * Total SOS count (denominator)
+         */
+        $totalSOS = (clone $base)->count();
+
+        /*
+         * Count per room type
+         */
+        $rows = (clone $base)
+            ->selectRaw('r.room_type AS room_type, COUNT(*) AS total')
+            ->groupBy('r.room_type')
+            ->orderBy('r.room_type')
+            ->get();
+
+        /*
+         * Build result with percentage
+         */
+        $items = [];
+        foreach ($rows as $row) {
+            $count = (int) $row->total;
+            $percentage = $totalSOS > 0
+                ? round(($count / $totalSOS) * 100, 2)
+                : 0;
+
+            $items[] = [
+                'room_type' => (string) $row->room_type,
+                'label'     => $labels[$row->room_type]
+                    ?? ucfirst(str_replace('-', ' ', $row->room_type)),
+                'count'     => $count,
+                'percentage' => $percentage,
+            ];
+        }
+
+        /*
+         * OPTIONAL: include room types with zero values
+         */
+        if ($request->boolean('includeZeroTypes', true)) {
+            $indexed = collect($items)->keyBy('room_type')->all();
+            $items = [];
+
+            foreach ($labels as $key => $label) {
+                $count = $indexed[$key]['count'] ?? 0;
+                $percentage = $totalSOS > 0
+                    ? round(($count / $totalSOS) * 100, 2)
+                    : 0;
+
+                $items[] = [
+                    'room_type' => $key,
+                    'label'     => $label,
+                    'count'     => $count,
+                    'percentage' => $percentage,
+                ];
+            }
+        }
+
+        return response()->json([
+            'total_sos' => (int) $totalSOS,
+            'items'     => $items,
+            'meta'      => [
+                'company_id' => $companyId,
+                'date_from'  => $from->toDateTimeString(),
+                'date_to'    => $to->toDateTimeString(),
+            ],
+        ]);
+    }
     public function roomTypes(Request $request)
     {
 
-        return ["room" => "Room", "toilet" => "Toilet", "toilet-ph" => "Toilet For Disabled"];
+        return $this->roomTypeLabels();;
     }
 }
