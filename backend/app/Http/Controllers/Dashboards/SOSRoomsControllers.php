@@ -286,17 +286,38 @@ class SOSRoomsControllers extends Controller
     public function SOSMonitorStatistics(Request $request)
     {
 
-        $date_from = date("Y-m-d");
-        $date_to = date("Y-m-d");
+        $date_from = $request->date_from;
+        $date_to = $request->date_to;
 
 
         $companyId = (int) $request->company_id;
         $slaMinutes = 5;
 
-        // total responded calls
+        // total   calls
         $totalSOSCount = DeviceSosRoomLogs::where('company_id', $companyId)
-            ->where('alarm_start_datetime', ">=", $date_from . " 00:00:00")
+            ->whereDate('alarm_start_datetime', ">=", $date_from . " 00:00:00")
             ->where('alarm_start_datetime', "<=", $date_to . " 24:00:00")
+
+
+
+            ->when($request->filled('sosStatus'), function ($q) use ($request) {
+                if ($request->sosStatus == "ON")
+                    $q->where("sos_status", true);
+                if ($request->sosStatus == "OFF")
+                    $q->where("sos_status", false);
+                if ($request->sosStatus == "PENDING")
+                    $q->where("sos_status", true)->where("responded_datetime", "!=", null);
+            })
+
+            ->when($request->filled('roomType'), function ($q) use ($request) {
+                $q->whereHas('room', function ($qr) use ($request) {
+                    $qr->where('room_type', $request->roomType);
+                });
+            })
+
+
+
+
             ->count();
 
 
@@ -304,22 +325,59 @@ class SOSRoomsControllers extends Controller
             ->where('alarm_end_datetime', ">=", $date_from . " 00:00:00")
             ->where('alarm_end_datetime', "<=", $date_to . " 24:00:00")
             ->where('alarm_end_datetime', "!=", null)
-
+            ->when($request->filled('sosStatus'), function ($q) use ($request) {
+                if ($request->sosStatus == "ON")
+                    $q->where("sos_status", true);
+                if ($request->sosStatus == "OFF")
+                    $q->where("sos_status", false);
+                if ($request->sosStatus == "PENDING")
+                    $q->where("sos_status", true)->where("responded_datetime", "!=", null);
+            })
+            ->when($request->filled('roomType'), function ($q) use ($request) {
+                $q->whereHas('room', function ($qr) use ($request) {
+                    $qr->where('room_type', $request->roomType);
+                });
+            })
             ->count();
 
 
         $totalSOSActive = DeviceSosRoomLogs::where('company_id', $companyId)
 
             ->where('alarm_end_datetime',   null)
-
+            ->when($request->filled('sosStatus'), function ($q) use ($request) {
+                if ($request->sosStatus == "ON")
+                    $q->where("sos_status", true);
+                if ($request->sosStatus == "OFF")
+                    $q->where("sos_status", false);
+                if ($request->sosStatus == "PENDING")
+                    $q->where("sos_status", true)->where("responded_datetime", "!=", null);
+            })
+            ->when($request->filled('roomType'), function ($q) use ($request) {
+                $q->whereHas('room', function ($qr) use ($request) {
+                    $qr->where('room_type', $request->roomType);
+                });
+            })
             ->count();
 
 
 
         $averageMinutes = DeviceSosRoomLogs::where('company_id', $companyId)
             ->whereNotNull('response_in_minutes')
+            ->when($request->filled('sosStatus'), function ($q) use ($request) {
+                if ($request->sosStatus == "ON")
+                    $q->where("sos_status", true);
+                if ($request->sosStatus == "OFF")
+                    $q->where("sos_status", false);
+                if ($request->sosStatus == "PENDING")
+                    $q->where("sos_status", true)->where("responded_datetime", "!=", null);
+            })
             ->where('alarm_start_datetime', ">=", $date_from . " 00:00:00")
             ->where('alarm_end_datetime', "<=", $date_to . " 24:00:00")
+            ->when($request->filled('roomType'), function ($q) use ($request) {
+                $q->whereHas('room', function ($qr) use ($request) {
+                    $qr->where('room_type', $request->roomType);
+                });
+            })
             ->avg('response_in_minutes');
 
 
@@ -353,8 +411,8 @@ class SOSRoomsControllers extends Controller
 
     public function sosHourlyReport(Request $request)
     {
-        $from = date("Y-m-d");
-        $to = date("Y-m-d");
+        $from = $request->date_from;;
+        $to =  $request->date_to;;
 
 
         $from = Carbon::parse($from)->startOfDay();
@@ -364,7 +422,25 @@ class SOSRoomsControllers extends Controller
 
         $query = DB::table('device_sos_room_logs as l')
             ->join('device_sos_rooms as r', 'r.id', '=', 'l.device_sos_room_table_id')
-            ->whereBetween('l.alarm_start_datetime', [$from, $to]);
+            ->whereBetween('l.alarm_start_datetime', [$from, $to])
+
+
+            ->when($request->filled('sosStatus'), function ($q) use ($request) {
+                if ($request->sosStatus == "ON")
+                    $q->where("sos_status", true);
+                if ($request->sosStatus == "OFF")
+                    $q->where("sos_status", false);
+                if ($request->sosStatus == "PENDING")
+                    $q->where("sos_status", true)->where("responded_datetime", "!=", null);
+            })
+
+            ->when($request->filled('roomType'), function ($q) use ($request) {
+                $q->whereHas('room', function ($qr) use ($request) {
+                    $qr->where('room_type', $request->roomType);
+                });
+            });
+
+
 
         if ($request->company_id) {
             $query->where('l.company_id', $request->company_id);

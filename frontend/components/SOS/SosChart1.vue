@@ -25,6 +25,22 @@ export default {
       type: Array,
       default: null,
     },
+    date_from: {
+      type: String,
+      default: null,
+    },
+    date_to: {
+      type: String,
+      default: null,
+    },
+    roomType: {
+      type: String,
+      default: null,
+    },
+    sosStatus: {
+      type: String,
+      default: null,
+    },
   },
 
   data() {
@@ -291,6 +307,11 @@ export default {
             company_id: this.$auth.user.company_id,
             // from_date: this.fromDate,
             // to_date: this.toDate,
+
+            date_from: this.date_from || null,
+            date_to: this.date_to || null,
+            sosStatus: this.sosStatus || null,
+            roomType: this.roomType || null,
           },
         });
 

@@ -5,10 +5,90 @@
     <SosAlarmPopupMqtt @triggerUpdateDashboard="RefreshDashboard()" />
     <!-- FILTER BAR -->
 
+    <v-card class="filters-bar mb-2" outlined :loading="loading">
+      <div class="filters-inner">
+        <div class="filters-left">
+          <div class="filters-label">FILTERS:</div>
 
+          <!-- Last 7 Days -->
+          <v-menu offset-y bottom left>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn style="max-width:250px" class="filter-pill" v-bind="attrs" v-on="on" depressed>
+                <v-icon small class="mr-2">mdi-calendar-month-outline</v-icon>
+                <span class="pill-text">{{ filterRangeLabel }}</span>
+                <v-icon small class="ml-2 pill-chevron">mdi-chevron-down</v-icon>
+              </v-btn>
+            </template>
+
+            <v-list dense class="filters-menu">
+
+              <v-list-item @click="setRange('')"><v-list-item-title>Today</v-list-item-title></v-list-item>
+
+              <v-list-item @click="setRange('7')"><v-list-item-title>Last 7 Days</v-list-item-title></v-list-item>
+              <v-list-item @click="setRange('30')"><v-list-item-title>Last 30 Days</v-list-item-title></v-list-item>
+              <v-list-item @click="setRange('0')"><v-list-item-title>Custom</v-list-item-title></v-list-item>
+            </v-list>
+          </v-menu>
+          <span v-if="range == '0'"
+            style="background-color: rgba(255, 255, 255, 0.04) !important;border-radius: 20px;;">
+            <CustomFilter class="customFilterdate" style="padding-top: " @filter-attr="filterAttr"
+              :default_date_from="date_from" :default_date_to="date_to" :defaultFilterType="1" :height="30"
+              :width="250" />
+          </span>
+
+          <!-- All Rooms -->
+          <v-menu offset-y bottom left>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn style="max-width:250px" class="filter-pill" v-bind="attrs" v-on="on" depressed>
+                <v-icon small class="mr-2">mdi-domain</v-icon>
+                <span class="pill-text">{{ roomLabel }}</span>
+                <v-icon small class="ml-2 pill-chevron">mdi-chevron-down</v-icon>
+              </v-btn>
+            </template>
+
+            <v-list dense class="filters-menu">
+              <v-list-item @click="setRoom(null)"><v-list-item-title>All Rooms </v-list-item-title></v-list-item>
+              <v-list-item v-for="r in rooms" :key="r.value" @click="setRoom(r)">
+                <v-list-item-title>{{ r.name }}</v-list-item-title>
+              </v-list-item>
+            </v-list>
+          </v-menu>
+
+
+
+
+          <!-- All Statuses -->
+          <v-menu offset-y bottom left>
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn style="max-width:250px" class="filter-pill" v-bind="attrs" v-on="on" depressed>
+                <v-icon small class="mr-2">mdi-check-decagram-outline</v-icon>
+                <span class="pill-text">{{ statusLabel }}</span>
+                <v-icon small class="ml-2 pill-chevron">mdi-chevron-down</v-icon>
+              </v-btn>
+            </template>
+
+            <v-list dense class="filters-menu">
+              <v-list-item @click="setStatus(null)"><v-list-item-title>All SOS</v-list-item-title></v-list-item>
+              <v-list-item @click="setStatus('ON')"><v-list-item-title>Active (ON)</v-list-item-title></v-list-item>
+
+              <v-list-item @click="setStatus('OFF')"><v-list-item-title>Resolved (OFF)</v-list-item-title></v-list-item>
+              <!-- <v-list-item
+                @click="setStatus('PENDING')"><v-list-item-title>Acknowledged</v-list-item-title></v-list-item> -->
+
+            </v-list>
+          </v-menu>
+        </div>
+
+        <v-spacer />
+
+        <v-btn small class="reset-link success" @click="resetFilters">
+          Reset Filters
+        </v-btn>
+      </div>
+    </v-card>
 
     <!-- KPI CARDS (FULL BORDER COLORS) -->
-    <v-row dense class="mb-8">
+    <v-row dense class="mb-4">
 
       <!-- Active SOS -->
       <v-col cols="12" sm="6" lg="2">
@@ -129,12 +209,13 @@
       <v-col cols="12" lg="8">
         <v-card class="panel" outlined height="320">
           <v-card-text>
-            <div class="font-weight-bold mb-4">
+            <div class="font-weight-bold mb-2">
               Call Frequency (Hourly)
             </div>
 
             <div class="bar-wrap">
-              <SosChart1 :key="loading" style="height:250px!important" />
+              <SosChart1 :key="key" style="height:250px!important" :date_from="date_from || null"
+                :date_to="date_to || null" :sosStatus="status || null" :roomType="room?.value || null" />
             </div>
           </v-card-text>
         </v-card>
@@ -165,10 +246,10 @@
     </v-row>
 
 
-    <v-progress-linear v-if="loading" indeterminate height="3" class="mb-2" />
+    <!-- <v-progress-linear v-if="loading" indeterminate height="3" class="mb-2" /> -->
     <v-row>
       <v-col>
-        <SOSLogs :key="loading" />
+        <SOSLogs :key="logskey" />
       </v-col>
     </v-row>
   </div>
@@ -184,6 +265,21 @@ export default {
   name: "SosCallReportFull",
   data() {
     return {
+      key: 0,
+      logskey: 0,
+      date_from: "",
+      date_to: "",
+
+      range: "",            // "7" | "30" | "all"
+      room: null,            // {id,name} | null
+      source: null,          // {value,text} | null
+      status: null,          // "ON" | "OFF" | null
+
+      // demo lists (replace with your API data)
+      rooms: [{ value: "room", name: "Rooms" }, { value: "toilet", name: "Toilets" }, { value: "toilet-ph", name: "Toilets - Handicapped" }],
+
+
+
       loading: false,
       totalSOSCount: 0,
       totalResolved: 0,
@@ -227,10 +323,113 @@ export default {
   },
 
   mounted() {
+
+    const today = new Date();
+
+
+    this.date_from = today.toISOString().slice(0, 10); // YYYY-MM-DD
+    this.date_to = today.toISOString().slice(0, 10);
     this.getDataFromApi();
   },
+  computed: {
+    filterRangeLabel() {
+      if (this.range === "7") return "Last 7 Days";
+      if (this.range === "30") return "Last 30 Days";
+      if (this.range === "") return "Today";
+      if (this.range === "0") return "Custom";
 
+
+      return "Custom";
+    },
+    roomLabel() {
+      console.log("Room- ", this.room);
+
+      return this.room?.name || "All Rooms";
+    },
+    sourceLabel() {
+      return this.source?.text || "All Sources";
+    },
+    statusLabel() {
+      if (!this.status) return "All SOS";
+      return this.status === "ON" ? "Active" : this.status === "PENDING" ? "Acknowledged" : "Resolved";
+    },
+
+  },
   methods: {
+    async loadData() {
+
+      // console.log("this.room", this.room);
+
+      await this.getDataFromApi();
+      // await this.getStatsApi();
+    },
+    filterAttr(data) {
+      if (data?.from)
+        this.date_from = data?.from;
+      if (data?.to)
+        this.date_to = data?.to;
+      this.loadData();
+
+
+    },
+    setRange(v) {
+      this.range = v;
+
+
+      if (this.range == '') {
+        const today = new Date();
+
+
+        this.date_from = today.toISOString().slice(0, 10); // YYYY-MM-DD
+        this.date_to = today.toISOString().slice(0, 10);
+
+      } else if (this.range == 7) {
+        const today = new Date();
+
+        const from = new Date();
+        from.setDate(today.getDate() - 6); // last 7 days incl. today
+
+        this.date_from = from.toISOString().slice(0, 10); // YYYY-MM-DD
+        this.date_to = today.toISOString().slice(0, 10);
+
+      } else if (this.range == 30) {
+        const today = new Date();
+
+        const from = new Date();
+        from.setDate(today.getDate() - 30); // last 7 days incl. today
+
+        this.date_from = from.toISOString().slice(0, 10); // YYYY-MM-DD
+        this.date_to = today.toISOString().slice(0, 10);
+
+      }
+
+
+
+
+
+
+      this.loadData();
+    },
+    setRoom(r) { this.room = r; this.loadData(); },
+    setSource(s) { this.source = s; this.loadData(); },
+    setStatus(v) { this.status = v; this.loadData(); },
+
+    resetFilters() {
+      this.range = "";
+
+
+      const today = new Date();
+
+
+      this.date_from = today.toISOString().slice(0, 10); // YYYY-MM-DD
+      this.date_to = today.toISOString().slice(0, 10);
+
+
+
+      this.roomType = "";
+      this.sosStatus = "";
+      this.loadData();
+    },
     RefreshDashboard() {
       this.getDataFromApi();
     },
@@ -245,9 +444,11 @@ export default {
           params: {
             company_id: this.$auth.user.company_id,
 
-            // date_from: this.date_from || null,
-            // date_to: this.date_to || null,
-            // alarm_status: this.filterSOSStatus || null,
+            date_from: this.date_from || null,
+            date_to: this.date_to || null,
+            sosStatus: this.status || null,
+            roomType: this.room?.value || null,
+
           },
         });
 
@@ -261,6 +462,14 @@ export default {
 
 
         }
+
+        setTimeout(() => {
+          this.key++;
+        }, 1000);
+
+        setTimeout(() => {
+          this.logskey++;
+        }, 3000);
 
       } catch (e) {
         console.error("SOS reports fetch failed:", e);
@@ -503,5 +712,89 @@ export default {
 
 .danger-text {
   color: var(--c-error);
+}
+</style>
+
+
+<style scoped>
+/* Container */
+.filters-bar {
+  border-radius: 14px;
+  border: 1px solid var(--c-border) !important;
+  background: var(--c-panel);
+}
+
+/* Layout */
+.filters-inner {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  gap: 10px;
+}
+
+.filters-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filters-label {
+  font-weight: 800;
+  letter-spacing: .06em;
+  font-size: 12px;
+  opacity: .7;
+  margin-right: 6px;
+}
+
+/* Pills */
+.filter-pill {
+  height: 34px !important;
+  border-radius: 999px !important;
+  padding: 0 12px !important;
+  border: 1px solid var(--c-border) !important;
+
+  /* subtle pill background like screenshot */
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.theme--light .filter-pill {
+  background: rgba(0, 0, 0, 0.03) !important;
+}
+
+.pill-text {
+  font-weight: 700;
+  font-size: 13px;
+  opacity: .9;
+}
+
+.pill-chevron {
+  opacity: .7;
+}
+
+/* Dropdown menu surface */
+.filters-menu {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Reset link */
+.reset-link {
+  text-transform: none;
+  font-weight: 800;
+  letter-spacing: .01em;
+}
+</style>
+
+<style>
+.customFilterdate .mx-input {
+  border: 0px solid #9e9e9e !important;
+  border-radius: 20px !important;
+  ;
+}
+
+.customFilterdate .backgroundcolordate {
+  background-color: red !important;
+  padding: 10px;
 }
 </style>
