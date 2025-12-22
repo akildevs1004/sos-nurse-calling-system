@@ -1663,6 +1663,8 @@ export default {
       this.alarmNotificationStatus = true;
     },
     verifyAlarmStatus() {
+
+      return false;
       let company_id = this.$auth.user?.company?.id || 0;
       //console.log("company_id", company_id);
       if (company_id == 0) {

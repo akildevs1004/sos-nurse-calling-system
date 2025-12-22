@@ -40,16 +40,8 @@
       </v-col>
       <v-col md="4" sm="6" class="box" style="padding-top: 7px;">-->
 
-      <date-picker
-        style="padding-top: 7px; width: 230px; z-index: 9999"
-        value-type="format"
-        format="YYYY-MM-DD"
-        type="date"
-        v-model="time3"
-        @change="CustomFilter()"
-        range
-        label="Date"
-      ></date-picker>
+      <date-picker style="padding-top: 7px; width: 230px; z-index: 9999" value-type="format" format="YYYY-MM-DD"
+        type="date" v-model="time3" @change="CustomFilter()" range label="Date"></date-picker>
       <!--</v-col>
        <v-col md="3" v-if="filterType == 5">
           <v-menu v-model="from_menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition"
@@ -58,19 +50,19 @@
               <v-text-field v-model="from_date" readonly v-bind="attrs" v-on="on" dense :hide-details="true"
                 class="custom-text-box shadow-none" solo flat label="From"></v-text-field>
             </template>
-            <v-date-picker v-model="from_date" @input="from_menu = false" @change="commonMethod"></v-date-picker>
-          </v-menu>
-        </v-col>
-        <v-col md="3" v-if="filterType == 5">
-          <v-menu v-model="to_menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y
-            min-width="auto">
-            <template v-slot:activator="{ on, attrs }">
+<v-date-picker v-model="from_date" @input="from_menu = false" @change="commonMethod"></v-date-picker>
+</v-menu>
+</v-col>
+<v-col md="3" v-if="filterType == 5">
+  <v-menu v-model="to_menu" :close-on-content-click="false" :nudge-right="40" transition="scale-transition" offset-y
+    min-width="auto">
+    <template v-slot:activator="{ on, attrs }">
               <v-text-field v-model="to_date" readonly v-bind="attrs" v-on="on" dense class="custom-text-box shadow-none"
                 solo flat label="To" :hide-details="true"></v-text-field>
             </template>
-            <v-date-picker v-model="to_date" @input="to_menu = false" @change="commonMethod"></v-date-picker>
-          </v-menu>
-        </v-col> -->
+    <v-date-picker v-model="to_date" @input="to_menu = false" @change="commonMethod"></v-date-picker>
+  </v-menu>
+</v-col> -->
     </v-row>
   </div>
 </template>
@@ -282,12 +274,13 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .mx-input {
   /*height: 45px !important;*/
   border: 1px solid #9e9e9e !important;
   color: black !important;
 }
+
 .mx-datepicker {
   width: 200px;
 }

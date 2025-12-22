@@ -278,3 +278,63 @@ background-color: #04253b;;
     margin-top: 8px;
   }
 }
+/* =========================================================
+   LIGHT THEME KPI COLORS (Background: #ecf0f4)
+   ========================================================= */
+
+.theme--light .stat-title {
+  letter-spacing: 0.06em;
+  opacity: 0.75;
+}
+
+.stat-sub {
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.stat-icon {
+  font-size: 34px;
+  opacity: 0.95;
+}
+
+/* RED – Active SOS */
+.theme--light .stat-critical {
+  border-color: #ef4444 !important;
+  background: linear-gradient(180deg, rgba(239,68,68,.10), rgba(239,68,68,.04)) !important;
+}
+.critical-text { color: #ef4444 !important; }
+
+/* AMBER – Disabled */
+.theme--light .stat-amber {
+  border-color: #f59e0b !important;
+  background: linear-gradient(180deg, rgba(245,158,11,.12), rgba(245,158,11,.05)) !important;
+}
+.amber-text { color: #f59e0b !important; }
+
+/* BLUE – Repeated */
+.theme--light .stat-info {
+  border-color: #3b82f6 !important;
+  background: linear-gradient(180deg, rgba(59,130,246,.10), rgba(59,130,246,.04)) !important;
+}
+.info-text { color: #3b82f6 !important; }
+
+/* GREEN – Acknowledged */
+.theme--light .stat-success {
+  border-color: #22c55e !important;
+  background: linear-gradient(180deg, rgba(34,197,94,.10), rgba(34,197,94,.04)) !important;
+}
+.success-text { color: #22c55e !important; }
+
+/* PURPLE – Total */
+.theme--light .stat-purple {
+  border-color: #8b5cf6 !important;
+  background: linear-gradient(180deg, rgba(139,92,246,.10), rgba(139,92,246,.04)) !important;
+}
+.purple-text { color: #8b5cf6 !important; }
+
+/* TEAL – Avg Response */
+.theme--light .stat-teal {
+  border-color: #14b8a6 !important;
+  background: linear-gradient(180deg, rgba(20,184,166,.10), rgba(20,184,166,.04)) !important;
+}
+.teal-text { color: #14b8a6 !important; }

@@ -1,621 +1,507 @@
 <template>
-  <v-container fluid class="pa-4">
-    <div class="text-center ma-2">
-      <v-snackbar v-model="snackbar" top="top" elevation="24">
-        {{ snackbarResponse }}
-      </v-snackbar>
-    </div>
+  <div class="sos-app mt-2">
+
+
     <SosAlarmPopupMqtt @triggerUpdateDashboard="RefreshDashboard()" />
+    <!-- FILTER BAR -->
 
-    <!-- ================= TOP STATISTICS ================= -->
-    <!-- ================= TOP STATISTICS ================= -->
+
+
+    <!-- KPI CARDS (FULL BORDER COLORS) -->
+    <v-row dense class="mb-8">
+
+      <!-- Active SOS -->
+      <v-col cols="12" sm="6" lg="2">
+        <v-card class="metric panel metric-border-danger" outlined>
+          <v-card-text class="kpi-row">
+            <div>
+              <div class="metric-title">Active SOS</div>
+              <div class="metric-value-xl danger-text">
+                {{ totalSOSActive }}
+              </div>
+            </div>
+            <v-avatar size="48" class="metric-icon error">
+              <v-icon dark size="26">mdi-bell</v-icon>
+            </v-avatar>
+
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- Resolved -->
+      <v-col cols="12" sm="6" lg="2">
+        <v-card class="metric panel metric-border-success" outlined>
+          <v-card-text class="kpi-row">
+            <div>
+              <div class="metric-title">Resolved</div>
+              <div class="metric-value-xl success-text">
+                {{ totalResolved }}
+              </div>
+            </div>
+
+            <v-avatar size="48" class="metric-icon success">
+              <v-icon dark size="26">mdi-check-circle</v-icon>
+            </v-avatar>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- Total Calls -->
+      <v-col cols="12" sm="6" lg="2">
+        <v-card class="metric panel metric-border-primary" outlined>
+          <v-card-text class="kpi-row">
+            <div>
+              <div class="metric-title">Total Calls</div>
+              <div class="metric-value-xl primary-text">
+                {{ totalSOSCount }}
+              </div>
+            </div>
+
+            <v-avatar size="48" class="metric-icon primary">
+              <v-icon dark size="26">mdi-phone-in-talk</v-icon>
+            </v-avatar>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- Avg Response -->
+      <v-col cols="12" sm="6" lg="2">
+        <v-card class="metric panel metric-border-warning" outlined>
+          <v-card-text class="kpi-row">
+            <div>
+              <div class="metric-title">Avg Response</div>
+              <div class="metric-value-xl warning-text">
+                {{ averageMinutes }}
+              </div>
+            </div>
+
+            <v-avatar size="48" class="metric-icon warning">
+              <v-icon dark size="26">mdi-timer-outline</v-icon>
+            </v-avatar>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- Gateways Online -->
+      <v-col cols="12" sm="6" lg="2">
+        <v-card class="metric panel metric-border-info" outlined>
+          <v-card-text class="kpi-row">
+            <div>
+              <div class="metric-title">Gateways Online</div>
+              <div class="metric-value-xl info-text">
+                {{ totalDeviceOnline }}
+              </div>
+            </div>
+
+            <v-avatar size="48" class="metric-icon info">
+              <v-icon dark size="26">mdi-wifi</v-icon>
+            </v-avatar>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- Gateways Offline -->
+      <v-col cols="12" sm="6" lg="2">
+        <v-card class="metric panel metric-border-danger" outlined>
+          <v-card-text class="kpi-row">
+            <div>
+              <div class="metric-title">Gateways Offline</div>
+              <div class="metric-value-xl danger-text">
+                {{ totalDeviceOffline }}
+              </div>
+            </div>
+
+            <v-avatar size="48" class="metric-icon error">
+              <v-icon dark size="26">mdi-wifi-off</v-icon>
+            </v-avatar>
+
+
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+    </v-row>
+
+
+    <!-- CHARTS -->
     <v-row dense>
-      <!-- Active SOS – Critical (Red) -->
-      <v-col cols="12" sm="6" md="3">
-        <v-card outlined class="pa-4 stat-card stat-critical">
-          <div class="d-flex align-center">
-            <div>
-              <div class="text-caption text-uppercase font-weight-bold stat-title critical-text">
-                Active SOS
-              </div>
-              <div class="d-flex align-baseline mt-2">
-                <div class="text-h4 font-weight-bold">{{ stats.activeSos }}</div>
-                <div class="ml-2 stat-sub critical-text">Calls Active</div>
-              </div>
+      <!-- CALL FREQUENCY -->
+      <v-col cols="12" lg="8">
+        <v-card class="panel" outlined height="320">
+          <v-card-text>
+            <div class="font-weight-bold mb-4">
+              Call Frequency (Hourly)
             </div>
-            <v-spacer />
-            <v-icon class="stat-icon critical-text">mdi-bell-alert</v-icon>
-          </div>
+
+            <div class="bar-wrap">
+              <SosChart1 :key="loading" style="height:250px!important" />
+            </div>
+          </v-card-text>
         </v-card>
       </v-col>
 
-      <!-- Repeated – Info (Blue) -->
-      <v-col cols="12" sm="6" md="3">
-        <v-card outlined class="pa-4 stat-card stat-info">
-          <div class="d-flex align-center">
-            <div>
-              <div class="text-caption text-uppercase font-weight-bold stat-title info-text">
-                Repeated
-              </div>
-              <div class="d-flex align-baseline mt-2">
-                <div class="text-h4 font-weight-bold">{{ stats.repeated }}</div>
-              </div>
-            </div>
-            <v-spacer />
-            <v-icon class="stat-icon info-text">mdi-alarm-light</v-icon>
-          </div>
-        </v-card>
-      </v-col>
+      <!-- CALL SOURCES -->
+      <v-col cols="12" lg="4">
+        <v-card class="panel" outlined height="320">
+          <v-card-text>
+            <div class="font-weight-bold mb-6">Call Sources</div>
 
-      <!-- Responded (Ack) – Success (Green) -->
-      <v-col cols="12" sm="6" md="3">
-        <v-card outlined class="pa-4 stat-card stat-success">
-          <div class="d-flex align-center">
-            <div>
-              <div class="text-caption text-uppercase font-weight-bold stat-title success-text">
-                Acknowledged (Ack)
+            <div v-for="s in sources" :key="s.name" class="mb-5">
+              <div class="d-flex justify-space-between align-center">
+                <div class="font-weight-medium">
+                  <v-icon small :class="s.color" class="mr-1">
+                    {{ s.icon }}
+                  </v-icon>
+                  {{ s.name }}
+                </div>
+                <div class="muted-text">{{ s.pct }}%</div>
               </div>
-              <div class="d-flex align-baseline mt-2">
-                <div class="text-h4 font-weight-bold">{{ stats.ackCount }}</div>
-              </div>
-            </div>
-            <v-spacer />
-            <v-icon class="stat-icon success-text">mdi-check-circle</v-icon>
-          </div>
-        </v-card>
-      </v-col>
 
-      <!-- Avg Response – Warning (Orange) -->
-      <v-col cols="12" sm="6" md="3">
-        <v-card outlined class="pa-4 stat-card stat-warning">
-          <div class="d-flex align-center">
-            <div style="width:100%">
-              <div class="text-caption text-uppercase font-weight-bold stat-title warning-text">
-                Avg Response
-              </div>
-              <div class="d-flex align-baseline mt-0">
-                <div class="text-h4 font-weight-bold">{{ avgResponseText }}</div>
-                <div class="ml-2 stat-sub warning-text">min</div>
-              </div>
-              <v-progress-linear class="mt-1" height="4" :value="avgResponsePct" color="warning" rounded />
+              <v-progress-linear :value="s.pct" height="8" rounded :class="s.bar" />
             </div>
-            <v-spacer />
-            <v-icon class="stat-icon warning-text">mdi-timer</v-icon>
-          </div>
+          </v-card-text>
         </v-card>
       </v-col>
     </v-row>
 
 
-
-    <!-- ================= FILTER ROW ================= -->
-    <div class="d-flex flex-wrap align-center mt-2 mb-3">
-      <v-btn-toggle v-model="filterMode" mandatory class="mr-4">
-        <v-btn small value="all">All</v-btn>
-        <v-btn small value="on">SOS ON</v-btn>
-        <v-btn small value="off">SOS OFF</v-btn>
-      </v-btn-toggle>
-
-      <div class="d-flex align-center">
-
-        <v-btn-toggle v-model="perRow" mandatory>
-          <v-btn small readonly :value="4">Split <v-icon>mdi-view-grid</v-icon> </v-btn>
-          <v-btn small :value="2">2</v-btn>
-          <v-btn small :value="4">4</v-btn>
-          <v-btn small :value="6">6</v-btn>
-        </v-btn-toggle>
-      </div>
-
-      <v-spacer />
-
-      <div class="d-flex align-center mt-2 mt-md-0">
-        <div class="d-flex align-center mr-4">
-          <span class="dot dot-red mr-2"></span><span class="text-caption grey--text">SOS ON</span>
-        </div>
-        <div class="d-flex align-center">
-          <span class="dot dot-grey mr-2"></span><span class="text-caption grey--text">SOS OFF</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- <v-alert v-if="apiError" type="error" dense text class="mb-2">
-      {{ apiError }}
-    </v-alert> -->
-
-    <!-- ================= CARDS GRID ================= -->
-    <v-card outlined class="pa-4 roomCard">
-      <div class="gridWrap" :style="gridStyle">
-        <div v-for="d in filteredDevices" :key="d.id" class="gridItem">
-          <v-card outlined class="pa-4 roomCard roomCardIndividual" :class="cardClass(d)">
-            <div class="d-flex align-start">
-              <div class="min-w-0">
-                <div class="text-h6 font-weight-black text-truncate">{{ d.name }} </div>
-
-                <div class="mt-3" style="">
-
-
-                  <v-icon size="40" v-if="d.room_type == 'toilet' || 'toilet-ph'" color="yellow"> mdi-toilet </v-icon>
-                  <v-icon size="40" v-if="d.room_type == 'room' || 'room-ph'" color="blue"> mdi-bed </v-icon>
-                  <v-icon size="40" v-if="d.room_type == 'room-ph' || 'toilet-ph'" color="red"> mdi-wheelchair </v-icon>
-
-
-                  <v-icon v-if="!d.room_type || d.room_type == ''" size="40" color="blue"> mdi-bed </v-icon>
-                </div>
-              </div>
-
-              <v-spacer />
-
-              <div>
-                <v-icon v-if="d.alarm_status === true" color="red">mdi-bell</v-icon>
-                <v-icon v-if="d.device?.status_id == 1" color="green">mdi-wifi</v-icon>
-                <v-icon v-else-if="d.device?.status_id == 2" color="red">mdi-wifi-off</v-icon>
-              </div>
-            </div>
-
-            <div style="width:100%; text-align:right;margin-top:-50px;height:50px">
-              <v-chip small class="mt-2"
-                :color="d.alarm_status === true ? d.alarm?.responded_datetime ? '#f97316' : 'red' : 'grey'">
-                {{ d.alarm_status === true ? d.alarm?.responded_datetime ? 'ACKNOWLEDGED' : 'PENDING' : 'RESOLVED' }}
-              </v-chip>
-
-              <div v-if="!d.alarm?.responded_datetime">
-                <v-btn class="mt-2 blink-btn" small v-if="d.alarm_status === true" @click="udpateResponse(d.alarm.id)">
-                  <v-icon>mdi-cursor-default-click</v-icon> Acknowledge
-                </v-btn>
-              </div>
-            </div>
-
-            <div class="mt-5 text-center" v-if="d.alarm_status === true">
-              <div class="text-h4 font-weight-bold"
-                style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">
-                {{ d.duration || "00:00:00" }}
-              </div>
-              <div class="text-caption red--text font-weight-bold text-uppercase" style="letter-spacing:.12em">
-                {{ d.alarm?.alarm_start_datetime }}
-              </div>
-            </div>
-
-            <div class="mt-5 text-center grey--text" v-else>
-              <v-icon large color="green">mdi-check-circle</v-icon>
-              <div class="text-body-2 font-weight-medium mt-1">No Active Call</div>
-            </div>
-
-          </v-card>
-        </div>
-      </div>
-    </v-card>
     <v-progress-linear v-if="loading" indeterminate height="3" class="mb-2" />
-
-  </v-container>
+    <v-row>
+      <v-col>
+        <SOSLogs :key="loading" />
+      </v-col>
+    </v-row>
+  </div>
 </template>
 
 <script>
-// import { VTabItem } from 'vuetify/lib';
 
-
-// import SosAlarmPopupMqtt from '../../components/SOS/SosAlarmPopupMqtt.vue';
-
-
+import SosChart1 from "../../components/SOS/SosChart1.vue";
+import SOSLogs from "../../components/SOS/SOSLogs.vue";
 
 export default {
-  name: "SosFloorView",
-  // components: { SosAlarmPopupMqtt },
-
+  components: { SosChart1, SOSLogs },
+  name: "SosCallReportFull",
   data() {
     return {
-      // companyDeviceSerials: null,
-
-      filterMode: "all",
-      perRow: 4,
-
-      devices: [],
       loading: false,
-      apiError: "",
-
-      timer: null,
-      TIMER_MS: 1000, // 1 second refresh
-
-      // demo values
-      avgResponseText: "00:00",
-      avgResponsePct: 100,
-      repeated: 0,
-      ackCount: 0,
-      snackbar: false,
-      snackbarResponse: '',
+      totalSOSCount: 0,
+      totalResolved: 0,
+      totalSOSActive: 0,
       averageMinutes: 0,
+      totalDeviceOnline: 0,
+      totalDeviceOffline: 0,
+
+
+      metrics: {
+        total: 142,
+        avg: "1m 12s",
+        resolved: 138,
+        active: 4,
+      },
+      hourly: [15, 10, 12, 22, 38, 55, 70, 90, 60, 42, 30, 18],
+      sources: [
+        {
+          name: "Bedside",
+          pct: 62,
+          icon: "mdi-bed-outline",
+          color: "text-primary",
+          bar: "bar-primary",
+        },
+        {
+          name: "Toilet / Bath",
+          pct: 28,
+          icon: "mdi-toilet",
+          color: "text-info",
+          bar: "bar-info",
+        },
+        {
+          name: "Code Blue",
+          pct: 10,
+          icon: "mdi-alert-octagram",
+          color: "text-error",
+          bar: "bar-danger",
+        },
+      ],
     };
   },
 
-  computed: {
-    activeSosCount() {
-      return this.devices.filter((d) => d.alarm_status === true).length;
-    },
-    stats() {
-      return {
-        totalPoints: this.devices.length,
-        activeSos: this.activeSosCount,
-        repeated: this.repeated,
-        ackCount: this.ackCount,
-
-        staffOnFloor: 6,
-      };
-    },
-    filteredDevices() {
-      if (this.filterMode === "on") return this.devices.filter((d) => d.alarm_status === true);
-      if (this.filterMode === "off") return this.devices.filter((d) => d.alarm_status === false);
-      return this.devices;
-    },
-    gridStyle() {
-      return { gridTemplateColumns: `repeat(${this.perRow}, minmax(0, 1fr))` };
-    },
-  },
-
-  async created() {
-    await this.getDataFromApi();
-    await this.getStatsApi();
-    // await this.getDevicesFromApi();
-  },
-
   mounted() {
-    // Timer (no timezone logic)
-    this.timer = setInterval(() => {
-      this.updateDurationAll();
-    }, this.TIMER_MS);
-  },
-
-  beforeDestroy() {
-    if (this.timer) clearInterval(this.timer);
+    this.getDataFromApi();
   },
 
   methods: {
-    async RefreshDashboard() {
-      await this.getDataFromApi();
-      await this.getStatsApi();
-
+    RefreshDashboard() {
+      this.getDataFromApi();
     },
-    cardClass(d) {
-      return d?.alarm_status === true ? d.alarm?.responded_datetime != null ? "cardAck" : "cardOn" : "cardOff";
-
-    },
-
-    // normalize alarm_status to boolean (handles true/false, 1/0, "ON"/"OFF")
-    toBool(v) {
-      if (v === true) return true;
-      if (v === false) return false;
-      const s = String(v ?? "").trim().toUpperCase();
-      return s === "1" || s === "TRUE" || s === "ON" || s === "YES";
-    },
-
-    // Parse datetime as-is (NO timezone handling)
-    // Supports:
-    //  - "YYYY-MM-DD HH:mm:ss"
-    //  - "YYYY-MM-DD HH:mm:ss.000000"
-    //  - ISO strings
-    parseStartMs(dateStr) {
-      if (!dateStr) return null;
-
-      const raw = String(dateStr).trim();
-
-      // ISO strings
-      if (raw.includes("T")) {
-        const ms = Date.parse(raw);
-        return Number.isFinite(ms) ? ms : null;
-      }
-
-      // Laravel "YYYY-MM-DD HH:mm:ss[.micro]"
-      const clean = raw.replace(/\.\d+$/, "");
-      // Convert to ISO-like local time; JS parses as local time
-      const isoLocal = clean.replace(" ", "T");
-      const ms = Date.parse(isoLocal);
-
-      return Number.isFinite(ms) ? ms : null;
-    },
-
-    // HH:MM:SS formatter (hours can exceed 24)
-    formatHHMMSS(totalSeconds) {
-      const hh = Math.floor(totalSeconds / 3600);
-      const mm = Math.floor((totalSeconds % 3600) / 60);
-      const ss = totalSeconds % 60;
-      return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
-    },
-
-    normalizeRooms(list = []) {
-      return list.map((r) => {
-        const alarm = r.alarm || null;
-
-        // prefer backend boolean if it is boolean, otherwise normalize
-        const alarm_status =
-          typeof r.alarm_status === "boolean"
-            ? r.alarm_status
-            : this.toBool(r.alarm_status ?? alarm?.alarm_status ?? r.status);
-
-        const startMs = alarm?.alarm_start_datetime
-          ? this.parseStartMs(alarm.alarm_start_datetime)
-          : null;
-
-        return {
-          ...r,
-          alarm,
-          alarm_status,
-          startMs,
-          duration: "", // HH:MM:SS
-        };
-      });
-    },
-
-    updateDurationAll() {
-      const nowMs = Date.now();
-
-      this.devices.forEach((d, idx) => {
-        if (!d) return;
-
-        if (d.alarm_status !== true || !d.startMs) {
-          if (d.duration) this.$set(this.devices, idx, { ...d, duration: "" });
-          return;
-        }
-
-        const diffSec = Math.max(0, Math.floor((nowMs - d.startMs) / 1000));
-        const hhmmss = this.formatHHMMSS(diffSec);
-
-        if (d.duration !== hhmmss) {
-          this.$set(this.devices, idx, { ...d, duration: hhmmss });
-        }
-      });
-    },
-
-    async udpateResponse(alarmId) {
-      this.loading = true;
-      this.apiError = "";
-
-      try {
-        const { data } = await this.$axios.post("dashboard_alarm_response", {
-
-          company_id: this.$auth.user.company_id,
-          alarmId: alarmId,
-        });
-
-        //if (data.status) {
-        this.snackbar = true;
-        this.snackbarResponse = data.message;
-        //  }
-
-        await this.getDataFromApi();
-        await this.getStatsApi();
-      } catch (err) {
-        this.apiError =
-          err?.response?.data?.message ||
-          err?.message ||
-          "Failed to load dashboard rooms";
-      } finally {
-        this.loading = false;
-      }
-
-    },
-    async getStatsApi() {
-      // this.loading = true;
-      this.apiError = "";
-
-      try {
-        const { data } = await this.$axios.get("dashboard_stats", {
-          params: {
-            company_id: this.$auth.user.company_id,
-
-          },
-        });
-
-        // supports array or paginator {data:[...]}
-        const list = data;
-        this.repeated = data.repeated;
-        this.ackCount = data.ackCount;
-        this.avgResponseText = this.$dateFormat.minutesToHHMM(list.averageMinutes);
-        this.avgResponsePct = list.sla_percentage;
-
-
-      } catch (err) {
-        this.apiError =
-          err?.response?.data?.message ||
-          err?.message ||
-          "Failed to load dashboard rooms";
-      } finally {
-        this.loading = false;
-      }
-
-    },
-    // async getDevicesFromApi() {
-    //   // this.loading = true;
-    //   this.apiError = "";
-
-    //   try {
-    //     const { data } = await this.$axios.get("device-list", {
-    //       params: {
-    //         company_id: this.$auth.user.company_id,
-
-    //       },
-    //     });
-
-    //     // supports array or paginator {data:[...]}
-    //     this.companyDeviceSerials = data.map(d => d.serial_number);
-    //     this.devices
-    //   } catch (err) {
-    //     this.apiError =
-    //       err?.response?.data?.message ||
-    //       err?.message ||
-    //       "Failed to load dashboard rooms";
-    //   } finally {
-    //     this.loading = false;
-    //   }
-    // },
     async getDataFromApi() {
       this.loading = true;
-      this.apiError = "";
-
       try {
-        const { data } = await this.$axios.get("dashboard_rooms", {
+
+
+
+
+        const { data } = await this.$axios.get("sos_monitor_statistics", {
           params: {
             company_id: this.$auth.user.company_id,
-            per_page: 200,
+
+            // date_from: this.date_from || null,
+            // date_to: this.date_to || null,
+            // alarm_status: this.filterSOSStatus || null,
           },
         });
 
-        // supports array or paginator {data:[...]}
-        const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
-        this.devices = this.normalizeRooms(list);
+        if (data) {
+          this.totalSOSCount = data.totalSOSCount || 0;
+          this.totalResolved = data.totalResolved || 0;
+          this.totalSOSActive = data.totalSOSActive || 0;
+          this.averageMinutes = data.averageMinutes || 0;
+          this.totalDeviceOnline = data.totalDeviceOnline || 0;
+          this.totalDeviceOffline = data.totalDeviceOffline || 0;
 
-        // compute immediately (no waiting for 1s)
-        this.updateDurationAll();
-      } catch (err) {
-        this.apiError =
-          err?.response?.data?.message ||
-          err?.message ||
-          "Failed to load dashboard rooms";
+
+        }
+
+      } catch (e) {
+        console.error("SOS reports fetch failed:", e);
+
       } finally {
         this.loading = false;
       }
     },
-  },
+
+
+  }
 };
 </script>
 
 <style scoped>
-.gridWrap {
-  display: grid;
-  gap: 14px;
+/* ===== THEME ===== */
+.sos-app {
+  --bg: #f6f7f8;
+  --panel: #ffffff;
+  --border: rgba(0, 0, 0, .08);
 }
 
-@media (max-width: 1400px) {
-  .gridWrap {
-    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-  }
+.theme--dark .sos-app {
+  --bg: #101922;
+  --panel: #1c2632;
+  --border: #233648;
 }
 
-@media (max-width: 960px) {
-  .gridWrap {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  }
+.v-main__wrap {
+  background: var(--bg);
 }
 
-@media (max-width: 600px) {
-  .gridWrap {
-    grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
-  }
+/* ===== PANELS ===== */
+.panel {
+  background: var(--panel);
+  border-radius: 16px;
+  border: 1px solid var(--border);
 }
 
-.roomCard {
+/* ===== KPI CARDS (FULL BORDER COLORS) ===== */
+.metric {
+  min-height: 130px;
+  border-width: 2px !important;
+  border-style: solid !important;
+}
+
+.metric-border-primary {
+  border-color: var(--v-primary-base) !important;
+}
+
+.metric-border-warning {
+  border-color: var(--v-warning-base) !important;
+}
+
+.metric-border-success {
+  border-color: var(--v-success-base) !important;
+}
+
+.metric-border-danger {
+  border-color: var(--v-error-base) !important;
+}
+
+.metric-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: .7;
+}
+
+.metric-value {
+  font-size: 30px;
+  font-weight: 900;
+  margin: 6px 0;
+}
+
+.metric-sub {
+  font-size: 12px;
+  opacity: .6;
+}
+
+/* ===== BAR CHART ===== */
+
+
+.bar-col {
+  flex: 1;
+}
+
+.bar {
+  background: rgba(25, 118, 210, .35);
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+}
+
+/* ===== CALL SOURCE COLORS ===== */
+.bar-primary :deep(.v-progress-linear__determinate) {
+  background: #1976d2
+}
+
+.bar-info :deep(.v-progress-linear__determinate) {
+  background: #0288d1
+}
+
+.bar-danger :deep(.v-progress-linear__determinate) {
+  background: #e53935
+}
+
+/* ===== UTILS ===== */
+.muted-text {
+  opacity: .6
+}
+
+.btn-soft {
+  text-transform: none;
+  font-weight: 700
+}
+
+.btn-primary {
+  text-transform: none;
+  font-weight: 700
+}
+
+.chip-btn {
+  text-transform: none
+}
+
+/* ===== KPI ICONS ===== */
+.metric-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 12px;
-  min-height: 170px;
 }
 
-.cardOn {
-  border: 2px solid rgba(239, 68, 68, 0.95);
-  box-shadow: 0 0 18px rgba(239, 68, 68, 0.18);
+.metric-icon.primary {
+  background: var(--c-primary);
 }
 
-.cardOff {
-  border: 1px solid rgba(148, 163, 184, 0.35);
+.metric-icon.info {
+  background: var(--c-info);
 }
 
-.cardAck {
-
-  border: 2px solid #f97316;
+.metric-icon.success {
+  background: var(--c-success);
 }
 
-.sos-border-red {
-  border-color: rgba(239, 68, 68, 0.35) !important;
+.metric-icon.warning {
+  background: var(--c-warning);
 }
 
-.sos-border-orange {
-  border-color: #f97316 !important;
+.metric-icon.danger {
+  background: var(--c-error);
 }
 
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  display: inline-block;
-}
-
-.dot-red {
-  background: #ef4444;
-  box-shadow: 0 0 10px rgba(239, 68, 68, .25);
-}
-
-.dot-grey {
-  background: #64748b;
-}
-
-@keyframes blink {
-  0% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.3;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
-.blink-btn {
-  animation: blink 1s infinite;
-}
-
-.stat-card {
-  border-radius: 14px;
-  border: 1px solid transparent !important;
-}
-
-/* ===== Full Border Colors ===== */
-.stat-critical {
-  border-color: #ef4444 !important;
-  background: rgba(239, 68, 68, 0.05);
-}
-
-.stat-warning {
-  border-color: #f97316 !important;
-  background: rgba(249, 115, 22, 0.05);
-}
-
-.stat-success {
-  border-color: #22c55e !important;
-  background: rgba(34, 197, 94, 0.05);
-}
-
-.stat-info {
-  border-color: #3b82f6 !important;
-  background: rgba(59, 130, 246, 0.05);
-}
-
-/* ===== Text & Icon Colors ===== */
-.critical-text {
-  color: #ef4444 !important;
-}
-
-.warning-text {
-  color: #f97316 !important;
-}
-
-.success-text {
-  color: #22c55e !important;
+/* ===== KPI COUNT COLORS ===== */
+.primary-text {
+  color: var(--c-primary);
 }
 
 .info-text {
-  color: #3b82f6 !important;
+  color: var(--c-info);
 }
 
-/* Typography */
-.stat-title {
-  letter-spacing: 0.06em;
+.success-text {
+  color: var(--c-success);
 }
 
-.stat-sub {
-  font-weight: 600;
-  opacity: 0.9;
+.warning-text {
+  color: var(--c-warning);
 }
 
-.stat-icon {
-  font-size: 34px;
-  opacity: 0.95;
+.danger-text {
+  color: var(--c-error);
+}
+
+/* tighten layout slightly */
+.metric-value {
+  line-height: 1.1;
+}
+
+/* KPI row layout */
+.kpi-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Extra large numbers */
+.metric-value-xl {
+  font-size: 38px;
+  font-weight: 900;
+  line-height: 1.05;
+  margin-top: 4px;
+}
+
+/* Icons */
+.metric-icon {
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* icon backgrounds */
+.metric-icon.primary {
+  background: var(--c-primary);
+}
+
+.metric-icon.info {
+  background: var(--c-info);
+}
+
+.metric-icon.success {
+  background: #4caf5042;
+}
+
+.metric-icon.warning {
+  background: var(--c-warning);
+}
+
+.metric-icon.danger {
+  background: var(--c-error);
+}
+
+/* number colors */
+.primary-text {
+  color: var(--c-primary);
+}
+
+.info-text {
+  color: var(--c-info);
+}
+
+.success-text {
+  color: var(--c-success);
+}
+
+.warning-text {
+  color: var(--c-warning);
+}
+
+.danger-text {
+  color: var(--c-error);
 }
 </style>

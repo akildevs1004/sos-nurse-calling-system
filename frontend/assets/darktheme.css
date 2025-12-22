@@ -5,14 +5,16 @@ body {
 {
   color:#FFF!important;
 }
-.theme-dark-bg {
-  background-color: #1a2632; /* Dark theme background */
+/* Dark theme background */
+/* .theme-dark-bg {
+  background-color: #1a2632;
 
-}
-.theme-light-bg {
-  background-color: #ffffff; /* Light theme background */
+} */
+/* Light theme background */
 
-}
+/* .theme-light-bg {
+  background-color: #ffffff;
+} */
 .theme--dark.v-card {
   background-color: #1a2632!important;
 }
@@ -202,6 +204,89 @@ color:#FFF!important;
 .dot-grey {
   background: rgba(148, 163, 184, 0.55);
 }
+
+/* =========================================================
+   DARK THEME KPI COLORS (6 different colors)
+   ========================================================= */
+/* =========================================================
+   DARK THEME – KPI CARDS (SOLID COLORS ONLY)
+   ========================================================= */
+
+.theme--dark .stat-title {
+  letter-spacing: 0.06em;
+  opacity: 0.8;
+}
+
+.theme--dark .stat-sub {
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+.theme--dark .stat-icon {
+  font-size: 34px;
+  opacity: 0.95;
+}
+
+/* Base dark card surface */
+.theme--dark .roomCard.stat-card1 {
+  background: #0f172a; /* solid dark */
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* =======================
+   RED – Active SOS
+   ======================= */
+.theme--dark .stat-critical {
+  border-color: #ef4444 !important;
+  background-color: rgba(239, 68, 68, 0.14) !important;
+}
+.theme--dark .critical-text { color: #ff6b6b !important; }
+
+/* =======================
+   AMBER – Disabled
+   ======================= */
+.theme--dark .stat-amber {
+  border-color: #f59e0b !important;
+  background-color: rgba(245, 158, 11, 0.16) !important;
+}
+.theme--dark .amber-text { color: #fbbf24 !important; }
+
+/* =======================
+   BLUE – Repeated
+   ======================= */
+.theme--dark .stat-info {
+  border-color: #3b82f6 !important;
+  background-color: rgba(59, 130, 246, 0.14) !important;
+}
+.theme--dark .info-text { color: #93c5fd !important; }
+
+/* =======================
+   GREEN – Acknowledged
+   ======================= */
+.theme--dark .stat-success {
+  border-color: #22c55e !important;
+  background-color: rgba(34, 197, 94, 0.14) !important;
+}
+.theme--dark .success-text { color: #4ade80 !important; }
+
+/* =======================
+   PURPLE – Total
+   ======================= */
+.theme--dark .stat-purple {
+  border-color: #8b5cf6 !important;
+  background-color: rgba(139, 92, 246, 0.14) !important;
+}
+.theme--dark .purple-text { color: #c4b5fd !important; }
+
+/* =======================
+   TEAL – Avg Response
+   ======================= */
+.theme--dark .stat-teal {
+  border-color: #14b8a6 !important;
+  background-color: rgba(20, 184, 166, 0.14) !important;
+}
+.theme--dark .teal-text { color: #5eead4 !important; }
+
 /*
 :root {
     --v-anchor-base: #6946dd;

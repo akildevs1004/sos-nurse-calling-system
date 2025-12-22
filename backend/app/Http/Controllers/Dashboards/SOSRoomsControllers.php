@@ -51,11 +51,45 @@ class SOSRoomsControllers extends Controller
         $companyId = (int) $request->company_id;
         $slaMinutes = 1;
 
+
+
+
         // total responded calls
-        $total = DeviceSosRoomLogs::where('company_id', $companyId)
-            ->whereNotNull('response_in_minutes')
+        $totalSOSActive = DeviceSosRoomLogs::with('room')
+            ->where('company_id', $companyId)
+            ->where("alarm_end_datetime", null)
+            ->when($request->filled('date_from'), function ($q) use ($request) {
+                $q->whereDate('alarm_start_datetime', '>=', $request->date_from);
+            })
+            ->when($request->filled('date_to'), function ($q) use ($request) {
+                $q->whereDate('alarm_end_datetime', '<=', $request->date_to);
+            })
+            ->when($request->filled('roomType'), function ($q) use ($request) {
+                $q->whereHas('room', function ($qr) use ($request) {
+                    $qr->where('room_type', $request->roomType);
+                });
+            })
             ->count();
 
+        $activeDisabledSOS = DeviceSosRoomLogs::with('room')
+            ->where('company_id', $companyId)
+
+            ->where('alarm_end_datetime', null)
+            ->when($request->filled('date_from'), function ($q) use ($request) {
+                $q->whereDate('alarm_start_datetime', '>=', $request->date_from);
+            })
+            ->when($request->filled('date_to'), function ($q) use ($request) {
+                $q->whereDate('alarm_end_datetime', '<=', $request->date_to);
+            })
+            ->when($request->filled('roomType'), function ($q) use ($request) {
+                $q->whereHas('room', function ($qr) use ($request) {
+                    $qr->where('room_type', $request->roomType);
+                });
+            })
+            ->whereHas('room', function ($qr) use ($request) {
+                $qr->where('room_type', $request->roomType);
+            })
+            ->count();
         $repeatedCalls = DeviceSosRoomLogs::where('company_id', $companyId)->whereDate('alarm_start_datetime', date("Y-m-d"))
             ->whereNotNull('alarm_start_datetime')
             ->select('room_id')
@@ -80,8 +114,8 @@ class SOSRoomsControllers extends Controller
             ->where('response_in_minutes', '<=', $slaMinutes)
             ->count();
 
-        $percentage = $total > 0
-            ? round(($withinSla / $total) * 100, 2)
+        $percentage = $totalSOSActive > 0
+            ? round(($withinSla / $totalSOSActive) * 100, 2)
             : 0;
 
         return response()->json([
@@ -94,7 +128,9 @@ class SOSRoomsControllers extends Controller
             'repeated'    => $repeatedCalls,
             'ackCount'    => $ackCount,
 
+            'totalSOSCount' => $totalSOSActive,
 
+            "activeDisabledSos" => $activeDisabledSOS
 
 
         ]);
@@ -395,5 +431,11 @@ class SOSRoomsControllers extends Controller
             'categories' => $categories, // ["0","1","2",...,"23"]
             'series'     => $series,
         ]);
+    }
+
+    public function roomTypes(Request $request)
+    {
+
+        return ["room" => "Room", "toilet" => "Toilet", "toilet-ph" => "Toilet For Disabled"];
     }
 }

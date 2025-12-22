@@ -1,7 +1,7 @@
 <template>
-  <date-picker :class="[$vuetify.theme.dark ? 'dark-theme' : 'light-theme']" :style="pickerStyle" value-type="format"
-    format="YYYY-MM-DD" type="date" v-model="time3" range :disabled="!!disabled" @change="emitFilter()"
-    @clear="clearDates()" />
+  <date-picker class="backgroundcolordate" :class="[$vuetify.theme.dark ? 'dark-theme' : 'light-theme']"
+    :style="pickerStyle" value-type="format" format="YYYY-MM-DD" type="date" v-model="time3" range
+    :disabled="!!disabled" @change="emitFilter()" @clear="clearDates()" />
 </template>
 
 <script>
