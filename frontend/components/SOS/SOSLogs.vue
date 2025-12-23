@@ -47,7 +47,7 @@
                 Print
               </span>
             </template>
-            <v-list width="100" dense>
+            <v-list width="100" dense style="padding-top: 0px;">
               <v-list-item @click="downloadOptions('print')">
                 <v-list-item-title style="cursor: pointer">
                   <v-row>

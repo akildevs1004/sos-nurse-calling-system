@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="pa-4">
+  <div fluid class=" ">
     <div class="text-center ma-2">
       <v-snackbar v-model="snackbar" top="top" elevation="24">
         {{ snackbarResponse }}
@@ -7,84 +7,7 @@
     </div>
     <SosAlarmPopupMqtt @triggerUpdateDashboard="RefreshDashboard()" />
 
-    <!-- ================= TOP STATISTICS ================= -->
-    <!-- FILTER BAR -->
-    <!-- <v-card class="filters-bar mb-2" outlined style="display:none">
-      <div class="filters-inner">
-        <div class="filters-left">
-          <div class="filters-label">FILTERS:</div>
 
-
-    <v-menu offset-y bottom left>
-      <template v-slot:activator="{ on, attrs }">
-        <v-btn style="max-width:250px" class="filter-pill" v-bind="attrs" v-on="on" depressed>
-          <v-icon small class="mr-2">mdi-calendar-month-outline</v-icon>
-          <span class="pill-text">{{ filterRangeLabel }}</span>
-          <v-icon small class="ml-2 pill-chevron">mdi-chevron-down</v-icon>
-        </v-btn>
-      </template>
-
-<v-list dense class="filters-menu">
-
-  <v-list-item @click="setRange('')"><v-list-item-title>Today</v-list-item-title></v-list-item>
-
-  <v-list-item @click="setRange('7')"><v-list-item-title>Last 7 Days</v-list-item-title></v-list-item>
-  <v-list-item @click="setRange('30')"><v-list-item-title>Last 30 Days</v-list-item-title></v-list-item>
-  <v-list-item @click="setRange('0')"><v-list-item-title>Custom</v-list-item-title></v-list-item>
-</v-list>
-</v-menu>
-<span v-if="range == '0'" style="background-color: rgba(255, 255, 255, 0.04) !important;border-radius: 20px;;">
-  <CustomFilter class="customFilterdate" style="padding-top: " @filter-attr="filterAttr" :default_date_from="date_from"
-    :default_date_to="date_to" :defaultFilterType="1" :height="30" :width="250" />
-</span>
-
-
-<v-menu offset-y bottom left>
-  <template v-slot:activator="{ on, attrs }">
-        <v-btn style="max-width:250px" class="filter-pill" v-bind="attrs" v-on="on" depressed>
-          <v-icon small class="mr-2">mdi-domain</v-icon>
-          <span class="pill-text">{{ roomLabel }}</span>
-          <v-icon small class="ml-2 pill-chevron">mdi-chevron-down</v-icon>
-        </v-btn>
-      </template>
-
-  <v-list dense class="filters-menu">
-    <v-list-item @click="setRoom(null)"><v-list-item-title>All Rooms </v-list-item-title></v-list-item>
-    <v-list-item v-for="r in rooms" :key="r.value" @click="setRoom(r)">
-      <v-list-item-title>{{ r.name }}</v-list-item-title>
-    </v-list-item>
-  </v-list>
-</v-menu>
-
-
-
-<v-menu offset-y bottom left>
-  <template v-slot:activator="{ on, attrs }">
-        <v-btn style="max-width:250px" class="filter-pill" v-bind="attrs" v-on="on" depressed>
-          <v-icon small class="mr-2">mdi-check-decagram-outline</v-icon>
-          <span class="pill-text">{{ statusLabel }}</span>
-          <v-icon small class="ml-2 pill-chevron">mdi-chevron-down</v-icon>
-        </v-btn>
-      </template>
-
-  <v-list dense class="filters-menu">
-    <v-list-item @click="setStatus(null)"><v-list-item-title>All SOS</v-list-item-title></v-list-item>
-    <v-list-item @click="setStatus('ON')"><v-list-item-title>Active (ON)</v-list-item-title></v-list-item>
-
-    <v-list-item @click="setStatus('OFF')"><v-list-item-title>Resolved (OFF)</v-list-item-title></v-list-item>
-    <v-list-item @click="setStatus('PENDING')"><v-list-item-title>Acknowledged</v-list-item-title></v-list-item>
-
-  </v-list>
-</v-menu>
-</div>
-
-<v-spacer />
-
-<v-btn class="reset-link" text @click="resetFilters">
-  Reset Filters
-</v-btn>
-</div>
-</v-card> -->
 
     <!-- ================= TOP STATISTICS ================= -->
     <v-row dense>
@@ -306,7 +229,7 @@
     </v-card>
     <v-progress-linear v-if="loading" indeterminate height="3" class="mb-2" />
 
-  </v-container>
+  </div>
 </template>
 
 <script>

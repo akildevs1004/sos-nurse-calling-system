@@ -214,8 +214,9 @@
             </div>
 
             <div class="bar-wrap">
-              <SosChart1 :key="key" style="height:250px!important" :date_from="date_from || null"
-                :date_to="date_to || null" :sosStatus="status || null" :roomType="room?.value || null" />
+              <SosChart1 v-if="hourlykey > 0" :key="hourlykey" style="height:250px!important"
+                :date_from="date_from || null" :date_to="date_to || null" :sosStatus="status || null"
+                :roomType="room?.value || null" />
             </div>
           </v-card-text>
         </v-card>
@@ -255,7 +256,7 @@
     <!-- <v-progress-linear v-if="loading" indeterminate height="3" class="mb-2" /> -->
     <v-row>
       <v-col>
-        <SOSLogs :key="logskey" />
+        <SOSLogs v-if="logskey > 0" :key="logskey" />
       </v-col>
     </v-row>
   </div>
@@ -271,6 +272,7 @@ export default {
   name: "SosCallReportFull",
   data() {
     return {
+      hourlykey: 0,
       key: 0,
       logskey: 0,
       date_from: "",
@@ -337,6 +339,12 @@ export default {
     this.date_to = today.toISOString().slice(0, 10);
     await this.getDataFromApi();
     await this.getRoomWiseStatsApi();
+
+    this.hourlykey++;
+
+
+    this.logskey++;
+
 
   },
   computed: {
