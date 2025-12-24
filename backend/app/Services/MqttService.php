@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Http\Controllers\Alarm\Api\ApiAlarmControlController;
+use App\Http\Controllers\Dashboards\SOSRoomsControllers;
 use PhpMqtt\Client\MqttClient;
 use PhpMqtt\Client\ConnectionSettings;
 use Illuminate\Support\Facades\Log;
@@ -42,12 +43,16 @@ class MqttService
      */
     public function publish($topic, $message, $serial_number)
     {
+
+
         $clientId = 'laravel-client-' . uniqid(); //env('MQTT_CLIENT_ID', 'laravel-client-' . uniqid());
         $host =  env('MQTT_HOST'); //env('MQTT_HOST', '165.22.222.17');
         $port = env('MQTT_PORT', 1883);
 
         $mqtt = new MqttClient($host, $port, $clientId);
         $mqtt->connect(new ConnectionSettings(), true);
+
+        echo   $topic;
 
         $mqtt->publish($topic, $message, 0, false);
         $mqtt->disconnect();
@@ -394,6 +399,93 @@ class MqttService
                         File::prepend($logPath, "[" . now() . "] EXCEPTION: " . $e->getMessage() . "\n");
                     }
                 });
+
+
+                // Listen to all companies
+                $this->mqtt->subscribe('tv/+/dashboard/request', function (string $topic, string $message) {
+                    try {
+                        $payload = json_decode($message, true, 512, JSON_THROW_ON_ERROR);
+
+                        $parts = explode('/', $topic); // tv/{companyId}/dashboard/request
+                        $companyId = (int)($parts[1] ?? 0);
+                        if ($companyId <= 0) return;
+
+                        $reqId = (string)($payload['reqId'] ?? '');
+                        $params = (array)($payload['params'] ?? []);
+
+                        // Force company id from topic (cannot be spoofed)
+                        $params['company_id'] = $companyId;
+
+                        // Call your existing controller methods directly (NO HTTP)
+                        $controller = app(SOSRoomsControllers::class);
+
+                        $roomsRes = $controller->dashboardRooms(new Request($params));
+                        $statsRes = $controller->dashboardStats(new Request($params));
+
+                        // Unwrap JsonResponse cleanly
+                        $roomsData = method_exists($roomsRes, 'getData') ? $roomsRes->getData(true) : $roomsRes;
+                        $statsData = method_exists($statsRes, 'getData') ? $statsRes->getData(true) : $statsRes;
+
+                        // Publish responses
+                        $this->mqtt->publish(
+                            "tv/{$companyId}/dashboard/rooms",
+                            json_encode(['reqId' => $reqId, 'data' => $roomsData], JSON_UNESCAPED_SLASHES),
+                            0,
+                            false
+                        );
+
+                        $this->mqtt->publish(
+                            "tv/{$companyId}/dashboard/stats",
+                            json_encode(['reqId' => $reqId, 'data' => $statsData], JSON_UNESCAPED_SLASHES),
+                            0,
+                            false
+                        );
+                    } catch (\Throwable $e) {
+                        Log::error('TV MQTT responder error', [
+                            'topic' => $topic,
+                            'message' => $message,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }, 0);
+                // Listen to all companies
+                $this->mqtt->subscribe('tv/+/dashboard_alarm_response', function (string $topic, string $message) {
+
+
+                    try {
+                        $payload = json_decode($message, true, 512, JSON_THROW_ON_ERROR);
+
+
+
+                        $parts = explode('/', $topic); // tv/{companyId}/dashboard/request
+                        $companyId = (int)($parts[1] ?? 0);
+                        if ($companyId <= 0) return;
+
+                        // $alarmId = (string)($payload['alarmId'] ?? '');
+                        $params = (array)($payload['params'] ?? []);
+
+                        // Force company id from topic (cannot be spoofed)
+                        $params['company_id'] = $companyId;
+                        $params['alarmId'] = $params['alarmId'];
+
+
+                        // Call your existing controller methods directly (NO HTTP)
+                        $controller = app(SOSRoomsControllers::class);
+
+                        $roomsRes = $controller->updateResponseDatetime(new Request($params));
+                    } catch (\Throwable $e) {
+
+                        // echo $e->getMessage();
+                        Log::error('TV MQTT responder error', [
+                            'topic' => $topic,
+                            'message' => $message,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }, 0);
+
+
+
 
 
                 $this->mqtt->loop(true); // Blocking loop

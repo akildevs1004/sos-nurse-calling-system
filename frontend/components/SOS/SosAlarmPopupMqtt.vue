@@ -101,7 +101,7 @@ export default {
 
   async mounted() {
 
-
+    // alert("Connected");
     await this.getDevicesFromApi();
 
 
@@ -128,7 +128,7 @@ export default {
       try {
         const { data } = await this.$axios.get("device-list", {
           params: {
-            company_id: this.$auth.user.company_id,
+            company_id: this.$auth?.user?.company_id || process.env.TV_COMPANY_ID,
 
           },
         });
@@ -136,7 +136,12 @@ export default {
         // supports array or paginator {data:[...]}
         this.allowedSerials = data.map(d => d.serial_number);
 
+        console.log(" this.allowedSerials", this.allowedSerials);
+
+
       } catch (err) {
+        console.log(" this.allowedSerials", err);
+
         // this.apiError =
         //   err?.response?.data?.message ||
         //   err?.message ||
@@ -159,7 +164,7 @@ export default {
         this.isConnected = true;
         this.client.subscribe("xtremesos/+/sosalarm", { qos: 1 });
       });
-
+      // alert("Connected")
       this.client.on("message", this.onMqttMessage);
       this.client.on("close", () => (this.isConnected = false));
       this.client.on("offline", () => (this.isConnected = false));
@@ -188,6 +193,7 @@ export default {
       const key = `${msg.serialNumber}:${msg.id}`;
       const status = String(msg.status).toUpperCase();
 
+      // alert("Connected" + msg.serialNumber);
 
       this.$emit("triggerUpdateDashboard");
 

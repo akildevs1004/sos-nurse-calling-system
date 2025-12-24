@@ -6,6 +6,7 @@ use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\DeviceStatusController;
 use App\Http\Controllers\DeviceTemperatureSensorsController;
 use App\Models\Device;
+use App\Services\MqttService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,20 @@ Route::get('/sos_hourly_report', [SOSRoomsControllers::class, 'sosHourlyReport']
 Route::get('/sos_room_types', [SOSRoomsControllers::class, 'roomTypes']);
 
 Route::get('/sos_room_percentage_roomtypes', [SOSRoomsControllers::class, 'roomTypesPercentages']);
+
+
+
+
+
+//tv cmds
+Route::get('/tv_reload',  function () {
+
+    return (new MqttService())->publish(
+        "tv/reload",
+        "{}",
+        null
+    );
+});
 
 
 

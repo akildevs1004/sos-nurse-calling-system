@@ -149,6 +149,9 @@ class SOSRoomsControllers extends Controller
                     $q->where('company_id', $companyId);
                 }
             ])
+
+
+
             ->where('company_id', $companyId)
             ->orderby('room_id', "asc")
 

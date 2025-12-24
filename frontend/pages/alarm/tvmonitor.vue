@@ -327,7 +327,8 @@ export default {
     document.body.style.overflow = "hidden";
 
     this.$nextTick(() => this.recalcLayout());
-    window.addEventListener("resize", this.recalcLayout, { passive: true });
+    if (window)
+      window.addEventListener("resize", this.recalcLayout, { passive: true });
   },
 
   beforeDestroy() {
