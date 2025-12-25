@@ -140,7 +140,7 @@ export default {
 
 
       } catch (err) {
-        console.log(" this.allowedSerials", err);
+        console.log(" this.allowedSerials Err", err);
 
         // this.apiError =
         //   err?.response?.data?.message ||

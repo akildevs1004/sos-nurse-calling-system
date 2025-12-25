@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
+ <WebView
+        android:id="@+id/webView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enter URL (YouTube or Web)"
+        android:textSize="18sp"
+        android:paddingBottom="16dp"/>
+
+    <EditText
+        android:id="@+id/urlInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="https://youtube.com/watch?v=..."
+        android:inputType="textUri"
+        android:textSize="18sp"
+        android:padding="12dp" />
+
+    <Button
+        android:id="@+id/openBtn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="OPEN FULL SCREEN"
+        android:textSize="18sp"
+        android:layout_marginTop="18dp"
+        android:padding="14dp"/>
+</LinearLayout>

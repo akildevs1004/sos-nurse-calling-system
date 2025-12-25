@@ -370,9 +370,16 @@ export default {
           if (err) {
             this.snackbar = true;
             this.snackbarResponse = "MQTT subscribe failed";
+
+            console.log("Step1 MQTT subscribe failed");
             return;
           }
           this.requestDashboardSnapshot();
+
+          this.snackbar = true;
+          this.snackbarResponse = "Server Connected";
+          console.log("Step1 MQTT subscribed");
+
         });
       });
 
@@ -400,7 +407,14 @@ export default {
     },
 
     requestDashboardSnapshot() {
+
+
+      console.log("Step5- MQTT Request sending");
+
       if (!this.client || !this.isConnected) return;
+
+      this.snackbar = true;
+      this.snackbarResponse = "MQTT requestDashboardSnapshot";
 
       this.reqId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
       const companyId = Number(process.env.TV_COMPANY_ID || 0);
@@ -416,11 +430,24 @@ export default {
         }
       };
 
+      console.log("Step6- MQTT Request sent", payload);
+
+
       this.client.publish(this.topics.req, JSON.stringify(payload), { qos: 0, retain: false });
+
+      this.snackbar = true;
+      this.snackbarResponse = "MQTT Request sent";
+
+      console.log("Step7- MQTT Request sent success");
+
+
       this.message = "snapshot requested";
     },
 
     onMqttMessage(topic, payload) {
+
+      console.log("Step8- Message received");
+
 
       // console.log("topic", topic);
 
@@ -429,10 +456,12 @@ export default {
       let msg;
       try {
         msg = JSON.parse(payload.toString());
+        console.log("Step9- Message received", topic, msg);
 
-        console.log(msg);
 
       } catch (e) {
+        console.log("Step10- Error", e);
+
         return;
       }
 
