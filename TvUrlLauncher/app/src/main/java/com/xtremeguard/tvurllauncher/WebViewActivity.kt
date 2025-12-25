@@ -19,6 +19,8 @@ class WebViewActivity : AppCompatActivity() {
     private lateinit var root: FrameLayout
     private lateinit var webView: WebView
     private lateinit var adminHotZone: View
+    private lateinit var btnSettings: android.widget.ImageButton
+
 
     private var customView: View? = null
     private var customViewCallback: WebChromeClient.CustomViewCallback? = null
@@ -29,6 +31,15 @@ class WebViewActivity : AppCompatActivity() {
 
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         setContentView(R.layout.activity_webview)
+
+        btnSettings = findViewById(R.id.btnSettings)
+
+btnSettings.setOnClickListener {
+    // Go back to settings without clearing values
+    startActivity(Intent(this, SetupActivity::class.java).putExtra("forceSettings", true))
+    finish()
+}
+
 
         root = findViewById(R.id.root)
         webView = findViewById(R.id.webView)

@@ -11,70 +11,100 @@ import androidx.appcompat.app.AppCompatActivity
 
 class SetupActivity : AppCompatActivity() {
 
-    private lateinit var urlInput: EditText
+    // ✅ DECLARE ALL VIEWS FIRST
+    private lateinit var ipInput: EditText
+    private lateinit var portInput: EditText
+    private lateinit var pathInput: EditText
     private lateinit var saveOpenBtn: Button
-
-    private val DEFAULT_URL = "http://192.168.2.28:3000/alarm/tvmonitor1"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // If URL already exists, go straight to WebView
+        val forceSettings = intent.getBooleanExtra("forceSettings", false)
+
+        // If URL exists AND not forced → go directly to WebView
         val savedUrl = Prefs.getUrl(this)
-        if (savedUrl.isNotBlank()) {
+        if (savedUrl.isNotBlank() && !forceSettings) {
             openWebView(savedUrl)
             finish()
             return
         }
 
+        // ✅ MUST BE BEFORE findViewById
         setContentView(R.layout.activity_setup)
 
-        urlInput = findViewById(R.id.urlInput)
+        // ✅ NOW INITIALIZE VIEWS
+        ipInput = findViewById(R.id.ipInput)
+        portInput = findViewById(R.id.portInput)
+        pathInput = findViewById(R.id.pathInput)
         saveOpenBtn = findViewById(R.id.saveOpenBtn)
 
-        // Prefill default URL and focus input
-        urlInput.setText(DEFAULT_URL)
-        urlInput.setSelection(urlInput.text.length)
-        urlInput.requestFocus()
-        showKeyboard(urlInput)
+        // Load saved values (or defaults)
+        ipInput.setText(Prefs.getIp(this))
+        portInput.setText(Prefs.getPort(this))
+        pathInput.setText(Prefs.getPath(this))
+
+        // Focus first field for TV
+        ipInput.requestFocus()
+        showKeyboard(ipInput)
 
         saveOpenBtn.setOnClickListener {
-            val raw = urlInput.text.toString().trim()
-            if (raw.isEmpty()) {
-                Toast.makeText(this, "Enter a URL", Toast.LENGTH_SHORT).show()
+            val ip = ipInput.text.toString().trim()
+            val port = portInput.text.toString().trim()
+            val pathRaw = pathInput.text.toString().trim()
+
+            if (ip.isEmpty()) {
+                toast("Enter IP address")
+                ipInput.requestFocus()
                 return@setOnClickListener
             }
 
-            val normalized = normalizeUrl(raw)
-            Prefs.setUrl(this, normalized)
+            if (port.isEmpty()) {
+                toast("Enter port number")
+                portInput.requestFocus()
+                return@setOnClickListener
+            }
 
-            openWebView(normalized)
+            val path = normalizePath(pathRaw)
+            val url = "http://$ip:$port$path"
+
+            // Save everything
+            Prefs.setNetworkFields(this, ip, port, path)
+            Prefs.setUrl(this, url)
+
+            openWebView(url)
             finish()
         }
     }
 
-    private fun normalizeUrl(input: String): String {
-        val v = input.trim()
-        if (v.startsWith("http://", true) || v.startsWith("https://", true)) return v
-        return "http://$v"
+    private fun normalizePath(pathRaw: String): String {
+        val p = pathRaw.trim()
+        return when {
+            p.isBlank() -> ""
+            p.startsWith("/") -> p
+            else -> "/$p"
+        }
     }
 
     private fun openWebView(url: String) {
-        val i = Intent(this, WebViewActivity::class.java)
-        i.putExtra("url", url)
-        startActivity(i)
+        startActivity(
+            Intent(this, WebViewActivity::class.java)
+                .putExtra("url", url)
+        )
     }
 
     private fun showKeyboard(view: View) {
-        // On many Android TV devices, soft keyboard may not appear unless a TV keyboard is installed,
-        // but this will still request it and ensure focus is correct.
         view.postDelayed({
             try {
-                val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                val imm =
+                    getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
             } catch (_: Exception) {
-                // ignore
             }
         }, 250)
+    }
+
+    private fun toast(msg: String) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
     }
 }

@@ -4,8 +4,17 @@ import android.content.Context
 
 object Prefs {
     private const val PREF_NAME = "tv_kiosk_prefs"
+
     private const val KEY_URL = "kiosk_url"
+    private const val KEY_IP = "kiosk_ip"
+    private const val KEY_PORT = "kiosk_port"
+    private const val KEY_PATH = "kiosk_path"
     private const val KEY_ADMIN_PIN = "admin_pin"
+
+    // Your desired initial defaults (used only if nothing saved yet)
+    private const val DEFAULT_IP = "192.168.2.28"
+    private const val DEFAULT_PORT = "3000"
+    private const val DEFAULT_PATH = "/alarm/tvmonitor1"
 
     fun getUrl(ctx: Context): String =
         ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -16,13 +25,28 @@ object Prefs {
             .edit().putString(KEY_URL, url).apply()
     }
 
-    // Optional: you can change PIN later; default is 1234
+    fun getIp(ctx: Context): String =
+        ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_IP, DEFAULT_IP) ?: DEFAULT_IP
+
+    fun getPort(ctx: Context): String =
+        ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_PORT, DEFAULT_PORT) ?: DEFAULT_PORT
+
+    fun getPath(ctx: Context): String =
+        ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_PATH, DEFAULT_PATH) ?: DEFAULT_PATH
+
+    fun setNetworkFields(ctx: Context, ip: String, port: String, path: String) {
+        ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_IP, ip)
+            .putString(KEY_PORT, port)
+            .putString(KEY_PATH, path)
+            .apply()
+    }
+
     fun getAdminPin(ctx: Context): String =
         ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
             .getString(KEY_ADMIN_PIN, "1234") ?: "1234"
-
-    fun setAdminPin(ctx: Context, pin: String) {
-        ctx.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-            .edit().putString(KEY_ADMIN_PIN, pin).apply()
-    }
 }

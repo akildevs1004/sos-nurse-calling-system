@@ -6,6 +6,8 @@
       </v-snackbar>
     </div>
 
+    Testing JS {{ snackbarResponse }}
+
     <SosAlarmPopupMqtt @triggerUpdateDashboard="requestDashboardSnapshot()" />
 
     <!-- ONE SCROLL CONTAINER FOR EVERYTHING -->
@@ -304,6 +306,8 @@ export default {
   },
 
   mounted() {
+    this.snackbarResponse = "Ok";
+    alert("Hi");
     this.snackbarResponse = "Mounted";
 
     // Duration ticking
