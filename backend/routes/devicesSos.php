@@ -20,6 +20,8 @@ Route::get('/sos_logs_reports', [SOSRoomsControllers::class, 'SosLogsReports']);
 Route::get('/sos_logs_print_pdf', [SOSRoomsControllers::class, 'SosLogsPrintPdf']);
 Route::get('/sos_logs_download_pdf', [SOSRoomsControllers::class, 'SosLogsDownloadPdf']);
 Route::get('/sos_logs_export_excel', [SOSRoomsControllers::class, 'SosLogsDownloadCSV']);
+Route::get('/sos_analytics_pdf', [SOSRoomsControllers::class, 'SosLogsAnalyticsPdf']);
+
 
 //monitor
 

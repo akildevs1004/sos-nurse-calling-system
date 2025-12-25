@@ -635,4 +635,49 @@ class SOSRoomsControllers extends Controller
 
         return $this->roomTypeLabels();;
     }
+
+
+    public function SosLogsAnalyticsPdf(Request $request)
+    {
+
+
+
+        $report  = $this->getRecords($request);
+
+        $company = Company::query()
+            ->whereKey($request->company_id)
+            ->with('contact:id,company_id,number')
+            ->first();
+
+        $fileName = 'SOS Reports List.pdf';
+
+        $data = [
+            'unitName'          => 'Cardiology Unit A',
+            'reportPeriod'      => 'October 17 - October 23, 2024',
+            'generatedOn'       => 'Oct 24, 2024 at 14:30',
+            'preparedBy'        => 'Dr. Sarah Jenkins',
+            'totalCalls'        => 142,
+            'avgResponse'       => '1m 12s',
+            'resolvedPct'       => '97%',
+            'topLocation'       => 'Room 304',
+            'topLocationCalls'  => '12 calls this period',
+
+            // Pass raw records; map in blade OR map here (recommended below)
+            'callLogs'          => $report,
+            'company'           => $company,
+        ];
+
+        $pdf = PDF::loadView('sos.sos-reports-analysis', $data)
+            ->setOption('encoding', 'utf-8')
+            ->setOption('page-size', 'A4')
+            ->setOption('orientation', 'Portrait')
+            ->setOption('margin-top', 14)
+            ->setOption('margin-right', 14)
+            ->setOption('margin-bottom', 14)
+            ->setOption('margin-left', 14)
+            ->setOption('print-media-type', true)
+            ->setOption('enable-local-file-access', true);
+
+        return $pdf->stream($fileName);
+    }
 }
