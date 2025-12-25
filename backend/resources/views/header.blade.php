@@ -104,10 +104,7 @@
 
         <!-- RIGHT SECTION: QR + DATE -->
         <td style="width:100px; text-align:center; vertical-align:middle; border:none;">
-            @if (!empty($alarm_id))
-                <img src="https://alarmbackend.xtremeguard.org/api/qrcodeevent?content={{ $alarm_id }}"
-                    style="width:80px; margin-bottom:5px;">
-            @endif
+
 
             <div style="font-size:10px; margin-top:5px;">
                 Printed on<br />

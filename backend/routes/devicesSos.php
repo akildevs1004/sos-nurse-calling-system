@@ -20,7 +20,7 @@ Route::get('/sos_logs_reports', [SOSRoomsControllers::class, 'SosLogsReports']);
 Route::get('/sos_logs_print_pdf', [SOSRoomsControllers::class, 'SosLogsPrintPdf']);
 Route::get('/sos_logs_download_pdf', [SOSRoomsControllers::class, 'SosLogsDownloadPdf']);
 Route::get('/sos_logs_export_excel', [SOSRoomsControllers::class, 'SosLogsDownloadCSV']);
-Route::get('/sos_analytics_pdf', [SOSRoomsControllers::class, 'SosLogsAnalyticsPdf']);
+Route::get('/sos_analytics_pdf', [SOSRoomsControllers::class, 'SosLogsAnalyticsPdf'])->name("sos.report.pdf");
 
 
 //monitor
@@ -33,7 +33,16 @@ Route::get('/sos_room_types', [SOSRoomsControllers::class, 'roomTypes']);
 Route::get('/sos_room_percentage_roomtypes', [SOSRoomsControllers::class, 'roomTypesPercentages']);
 
 
+//chart
 
+
+//step1
+
+Route::get('/sos/report/chart-render', [SOSRoomsControllers::class, 'chartRender'])
+    ->name('sos.report.chartRender');
+
+Route::post('/sos/report/store-chart', [SOSRoomsControllers::class, 'storeChart'])
+    ->name('sos.report.storeChart');
 
 
 //tv cmds

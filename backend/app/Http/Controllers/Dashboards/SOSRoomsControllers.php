@@ -21,6 +21,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
 class SOSRoomsControllers extends Controller
@@ -649,25 +650,117 @@ class SOSRoomsControllers extends Controller
             ->with('contact:id,company_id,number')
             ->first();
 
-        $fileName = 'SOS Reports List.pdf';
+        $fileName = 'SOS Reports Analysis.pdf';
+        $avgResponseMinutes = collect($report)
+            ->whereNotNull('response_in_minutes')
+            ->avg('response_in_minutes') ?? 0;
+
+        // Optional: round to 2 decimals
+        $avgResponseMinutes = round($avgResponseMinutes);
+        $hours = floor($avgResponseMinutes / 60);
+        $mins  = $avgResponseMinutes % 60;
+
+        $time = sprintf('%02dh:%02dm', $hours, $mins);
+
+        $items = collect($report);
+        //-----------------
+        // Total SOS in the report
+        $total = $items->count();
+
+        $closed = $items->filter(fn($r) => !empty($r->alarm_end_datetime))->count();
+
+        $closedPct = $total > 0 ? round(($closed / $total) * 100, 1) : 0;
+        ///----------------
+        $roomCounts = [];
+
+        // Count SOS per room
+        foreach ($report as $r) {
+
+            // Only valid SOS
+            if (empty($r->alarm_start_datetime) || empty($r->room_id)) {
+                continue;
+            }
+
+            $roomId   = $r->room_id;
+            $roomName = $r->room_name ?? '-';
+
+            // Initialize if not exists
+            if (!isset($roomCounts[$roomId])) {
+                $roomCounts[$roomId] = [
+                    'room_id'   => $roomId,
+                    'room_name' => $roomName,
+                    'count'     => 0,
+                ];
+            }
+
+            // Increment count
+            $roomCounts[$roomId]['count']++;
+        }
+        $topRoom = null;
+
+        foreach ($roomCounts as $room) {
+            if ($topRoom === null || $room['count'] > $topRoom['count']) {
+                $topRoom = $room;
+            }
+        }
+        $topRoomName  = $topRoom['room_name'] ?? '-';
+        $topRoomId    = $topRoom['room_id'] ?? null;
+        $topRoomCount = $topRoom['count'] ?? 0;
+        $reportPeriod = "All Time";
+
+        if ($request->filled('date_from'))
+
+            $reportPeriod = $request->date_from . ' To ' . $request->date_to;
 
         $data = [
-            'unitName'          => 'Cardiology Unit A',
-            'reportPeriod'      => 'October 17 - October 23, 2024',
-            'generatedOn'       => 'Oct 24, 2024 at 14:30',
-            'preparedBy'        => 'Dr. Sarah Jenkins',
-            'totalCalls'        => 142,
-            'avgResponse'       => '1m 12s',
-            'resolvedPct'       => '97%',
-            'topLocation'       => 'Room 304',
-            'topLocationCalls'  => '12 calls this period',
+            'unitName'          => 'All Rooms',
+            'reportPeriod'      =>  $reportPeriod,
+            'generatedOn'       => date("Y-m-d H:i:s"),
+
+            'totalCalls'        => count($report),
+            'avgResponse'       => $time,
+            'resolvedPct'       => $closedPct . '%',
+            'topLocation'       => $topRoomName . "(" . $topRoomId . ")",
+            'topLocationCalls'  => $topRoomCount . ' calls this period',
 
             // Pass raw records; map in blade OR map here (recommended below)
             'callLogs'          => $report,
             'company'           => $company,
+
+
         ];
 
+        // 0–23 hourly counts (must be 24 values)
+        $data['hourLabels'] = range(0, 23);
+        $data['isPdf'] = true;
+
+        $data['hourValues'] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]; // array of 24 integers
+
+
+
+
+        // $chartPath = $request->query('chart'); // "reports/charts/hourly_sos.png"
+
+        //geenrate image
+        //image is generated //path :storage/reports/charts/hourly_sos.png
+        $this->chartRender($request);
+
+
+        $chartPath = "reports/charts/hourly_sos.png";
+
+        $data['chartImage'] =  public_path('storage/' . $chartPath);
+
+
+
+
+
+
+
+
+
+
         $pdf = PDF::loadView('sos.sos-reports-analysis', $data)
+            ->setOption('enable-local-file-access', true)
             ->setOption('encoding', 'utf-8')
             ->setOption('page-size', 'A4')
             ->setOption('orientation', 'Portrait')
@@ -678,6 +771,53 @@ class SOSRoomsControllers extends Controller
             ->setOption('print-media-type', true)
             ->setOption('enable-local-file-access', true);
 
+
+
+
+
+
+
+
+
+
+
         return $pdf->stream($fileName);
+    }
+    public function chartRender(Request $request)
+    {
+        // Example data: you should compute from your report
+        $hourLabels = range(0, 23);
+        $hourValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 11, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3];
+
+        // TODO: fill $hourValues from your DB query results
+
+        return view('sos.sos-chart-render', [
+            'hourLabels' => $hourLabels,
+            'hourValues' => $hourValues,
+            'nextUrl'    => route('sos.report.pdf', $request->query()), // redirect after uploa
+        ]);
+    }
+
+    public function storeChart(Request $request)
+    {
+
+        //return $request->file('chart');
+        if (!$request->hasFile('chart')) {
+            return response()->json(['message' => 'No chart received'], 422);
+        }
+
+        $file = $request->file('chart');
+
+        if (!$file->isValid()) {
+            return response()->json(['message' => 'Invalid file'], 422);
+        }
+
+        // Store into public disk
+        $path = $file->storeAs('reports/charts', 'hourly_sos.png', 'public');
+
+        return response()->json([
+            'ok' => true,
+            'pdf_url' => route('sos.report.chartRender', ['chart' => $path]),
+        ]);
     }
 }
