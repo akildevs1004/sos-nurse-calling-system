@@ -1,70 +1,108 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="28dp"
-    android:gravity="center"
+    android:background="@android:color/white"
     android:focusable="true"
     android:focusableInTouchMode="true">
 
-    <TextView
+    <!-- MAIN CONTENT (already centered) -->
+    <LinearLayout
+        android:id="@+id/contentLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="center"
+        android:padding="24dp">
+
+        <!-- LOGIN IMAGE -->
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:src="@drawable/login_image"
+            android:scaleType="fitCenter"
+            android:layout_marginBottom="24dp" />
+
+            <RadioGroup
+    android:id="@+id/protocolGroup"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:layout_gravity="center_horizontal"
+    android:layout_marginBottom="16dp">
+
+    <RadioButton
+        android:id="@+id/rbHttp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="TV Kiosk Setup"
-        android:textSize="22sp"
-        android:paddingBottom="18dp" />
+        android:text="HTTP"
+        android:checked="true"
+        android:padding="10dp" />
 
-    <EditText
-        android:id="@+id/ipInput"
-        android:layout_width="match_parent"
+    <RadioButton
+        android:id="@+id/rbHttps"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="IP Address (e.g., 192.168.2.28)"
-        android:inputType="text"
-        android:textSize="18sp"
-        android:background="@drawable/focus_edittext"
-        android:padding="12dp"
-        android:singleLine="true"
-        android:focusable="true"
-        android:focusableInTouchMode="true" />
+        android:text="HTTPS"
+        android:padding="10dp" />
+</RadioGroup>
 
-    <EditText
-        android:id="@+id/portInput"
+
+        <EditText
+            android:id="@+id/ipInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="IP Address/ Domain Name"
+            android:background="@drawable/focus_edittext"
+            android:padding="14dp"
+            android:singleLine="true"/>
+
+        <EditText
+            android:id="@+id/portInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Port (optional)"
+            android:background="@drawable/focus_edittext"
+            android:padding="14dp"
+            android:layout_marginTop="12dp"
+            android:singleLine="true"/>
+
+        <EditText
+            android:id="@+id/pathInput"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Path (optional)"
+            android:background="@drawable/focus_edittext"
+            android:padding="14dp"
+            android:layout_marginTop="12dp"
+            android:singleLine="true"/>
+
+        <Button
+            android:id="@+id/saveOpenBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="SAVE &amp; OPEN"
+            android:textSize="18sp"
+            android:padding="16dp"
+            android:layout_marginTop="20dp"
+            android:backgroundTint="#6A00FF"
+            android:textColor="@android:color/white"/>
+
+    </LinearLayout>
+
+    <!-- 🔄 LOADING OVERLAY -->
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Port (e.g., 3000)"
-        android:inputType="number"
-        android:textSize="18sp"
-        android:background="@drawable/focus_edittext"
-        android:padding="12dp"
-        android:singleLine="true"
-        android:layout_marginTop="12dp"
-        android:focusable="true"
-        android:focusableInTouchMode="true" />
+        android:layout_height="match_parent"
+        android:background="#80FFFFFF"
+        android:visibility="gone">
 
-    <EditText
-        android:id="@+id/pathInput"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Path (optional) (e.g., /alarm/tvmonitor1)"
-        android:inputType="text"
-        android:textSize="18sp"
-        android:background="@drawable/focus_edittext"
-        android:padding="12dp"
-        android:singleLine="true"
-        android:layout_marginTop="12dp"
-        android:focusable="true"
-        android:focusableInTouchMode="true" />
+        <ProgressBar
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_gravity="center"
+            android:indeterminate="true" />
 
-    <Button
-        android:id="@+id/saveOpenBtn"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="SAVE &amp; OPEN"
-        android:textSize="18sp"
-        android:layout_marginTop="18dp"
-        android:padding="14dp"
-        android:focusable="true"
-        android:focusableInTouchMode="true" />
+    </FrameLayout>
 
-</LinearLayout>
+</FrameLayout>
