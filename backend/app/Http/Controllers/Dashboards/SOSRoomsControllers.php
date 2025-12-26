@@ -835,15 +835,17 @@ class SOSRoomsControllers extends Controller
 
         $pdf = PDF::loadView('sos.sos-reports-analysis', $data)
             ->setOption('enable-local-file-access', true)
-            ->setOption('encoding', 'utf-8')
-            ->setOption('page-size', 'A4')
-            ->setOption('orientation', 'Portrait')
+
+            // ->setOption('encoding', 'utf-8')
+            // ->setOption('page-size', 'A4')
+            // ->setOption('orientation', 'Portrait')
             ->setOption('margin-top', 14)
             ->setOption('margin-right', 14)
             ->setOption('margin-bottom', 14)
             ->setOption('margin-left', 14)
-            ->setOption('print-media-type', true)
-            ->setOption('enable-local-file-access', true);
+            // ->setOption('print-media-type', true)
+            ->setOption('enable-local-file-access', true)
+            ->setpaper("A4", "potrait");
 
 
 

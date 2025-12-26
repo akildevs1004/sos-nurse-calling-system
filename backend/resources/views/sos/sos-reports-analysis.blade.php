@@ -205,6 +205,39 @@
             width: 100%;
             border-collapse: collapse;
         }
+
+        /* ===== 4 CHARTS GRID (PDF SAFE) ===== */
+        .chart-grid {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 10px;
+        }
+
+        .chart-cell {
+            width: 50%;
+            vertical-align: top;
+        }
+
+        .chart-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .chart-title {
+            font-size: 12px;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+            color: #0f172a;
+        }
+
+        .chart-img {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            height: 240px;
+            object-fit: contain;
+        }
     </style>
 </head>
 
@@ -225,7 +258,7 @@
         $topLocation = $topLocation ?? '-';
         $topLocationCalls = $topLocationCalls ?? 0;
 
-        // Charts defaults
+        // Charts defaults (if you still use any HTML bars)
         $bars = $hourlyBars ?? [15, 10, 5, 8, 25, 45, 65, 85, 55, 40, 30, 20];
         $maxBars = max($bars) ?: 1;
 
@@ -243,6 +276,15 @@
 
         $periodFrom = $periodFrom ?? '';
         $periodTo = $periodTo ?? '';
+
+        // ===== IMPORTANT: wkhtmltopdf local images must use file:// + public_path =====
+        $chartHourlySos = 'file://' . public_path('storage/reports/charts/hourly_sos.png');
+        $chartResponseHourly = 'file://' . public_path('storage/reports/charts/response_hourly_sos.png');
+        $chartStatusDonut = 'file://' . public_path('storage/reports/charts/sos_status_donut.png');
+
+        // 4th chart: change filename to your actual chart file
+        // Example: room_type_donut.png / room_type_bars.png / top_locations.png etc.
+        $chartRoomType = 'file://' . public_path('storage/reports/charts/room_type_donut.png');
     @endphp
 
     {{-- PAGE 1 --}}
@@ -400,156 +442,53 @@
             </tr>
         </table>
 
-        <div class="section-title">Data Visualization2</div>
+        <div class="section-title">Data Visualization</div>
 
-        <table>
-
+        {{-- 4 CHARTS (2x2) --}}
+        <table class="chart-grid">
             <tr>
-                <td>
-
-                    @if (!empty($chartImage))
-                        <div class="card" style="margin-top:16px;">
-                            <div class="h3 mb-12">Hourly SOS Calls (0–23)</div>
-                            <img src="file://{{ $chartImage }}"
-                                style="width:100%; max-height:300px; object-fit:contain;">
-                        </div>
-                    @else
-                        <div class="muted">Chart not available.</div>
-                    @endif
-
-
-
-
-                </td>
-                <td>
-
-                    @if (!empty($response_hourly_sosImage))
-                        <div class="card" style="margin-top:16px;">
-                            <div class="h3 mb-12">Response Hourly SOS Calls (0–23)</div>
-                            <img src="file://{{ $response_hourly_sosImage }}"
-                                style="width:100%; max-height:300px; object-fit:contain;">
-                        </div>
-                    @else
-                        <div class="muted">Chart not available.</div>
-                    @endif
-
-
-
-
-                </td>
-            </tr>
-        </table>
-
-        <table>
-            <tr>
-                <td style="width:50%; padding-right:10px; vertical-align: top; border-bottom:0;">
-                    <div class="card">
-                        <div class="h3" style="margin-bottom:12px;">Call Frequency (24h)</div>
-                        <div class="bar-wrap">
-                            <table class="bars">
-                                <tr>
-                                    @foreach ($bars as $v)
-                                        <td>
-                                            <div class="bar" style="height: {{ intval(($v / $maxBars) * 100) }}%;">
-                                                <div style="height:100%;"></div>
-                                            </div>
-                                        </td>
-                                    @endforeach
-                                </tr>
-                            </table>
-                            <div class="muted small" style="margin-top:6px;">00 02 04 06 08 10 12 14 16 18 20 22</div>
-                        </div>
+                <td class="chart-cell" style="border-bottom:0;">
+                    <div class="chart-card">
+                        <div class="chart-title">Response Hourly SOS Calls (0–23)</div>
+                        <img src="{{ $chartResponseHourly }}" class="chart-img" alt="Response Hourly SOS">
                     </div>
                 </td>
 
-                <td style="width:50%; vertical-align: top; border-bottom:0;">
-                    <div class="card">
-                        <div class="h3" style="margin-bottom:12px;">Response Time Trends</div>
-                        <div style="height:160px; border:1px solid #e2e8f0; border-radius:10px; padding:10px;">
-                            <div class="muted small">Mon → Sun trend (simplified)</div>
-                            <table style="margin-top:10px;">
-                                <tr>
-                                    @foreach ($trend as $d => $v)
-                                        <td style="text-align:center; border:0;">
-                                            <div style="font-weight:800;">{{ $d }}</div>
-                                            <div class="muted">{{ $v }}s</div>
-                                        </td>
-                                    @endforeach
-                                </tr>
-                            </table>
-                        </div>
+                <td class="chart-cell" style="border-bottom:0;">
+                    <div class="chart-card">
+                        <div class="chart-title">Hourly SOS Calls (0–23)</div>
+                        <img src="{{ $chartHourlySos }}" class="chart-img" alt="Hourly SOS">
                     </div>
                 </td>
             </tr>
 
             <tr>
-                <td style="width:50%; padding-right:10px; vertical-align: top; padding-top:10px; border-bottom:0;">
-                    <div class="card">
-                        <div class="h3" style="margin-bottom:12px;">Status Distribution</div>
-                        <table>
-                            <tr>
-                                <td style="border:0;">Resolved</td>
-                                <td style="border:0; text-align:right; font-weight:800;">{{ $statusResolved }}</td>
-                            </tr>
-                            <tr>
-                                <td style="border:0;">Ack.</td>
-                                <td style="border:0; text-align:right; font-weight:800;">{{ $statusAck }}</td>
-                            </tr>
-                            <tr>
-                                <td style="border:0;">Pending</td>
-                                <td style="border:0; text-align:right; font-weight:800;">{{ $statusPending }}</td>
-                            </tr>
-                        </table>
+                <td class="chart-cell" style="border-bottom:0;">
+                    <div class="chart-card">
+                        <div class="chart-title">SOS Status Breakdown</div>
+                        <img src="{{ $chartStatusDonut }}" class="chart-img" alt="SOS Status Donut">
                     </div>
                 </td>
 
-                <td style="width:50%; vertical-align: top; padding-top:10px; border-bottom:0;">
-                    <div class="card">
-                        <div class="h3" style="margin-bottom:12px;">Source Distribution</div>
-
-                        @foreach ($sources as $s)
-                            <div style="margin-bottom:10px;">
-                                <table>
-                                    <tr>
-                                        <td style="border:0; font-weight:700;">{{ $s['label'] }}</td>
-                                        <td style="border:0; text-align:right;" class="muted">{{ $s['value'] }}
-                                            calls</td>
-                                    </tr>
-                                </table>
-                                <div class="progress">
-                                    <div style="width: {{ (int) ($s['pct'] ?? 0) }}%;"></div>
-                                </div>
-                            </div>
-                        @endforeach
-
+                <td class="chart-cell" style="border-bottom:0;">
+                    <div class="chart-card">
+                        <div class="chart-title">SOS Rooms / Sources</div>
+                        <img src="{{ $chartRoomType }}" class="chart-img" alt="Rooms / Sources Chart">
                     </div>
                 </td>
             </tr>
         </table>
 
-        <div class="footer">
-            <table>
-                <tr>
-                    <td>© {{ date('Y') }} CardioSOS System</td>
-                    <td style="text-align:right;">Page 2 of 3</td>
-                </tr>
-            </table>
+        {{-- If you want, you can add a small note under charts --}}
+        <div class="muted small" style="margin-top:8px;">
+            Charts are rendered from pre-generated PNG images stored under
+            <strong>public/storage/reports/charts</strong>.
         </div>
+
     </div>
 
     {{-- PAGE 3 --}}
     <div class="page">
-
-        <table class="border-b" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
-            <tr>
-                <td style="padding-bottom:12px; border-bottom:0;">
-                    <div style="font-weight:800;">CardioSOS Report</div>
-                </td>
-                <td class="muted small" style="text-align:right; padding-bottom:12px; border-bottom:0;">
-                    CONTINUED
-                </td>
-            </tr>
-        </table>
 
         <div class="h2" style="margin-bottom:12px;">Comprehensive Call Log</div>
 
@@ -574,7 +513,7 @@
                         $cls =
                             $st === 'pending'
                                 ? 'pill-red'
-                                : ($st === 'ack' || $st === 'ack.'
+                                : ($st === 'ack' || $st === 'ack.' || $st === 'responded'
                                     ? 'pill-amber'
                                     : 'pill-green');
                     @endphp
