@@ -817,7 +817,7 @@ class SOSRoomsControllers extends Controller
 
         return response()->json([
             'ok' => true,
-            'pdf_url' => route('sos.report.chartRender', ['chart' => $path]),
+            //'pdf_url' => route('geenratecharts', ['chart' => $path]),
         ]);
     }
 }

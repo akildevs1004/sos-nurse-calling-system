@@ -39,7 +39,7 @@ Route::get('/sos_room_percentage_roomtypes', [SOSRoomsControllers::class, 'roomT
 //step1
 
 Route::get('/sos/report/chart-render', [SOSRoomsControllers::class, 'chartRender'])
-    ->name('sos.report.chartRender');
+    ->name('geenratecharts');
 
 Route::post('/sos/report/store-chart', [SOSRoomsControllers::class, 'storeChart'])
     ->name('sos.report.storeChart');

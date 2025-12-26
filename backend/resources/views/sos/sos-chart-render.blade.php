@@ -350,11 +350,11 @@
 
             }, 1000);
 
-            setTimeout(() => {
-                window.location.href =
-                    "http://127.0.0.1:8000/api/sos_analytics_pdf?company_id=8";
+            // setTimeout(() => {
+            //     window.location.href =
+            //         "http://127.0.0.1:8000/api/sos_analytics_pdf?company_id=8";
 
-            }, 5000);
+            // }, 5000);
         })();
     </script>
 
