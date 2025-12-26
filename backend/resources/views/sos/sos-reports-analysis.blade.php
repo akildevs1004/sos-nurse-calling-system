@@ -12,7 +12,7 @@
         }
 
         body {
-            font-family: DejaVu Sans, Arial, sans-serif;
+            font-family: Arial, sans-serif;
             color: #0f172a;
             font-size: 12px;
         }
@@ -221,7 +221,8 @@
         .chart-card {
             border: 1px solid #e2e8f0;
             border-radius: 10px;
-            padding: 12px;
+            padding: 5px;
+            height: 240px;
         }
 
         .chart-title {
@@ -233,10 +234,10 @@
 
         .chart-img {
             display: block;
-            width: 100%;
+
             max-width: 100%;
-            height: 240px;
-            object-fit: contain;
+
+            text-align: center
         }
     </style>
 </head>
@@ -447,17 +448,18 @@
         {{-- 4 CHARTS (2x2) --}}
         <table class="chart-grid">
             <tr>
-                <td class="chart-cell" style="border-bottom:0;">
-                    <div class="chart-card">
-                        <div class="chart-title">Response Hourly SOS Calls (0–23)</div>
-                        <img src="{{ $chartResponseHourly }}" class="chart-img" alt="Response Hourly SOS">
-                    </div>
-                </td>
+
 
                 <td class="chart-cell" style="border-bottom:0;">
                     <div class="chart-card">
-                        <div class="chart-title">Hourly SOS Calls (0–23)</div>
+                        <div class="chart-title">Hourly SOS Calls </div>
                         <img src="{{ $chartHourlySos }}" class="chart-img" alt="Hourly SOS">
+                    </div>
+                </td>
+                <td class="chart-cell" style="border-bottom:0;">
+                    <div class="chart-card">
+                        <div class="chart-title">Response/Acknowledgement Hourly </div>
+                        <img src="{{ $chartResponseHourly }}" class="chart-img" alt="Response Hourly SOS">
                     </div>
                 </td>
             </tr>
@@ -473,7 +475,7 @@
                 <td class="chart-cell" style="border-bottom:0;">
                     <div class="chart-card">
                         <div class="chart-title">SOS Rooms / Sources</div>
-                        <img src="{{ $chartRoomType }}" class="chart-img" alt="Rooms / Sources Chart">
+                        @include('sos.sos-chart-render-sos-rooms-type')
                     </div>
                 </td>
             </tr>
@@ -490,57 +492,10 @@
     {{-- PAGE 3 --}}
     <div class="page">
 
-        <div class="h2" style="margin-bottom:12px;">Comprehensive Call Log</div>
+        <div class="h2" style="margin-bottom:12px;"> SOS Call Logs</div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th style="width:90px;">SOS ID</th>
-                    <th>Location</th>
-                    <th style="width:90px;">Time</th>
-                    <th style="width:90px;">Duration</th>
-                    <th style="width:90px;">Status</th>
-                    <th style="width:120px;">Staff</th>
-                </tr>
-            </thead>
+        @include('sos.sos-reports-logs-color')
 
-            <tbody>
-                @foreach ($callLogs ?? [] as $i => $row)
-                    @php
-                        // Expected row keys:
-                        // id, location, time, duration, status, staff, duration_emphasis (bool)
-                        $st = strtolower((string) ($row['status'] ?? ''));
-                        $cls =
-                            $st === 'pending'
-                                ? 'pill-red'
-                                : ($st === 'ack' || $st === 'ack.' || $st === 'responded'
-                                    ? 'pill-amber'
-                                    : 'pill-green');
-                    @endphp
-
-                    <tr class="{{ $i % 2 ? 'alt' : '' }}">
-                        <td style="font-family: monospace; font-size: 11px; color:#475569;">
-                            <strong>{{ $row['id'] ?? '-' }}</strong>
-                        </td>
-                        <td><strong>{{ $row['location'] ?? '-' }}</strong></td>
-                        <td class="muted">{{ $row['time'] ?? '-' }}</td>
-
-                        <td
-                            style="{{ !empty($row['duration_emphasis']) ? 'color:#b91c1c; font-weight:800;' : 'color:#475569;' }}">
-                            {{ $row['duration'] ?? '-' }}
-                        </td>
-
-                        <td>
-                            <span class="pill {{ $cls }}">{{ $row['status'] ?? '-' }}</span>
-                        </td>
-
-                        <td class="{{ ($row['staff'] ?? '') === 'Unassigned' ? 'muted' : '' }}">
-                            {{ $row['staff'] ?? '-' }}
-                        </td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
 
         <div class="note" style="margin-top:16px;">
             <strong>Note:</strong>

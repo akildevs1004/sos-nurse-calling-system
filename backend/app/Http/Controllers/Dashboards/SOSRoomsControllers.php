@@ -706,7 +706,7 @@ class SOSRoomsControllers extends Controller
         return response()->json([
             'total_sos' => (int) $totalSOS,
             'items'     => $items,
-            'colors' => ["#3b82f6", "#22c55e", "#ef4444", "#3b82f6", "#22c55e", "#ef4444"],
+            'colors' => ["#3b82f6", "#fb8c00", "#ef4444", "#3b82f6", "#fb8c00", "#ef4444"],
             'meta'      => [
                 'company_id' => $companyId,
                 'date_from'  => $from->toDateTimeString(),
@@ -723,7 +723,13 @@ class SOSRoomsControllers extends Controller
 
     public function SosLogsAnalyticsPdf(Request $request)
     {
-
+        if (count($request->all()) == 0) {
+            $request = new Request([
+                "company_id" => 8,
+                "date_from" => "2025-12-01",
+                "date_to" => "2025-12-31",
+            ]);
+        }
 
 
         $report  = $this->getRecords($request);
@@ -813,25 +819,31 @@ class SOSRoomsControllers extends Controller
 
         ];
 
-        // 0–23 hourly counts (must be 24 values)
-        // $data['hourLabels'] = range(0, 23);
-        // $data['isPdf'] = true;
-
-        // $data['hourValues'] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]; // array of 24 integers
 
 
+        // 4) Room types distribution (bars list)
+        $rt = $this->roomTypesPercentages($request)->getData(true);
+        $roomTypeItems = $rt  ?? []; // each: label,count,percentage
 
-
-
-        // $this->chartRender($request);
-
-
-
+        $data['roomTypeItems'] = $roomTypeItems;
 
 
 
         $data['chartImage'] =  public_path('storage/' . "reports/charts/hourly_sos.png");
         $data['response_hourly_sosImage'] =  public_path('storage/' . "reports/charts/response_hourly_sos.png");
+
+
+        //logs
+        $company = Company::whereId($request->company_id)->with('contact:id,company_id,number')->first();
+        $data['reports'] = $report;
+        $data['request'] = $request;
+        $data['company'] = $company;
+
+
+
+
+
+
 
         $pdf = PDF::loadView('sos.sos-reports-analysis', $data)
             ->setOption('enable-local-file-access', true)

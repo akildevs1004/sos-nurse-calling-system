@@ -121,7 +121,7 @@
                 dataLabels: {
                     enabled: false
                 },
-                colors: ['#137fec'],
+                colors: ['#fb8c00'],
                 grid: {
                     strokeDashArray: 4
                 },

@@ -62,18 +62,20 @@
         font-weight: 600;
         font-size: 12px;
         color: #555555;
+        display: flex;
+
     }
 
     .rs-dot {
-        width: 8px;
-        height: 8px;
+        width: 10px;
+        height: 10px;
         border-radius: 3px;
         flex: 0 0 auto;
     }
 
     .rs-bar {
         width: 100%;
-        height: 6px;
+        height: 10px;
         border-radius: 999px;
         background: #eeeeee;
         overflow: hidden;
@@ -92,33 +94,44 @@
     }
 </style>
 
-<div class="rs-card">
-    <div class="rs-title">{{ $title }}</div>
 
-    @if (empty($roomTypeItems['items']))
-        <div class="rs-empty">No data available</div>
-    @else
-        @foreach ($roomTypeItems['items'] as $index => $it)
-            @php
-                $label = $it['label'] ?? 'Unknown';
-                $count = (int) ($it['count'] ?? 0);
-                $pct = max(0, min(100, (float) ($it['percentage'] ?? 0)));
-                $color = $roomTypeItems['colors'][$index] ?? '#000000';
-            @endphp
+@if (empty($roomTypeItems['items']))
+    <div class="rs-empty">No data available</div>
+@else
+    @foreach ($roomTypeItems['items'] as $index => $it)
+        @php
+            $label = $it['label'] ?? 'Unknown';
+            $count = (int) ($it['count'] ?? 0);
+            $pct = max(0, min(100, (float) ($it['percentage'] ?? 0)));
+            $color = $roomTypeItems['colors'][$index] ?? '#fb8c00';
+        @endphp
 
-            <div class="rs-item">
-                <div class="rs-row">
-                    <div class="rs-left">
-                        <span class="rs-dot" style="background: {{ $color }};"></span>
-                        <div class="rs-label">{{ $label }} ({{ $count }})</div>
-                    </div>
-                    <div class="rs-right">{{ number_format($pct, 2) }}%</div>
-                </div>
+        <div class="rs-item">
+            <div class="rs-row">
 
-                <div class="rs-bar">
-                    <div class="rs-fill" style="width: {{ $pct }}%; background: {{ $color }};"></div>
-                </div>
+                <table>
+                    <tr>
+                        <td>
+                            <span class="rs-left">
+                                <span class="rs-dot" style="background: {{ $color }};"></span>
+                                <div class="rs-label">{{ $label }} </div>
+                            </span>
+                        </td>
+                        <td>
+                            <span class="rs-right" style="text-align:right">
+                                {{ $count }} Calls
+                            </span>
+                            {{-- <div class="rs-right">{{ number_format($pct, 2) }}%</div> --}}
+                        </td>
+                    </tr>
+
+
+
             </div>
-        @endforeach
-    @endif
-</div>
+
+            <div class="rs-bar">
+                <div class="rs-fill" style="width: {{ $pct }}%; background: {{ $color }};"></div>
+            </div>
+        </div>
+    @endforeach
+@endif

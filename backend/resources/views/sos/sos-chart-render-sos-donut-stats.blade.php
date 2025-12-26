@@ -7,11 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="{{ asset('vendor/apexcharts/apexcharts.min.js') }}"></script>
     <style>
-        body {
+        /* body {
             font-family: Arial, sans-serif;
             padding: 16px;
             color: #0f172a;
-        }
+        } */
 
         .card {
             border: 1px solid #e2e8f0;
