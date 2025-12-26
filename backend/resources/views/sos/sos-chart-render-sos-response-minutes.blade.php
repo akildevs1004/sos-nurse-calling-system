@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>SOS Chart Render (0–23 Hours)</title>
+    <title>responsechartlog</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     {{-- Offline ApexCharts (must exist in public/vendor/apexcharts/) --}}
@@ -73,7 +73,7 @@
             font-weight: 700;
         }
 
-        #chart {
+        #responsechart {
             height: 320px;
         }
 
@@ -106,33 +106,30 @@
     @endphp
 
     <div class="card">
-        <div class="title">Hourly SOS Calls (0–23)</div>
-        <div class="muted">
-            This page renders the chart in the browser, exports it as a PNG, and uploads it to:
-            <strong>{{ $storeUrl }}</strong>
-        </div>
+        <div class="title">responsechartlog</div>
 
-        <div id="chart"></div>
+
+        <div id="responsechart"></div>
 
         <div class="row">
             <div>
-                <span id="status" class="badge">Waiting…</span>
+                <span id="responsechartstatus" class="badge">Waiting…</span>
             </div>
-            <div style="display:flex; gap:8px;">
-                <button class="btn" id="btnUpload">Export & Upload</button>
-                <button class="btn" id="btnOpen" disabled>Open Saved Image</button>
+            <div style="display:flex; gap:8px;display:none">
+                <button class="btn" id="responsechartbtnUpload">Export & Upload</button>
+                <button class="btn" id="responsechartbtnOpen" disabled>Open Saved Image</button>
             </div>
         </div>
 
-        <pre id="log">Log:</pre>
+        <pre id="responsechartlog" style="display:none">Log:</pre>
     </div>
 
     <script>
         (async function() {
-            const statusEl = document.getElementById('status');
-            const logEl = document.getElementById('log');
-            const btnUpload = document.getElementById('btnUpload');
-            const btnOpen = document.getElementById('btnOpen');
+            const statusEl = document.getElementById('responsechartstatus');
+            const logEl = document.getElementById('responsechartlog');
+            const btnUpload = document.getElementById('responsechartbtnUpload');
+            const btnOpen = document.getElementById('responsechartbtnOpen');
 
             function log(msg, obj) {
                 const line = obj ? (msg + " " + JSON.stringify(obj, null, 2)) : msg;
@@ -163,7 +160,7 @@
 
             const options = {
                 chart: {
-                    type: 'bar',
+                    type: 'area',
                     height: 320,
                     toolbar: {
                         show: false
@@ -212,7 +209,7 @@
             async function renderChart() {
                 try {
                     setStatus("Rendering chart…");
-                    chart = new ApexCharts(document.querySelector("#chart"), options);
+                    chart = new ApexCharts(document.querySelector("#responsechart"), options);
                     await chart.render();
 
                     // Wait a short tick for layout
@@ -287,7 +284,9 @@
                     });
 
                     const fd = new FormData();
-                    fd.append('chart', blob, 'hourly_sos.png');
+                    fd.append('chart', blob, 'response_hourly_sos.png');
+                    fd.append('filename', 'response_hourly_sos.png');
+
 
 
                     console.log("fd", fd);

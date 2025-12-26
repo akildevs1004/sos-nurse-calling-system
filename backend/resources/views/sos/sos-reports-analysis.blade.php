@@ -406,10 +406,7 @@
 
             <tr>
                 <td>
-                    {{-- @include('sos/sos-chart-render', [
-                        'hourLabels' => range(0, 23),
-                        'hourValues' => [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 11, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3],
-                    ]) --}}
+
                     @if (!empty($chartImage))
                         <div class="card" style="margin-top:16px;">
                             <div class="h3 mb-12">Hourly SOS Calls (0–23)</div>
@@ -420,8 +417,26 @@
                         <div class="muted">Chart not available.</div>
                     @endif
 
-                </td>
 
+
+
+                </td>
+                <td>
+
+                    @if (!empty($response_hourly_sosImage))
+                        <div class="card" style="margin-top:16px;">
+                            <div class="h3 mb-12">Response Hourly SOS Calls (0–23)</div>
+                            <img src="file://{{ $response_hourly_sosImage }}"
+                                style="width:100%; max-height:300px; object-fit:contain;">
+                        </div>
+                    @else
+                        <div class="muted">Chart not available.</div>
+                    @endif
+
+
+
+
+                </td>
             </tr>
         </table>
 

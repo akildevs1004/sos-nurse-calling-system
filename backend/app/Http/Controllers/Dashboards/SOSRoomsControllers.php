@@ -528,6 +528,88 @@ class SOSRoomsControllers extends Controller
             ],
         ]);
     }
+    public function sosHourlyMixedRoomsReport(Request $request)
+    {
+
+        $companyId = (int) $request->company_id;
+
+
+        $from = Carbon::parse($request->date_from)->startOfDay();
+        $to   = Carbon::parse($request->date_to)->endOfDay();
+
+        // Base query (NO room join)
+        $query = DB::table('device_sos_room_logs as l')
+            ->whereBetween('l.alarm_start_datetime', [$from, $to]);
+
+        if ($companyId) {
+            $query->where('l.company_id', $companyId);
+        }
+
+        // SOS status filter
+        $query->when($request->filled('sosStatus'), function ($q) use ($request) {
+            if ($request->sosStatus === "ON") {
+                $q->where('l.sos_status', true);
+            } elseif ($request->sosStatus === "OFF") {
+                $q->where('l.sos_status', false);
+            } elseif ($request->sosStatus === "PENDING") {
+                $q->where('l.sos_status', true)
+                    ->whereNull('l.responded_datetime');
+            } elseif ($request->sosStatus === "RESPONDED") {
+                $q->where('l.sos_status', true)
+                    ->whereNotNull('l.responded_datetime');
+            }
+        });
+
+        // DB-specific hour extraction
+        $driver = DB::getDriverName();
+        $hourExpr = ($driver === 'pgsql')
+            ? "CAST(EXTRACT(HOUR FROM l.alarm_start_datetime) AS INT)"
+            : "HOUR(l.alarm_start_datetime)";
+
+        // Aggregate per hour
+        $rows = $query
+            ->selectRaw("
+        $hourExpr AS hour,
+        COUNT(*)  AS total
+    ")
+            ->groupBy(DB::raw($hourExpr))
+            ->orderBy(DB::raw($hourExpr))
+            ->get();
+
+        // X-axis categories: 00–23
+        $categories = array_map(
+            fn($h) => str_pad((string) $h, 2, '0', STR_PAD_LEFT),
+            range(0, 23)
+        );
+
+        // Initialize hourly totals
+        $data = array_fill(0, 24, 0);
+
+        // Fill results
+        foreach ($rows as $row) {
+            $h = (int) $row->hour;
+            if ($h >= 0 && $h <= 23) {
+                $data[$h] = (int) $row->total;
+            }
+        }
+
+        // Single-series response
+        return response()->json([
+            'categories' => $categories,
+            'series' => [
+                [
+                    'name' => 'Total SOS',
+                    'data' => $data,
+                ],
+            ],
+            'meta' => [
+                'company_id' => $companyId,
+                'date_from'  => $from->toDateTimeString(),
+                'date_to'    => $to->toDateTimeString(),
+                'db_driver'  => $driver,
+            ],
+        ]);
+    }
     public function roomTypesPercentages(Request $request)
     {
         $companyId = (int) $request->company_id;
@@ -624,6 +706,7 @@ class SOSRoomsControllers extends Controller
         return response()->json([
             'total_sos' => (int) $totalSOS,
             'items'     => $items,
+            'colors' => ["#3b82f6", "#22c55e", "#ef4444", "#3b82f6", "#22c55e", "#ef4444"],
             'meta'      => [
                 'company_id' => $companyId,
                 'date_from'  => $from->toDateTimeString(),
@@ -731,33 +814,24 @@ class SOSRoomsControllers extends Controller
         ];
 
         // 0–23 hourly counts (must be 24 values)
-        $data['hourLabels'] = range(0, 23);
-        $data['isPdf'] = true;
+        // $data['hourLabels'] = range(0, 23);
+        // $data['isPdf'] = true;
 
-        $data['hourValues'] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]; // array of 24 integers
-
-
+        // $data['hourValues'] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]; // array of 24 integers
 
 
-        // $chartPath = $request->query('chart'); // "reports/charts/hourly_sos.png"
-
-        //geenrate image
-        //image is generated //path :storage/reports/charts/hourly_sos.png
-        $this->chartRender($request);
 
 
-        $chartPath = "reports/charts/hourly_sos.png";
 
-        $data['chartImage'] =  public_path('storage/' . $chartPath);
+        // $this->chartRender($request);
 
 
 
 
 
 
-
-
-
+        $data['chartImage'] =  public_path('storage/' . "reports/charts/hourly_sos.png");
+        $data['response_hourly_sosImage'] =  public_path('storage/' . "reports/charts/response_hourly_sos.png");
 
         $pdf = PDF::loadView('sos.sos-reports-analysis', $data)
             ->setOption('enable-local-file-access', true)
@@ -783,20 +857,272 @@ class SOSRoomsControllers extends Controller
 
         return $pdf->stream($fileName);
     }
-    public function chartRender(Request $request)
+
+    public function sosResponseMinutesHourly(Request $request)
     {
-        // Example data: you should compute from your report
-        $hourLabels = range(0, 23);
-        $hourValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 11, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3];
+        $companyId = (int) $request->company_id;
 
-        // TODO: fill $hourValues from your DB query results
 
-        return view('sos.sos-chart-render', [
-            'hourLabels' => $hourLabels,
-            'hourValues' => $hourValues,
-            'nextUrl'    => route('sos.report.pdf', $request->query()), // redirect after uploa
+
+        $from = Carbon::parse($request->date_from)->startOfDay();
+        $to   = Carbon::parse($request->date_to)->endOfDay();
+
+        $query = DB::table('device_sos_room_logs as l')
+            ->whereBetween('l.alarm_start_datetime', [$from, $to])
+            ->whereNotNull('l.responded_datetime'); // responded SOS only
+
+        if ($companyId) {
+            $query->where('l.company_id', $companyId);
+        }
+
+        // DB-specific expressions
+        $driver = DB::getDriverName();
+
+        $hourExpr = ($driver === 'pgsql')
+            ? "CAST(EXTRACT(HOUR FROM l.alarm_start_datetime) AS INT)"
+            : "HOUR(l.alarm_start_datetime)";
+
+        $responseMinutesExpr = ($driver === 'pgsql')
+            ? "EXTRACT(EPOCH FROM (l.responded_datetime - l.alarm_start_datetime)) / 60"
+            : "TIMESTAMPDIFF(MINUTE, l.alarm_start_datetime, l.responded_datetime)";
+
+        // Aggregate
+        $rows = $query
+            ->selectRaw("
+        $hourExpr AS hour,
+        AVG($responseMinutesExpr) AS avg_response_minutes
+    ")
+            ->groupBy(DB::raw($hourExpr))
+            ->orderBy(DB::raw($hourExpr))
+            ->get();
+
+        // X-axis categories (00–23)
+        $categories = array_map(
+            fn($h) => str_pad((string)$h, 2, '0', STR_PAD_LEFT),
+            range(0, 23)
+        );
+
+        // Zero-filled data
+        $data = array_fill(0, 24, 0);
+
+        // Fill results
+        foreach ($rows as $row) {
+            $h = (int) $row->hour;
+            if ($h >= 0 && $h <= 23) {
+                // round to 1 decimal for chart readability
+                $data[$h] = round((float) $row->avg_response_minutes, 1);
+            }
+        }
+
+        return response()->json([
+            'categories' => $categories,
+            'series' => [
+                [
+                    'name' => 'Avg Response Time (Minutes)',
+                    'data' => $data,
+                ],
+            ],
+            'meta' => [
+                'company_id' => $companyId,
+                'date_from'  => $from->toDateTimeString(),
+                'date_to'    => $to->toDateTimeString(),
+                'db_driver'  => $driver,
+            ],
         ]);
     }
+    public function sosDonutStatusCounts(Request $request)
+    {
+        $companyId = (int) $request->company_id;
+
+        $request->validate([
+            'company_id' => 'nullable|integer',
+            'date_from'  => 'required|date',
+            'date_to'    => 'required|date|after_or_equal:date_from',
+        ]);
+
+        $from = Carbon::parse($request->date_from)->startOfDay();
+        $to   = Carbon::parse($request->date_to)->endOfDay();
+
+        $q = DB::table('device_sos_room_logs as l')
+            ->whereBetween('l.alarm_start_datetime', [$from, $to]);
+
+        if ($companyId) {
+            $q->where('l.company_id', $companyId);
+        }
+
+        $row = $q->selectRaw("
+        SUM(CASE WHEN l.sos_status = false THEN 1 ELSE 0 END) AS resolved_count,
+        SUM(CASE WHEN l.sos_status = TRUE AND l.responded_datetime IS NULL THEN 1 ELSE 0 END) AS pending_count,
+        SUM(CASE WHEN     l.responded_datetime IS NOT NULL THEN 1 ELSE 0 END) AS responded_count
+    ")->first();
+
+        $resolved  = (int) ($row->resolved_count ?? 0);
+        $pending   = (int) ($row->pending_count ?? 0);
+        $responded = (int) ($row->responded_count ?? 0);
+
+        return response()->json([
+            'labels' => ['Resolved', 'Responded', 'Pending'],
+            'series' => [$resolved, $responded, $pending],
+            'meta'   => [
+                'company_id' => $companyId,
+                'date_from'  => $from->toDateTimeString(),
+                'date_to'    => $to->toDateTimeString(),
+            ],
+        ]);
+    }
+    public function chartRender(Request $request)
+    {
+
+        if (count($request->all()) == 0) {
+            $request = new Request([
+                "company_id" => 8,
+                "date_from" => "2025-12-01",
+                "date_to" => "2025-12-31",
+            ]);
+        }
+
+        // 1) Call Frequency (24h)
+        $freq = $this->sosHourlyMixedRoomsReport($request)->getData(true);
+        $hourLabels = $freq["categories"] ?? [];
+        $hourValues = $freq["series"][0]["data"] ?? [];
+
+        // 2) Response Minutes (hourly or daily — you already have hourly)
+        $resp = $this->sosResponseMinutesHourly($request)->getData(true);
+        $respLabels = $resp["categories"] ?? [];
+        $respValues = $resp["series"][0]["data"] ?? [];
+
+        // 3) Status donut
+        $donut = $this->sosDonutStatusCounts($request)->getData(true);
+        $donutLabels = ['Resolved', 'Responded', 'Pending'];
+        $donutSeries = $donut['series'] ?? [0, 0, 0];
+
+        // 4) Room types distribution (bars list)
+        $rt = $this->roomTypesPercentages($request)->getData(true);
+        $roomTypeItems = $rt  ?? []; // each: label,count,percentage
+
+        return view('sos.sos-chart-render4', [
+            'company_id' => (int) $request->company_id,
+            'date_from'  => $request->date_from,
+            'date_to'    => $request->date_to,
+
+            'hourLabels' => $hourLabels,
+            'hourValues' => $hourValues,
+
+            'respLabels' => $respLabels,
+            'respValues' => $respValues,
+
+            'donutLabels' => $donutLabels,
+            'donutSeries' => $donutSeries,
+
+            'roomTypeItems' => $roomTypeItems,
+        ]);
+    }
+    // public function chartRender4(Request $request)
+    // {
+
+    //     if (count($request->all()) == 0) {
+    //         $date_from = "2025-12-01";
+    //         $date_to = "2025-12-31";
+
+    //         $request = new Request(["company_id" => 8, "date_from" => $date_from, "date_to" => $date_to]);
+    //     }
+
+    //     $data = $this->roomTypesPercentages($request);
+    //     $data =   $data->getData(true);
+
+
+
+    //     $colors = ["#3b82f6", "#22c55e", "#ef4444", "#3b82f6", "#22c55e", "#ef4444"];
+    //     $items = [];
+    //     foreach ($data["items"] as $key => $value) {
+    //         $items[] = ['label' => $value["label"], 'count' => $value["count"], 'percentage' => $value["percentage"], 'color' => $colors[$key]];
+    //     }
+
+
+    //     return view('sos.sos-chart-render-sos-rooms-type', [
+    //         'title' => 'SOS Rooms / Sources',
+    //         'items' => $items,
+    //         'company_id' => $request->company_id,
+
+    //         'nextUrl'    => route('sos.analytics.pdf', $request->query()), // redirect after uploa
+    //     ]);
+    // }
+    // public function chartRender3(Request $request)
+    // {
+
+    //     if (count($request->all()) == 0) {
+    //         $date_from = "2025-12-01";
+    //         $date_to = "2025-12-31";
+
+    //         $request = new Request(["company_id" => 8, "date_from" => $date_from, "date_to" => $date_to]);
+    //     }
+
+    //     $data = $this->sosDonutStatusCounts($request);
+    //     $data =   $data->getData(true);
+
+
+
+
+
+    //     return view('sos.sos-chart-render-sos-donut-stats', [
+    //         'labels' => ['Resolved', 'Responded', 'Pending'],
+    //         'series' => $data['series'] ?? [0, 0, 0],
+    //         'company_id' => $request->company_id,
+
+    //         'nextUrl'    => route('sos.analytics.pdf', $request->query()), // redirect after uploa
+    //     ]);
+    // }
+    // public function chartRender2(Request $request)
+    // {
+
+    //     if (count($request->all()) == 0) {
+    //         $date_from = "2025-12-01";
+    //         $date_to = "2025-12-31";
+
+    //         $request = new Request(["company_id" => 8, "date_from" => $date_from, "date_to" => $date_to]);
+    //     }
+
+    //     $data = $this->sosResponseMinutesHourly($request);
+    //     $data =   $data->getData(true);
+
+
+
+
+
+    //     return view('sos.sos-chart-render-sos-response-minutes', [
+    //         'hourLabels' => $data["categories"],
+    //         'hourValues' => $data["series"][0]["data"],
+    //         'company_id' => $request->company_id,
+
+    //         'nextUrl'    => route('sos.analytics.pdf', $request->query()), // redirect after uploa
+    //     ]);
+    // }
+
+    // public function chartRender1(Request $request)
+    // {
+
+    //     if (count($request->all()) == 0) {
+    //         $date_from = "2025-12-01";
+    //         $date_to = "2025-12-31";
+
+    //         $request = new Request(["company_id" => 8, "date_from" => $date_from, "date_to" => $date_to]);
+    //     }
+
+    //     $data = $this->sosHourlyMixedRoomsReport($request);
+    //     $data =   $data->getData(true);
+
+
+
+
+
+    //     return view('sos.sos-chart-render', [
+    //         'hourLabels' => $data["categories"],
+    //         'hourValues' => $data["series"][0]["data"],
+    //         'company_id' => $request->company_id,
+
+    //         'nextUrl'    => route('sos.analytics.pdf', $request->query()), // redirect after uploa
+    //     ]);
+    // }
 
     public function storeChart(Request $request)
     {
@@ -813,7 +1139,7 @@ class SOSRoomsControllers extends Controller
         }
 
         // Store into public disk
-        $path = $file->storeAs('reports/charts', 'hourly_sos.png', 'public');
+        $path = $file->storeAs('reports/charts', $request->filename, 'public');
 
         return response()->json([
             'ok' => true,

@@ -597,7 +597,13 @@ export default {
 
         setTimeout(() => {
           this.key++;
+        }, 2000);
+
+        setTimeout(() => {
+          this.hourlykey++;
         }, 1000);
+
+
 
         // setTimeout(() => {
         //   this.logskey++;
