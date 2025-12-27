@@ -427,18 +427,27 @@ class SOSRoomsControllers extends Controller
 
         $companyId = (int) $request->company_id;
 
-        // Date range
-        $from = Carbon::parse($request->date_from)->startOfDay();
-        $to   = Carbon::parse($request->date_to)->endOfDay();
-
+        if ($request->date_from) {
+            // Date range
+            $from = Carbon::parse($request->date_from)->startOfDay();
+            $to   = Carbon::parse($request->date_to)->endOfDay();
+        }
         // Labels
         $labels = $this->roomTypeLabels();
 
         // Base query
-        $query = DB::table('device_sos_room_logs as l')
-            ->join('device_sos_rooms as r', 'r.id', '=', 'l.device_sos_room_table_id')
-            ->whereBetween('l.alarm_start_datetime', [$from, $to])
-            ->whereNotNull('r.room_type');
+
+        if ($request->date_from) {
+            $query = DB::table('device_sos_room_logs as l')
+                ->join('device_sos_rooms as r', 'r.id', '=', 'l.device_sos_room_table_id')
+                ->whereBetween('l.alarm_start_datetime', [$from, $to])
+                ->whereNotNull('r.room_type');
+        } else {
+            $query = DB::table('device_sos_room_logs as l')
+                ->join('device_sos_rooms as r', 'r.id', '=', 'l.device_sos_room_table_id')
+
+                ->whereNotNull('r.room_type');
+        }
 
         if ($companyId) {
             $query->where('l.company_id', $companyId);
@@ -455,6 +464,18 @@ class SOSRoomsControllers extends Controller
                 $q->where('l.sos_status', true)
                     ->whereNull('l.responded_datetime');
             } elseif ($request->sosStatus === "RESPONDED") {
+                $q->whereNotNull('l.responded_datetime');
+            }
+        });
+
+
+
+        $query->when($request->filled('alarm_status'), function ($q) use ($request) {
+            if ($request->alarm_status === 'true') {
+                $q->where('l.sos_status', true);
+            } elseif ($request->alarm_status === 'false') {
+                $q->where('l.sos_status', false);
+            } elseif ($request->alarm_status === 'acknowledged') {
                 $q->whereNotNull('l.responded_datetime');
             }
         });
@@ -522,8 +543,8 @@ class SOSRoomsControllers extends Controller
             'series'     => $series,
             'meta'       => [
                 'company_id' => $companyId,
-                'date_from'  => $from->toDateTimeString(),
-                'date_to'    => $to->toDateTimeString(),
+                'date_from'  => (isset($from)) ? $from->toDateTimeString() : '--',
+                'date_to'    => (isset($to)) ? $to->toDateTimeString() : '--',
                 'db_driver'  => $driver,
             ],
         ]);
@@ -531,19 +552,39 @@ class SOSRoomsControllers extends Controller
     public function sosHourlyMixedRoomsReport(Request $request)
     {
 
-        $companyId = (int) $request->company_id;
-
-
-        $from = Carbon::parse($request->date_from)->startOfDay();
-        $to   = Carbon::parse($request->date_to)->endOfDay();
-
-        // Base query (NO room join)
-        $query = DB::table('device_sos_room_logs as l')
-            ->whereBetween('l.alarm_start_datetime', [$from, $to]);
-
-        if ($companyId) {
-            $query->where('l.company_id', $companyId);
+        $companyId = (int) $request->company_id; {
+            $from = Carbon::parse($request->date_from)->startOfDay();
+            $to   = Carbon::parse($request->date_to)->endOfDay();
         }
+        // Base query (NO room join)
+        $query = DB::table('device_sos_room_logs as l');
+
+        if ($request->filled("date_from"))
+            $query->whereBetween('l.alarm_start_datetime', [$from, $to]);
+
+        //if ($companyId) {
+
+        $query->where('l.company_id', $companyId);
+        //}
+
+        $query->when($request->filled('common_search'), function ($q) use ($request) {
+            $s = trim($request->common_search);
+
+            $q->where(function ($qq) use ($s) {
+                $qq->where('l.room_id', 'ILIKE', "%{$s}%")
+                    ->orWhere('l.serial_number', 'ILIKE', "%{$s}%")
+                    ->orWhere('l.room_name', 'ILIKE', "%{$s}%")
+                    // IMPORTANT: use correct relation name (likely "room")
+                    // ->orWhereHas('room', function ($rq) use ($s) {
+                    //     $rq->where('room_type', 'ILIKE', "%{$s}%");
+                    // })
+                    // Optional: device location search
+                    // ->orWhereHas('device', function ($dq) use ($s) {
+                    //     $dq->where('location', 'ILIKE', "%{$s}%");
+                    // })
+                ;
+            });
+        });
 
         // SOS status filter
         $query->when($request->filled('sosStatus'), function ($q) use ($request) {
@@ -557,6 +598,16 @@ class SOSRoomsControllers extends Controller
             } elseif ($request->sosStatus === "RESPONDED") {
                 $q->where('l.sos_status', true)
                     ->whereNotNull('l.responded_datetime');
+            }
+        });
+
+        $query->when($request->filled('alarm_status'), function ($q) use ($request) {
+            if ($request->alarm_status === 'true') {
+                $q->where('l.sos_status', true);
+            } elseif ($request->alarm_status === 'false') {
+                $q->where('l.sos_status', false);
+            } elseif ($request->alarm_status === 'acknowledged') {
+                $q->whereNotNull('l.responded_datetime');
             }
         });
 
@@ -604,8 +655,8 @@ class SOSRoomsControllers extends Controller
             ],
             'meta' => [
                 'company_id' => $companyId,
-                'date_from'  => $from->toDateTimeString(),
-                'date_to'    => $to->toDateTimeString(),
+                'date_from'  => (isset($from)) ? $from->toDateTimeString() : '--',
+                'date_to'    => (isset($to)) ? $to->toDateTimeString() : '--',
                 'db_driver'  => $driver,
             ],
         ]);
@@ -613,24 +664,52 @@ class SOSRoomsControllers extends Controller
     public function roomTypesPercentages(Request $request)
     {
         $companyId = (int) $request->company_id;
-
-        $from = Carbon::parse($request->date_from)->startOfDay();
-        $to   = Carbon::parse($request->date_to)->endOfDay();
-
+        if ($request->date_from) {
+            $from = Carbon::parse($request->date_from)->startOfDay();
+            $to   = Carbon::parse($request->date_to)->endOfDay();
+        }
         $labels = $this->roomTypeLabels();
 
         /*
          * Base query
          */
-        $base = DB::table('device_sos_room_logs as l')
-            ->join('device_sos_rooms as r', 'r.id', '=', 'l.device_sos_room_table_id')
-            ->whereBetween('l.alarm_start_datetime', [$from, $to])
-            ->whereNotNull('r.room_type');
+
+        if ($request->date_from) {
+            $base = DB::table('device_sos_room_logs as l')
+                ->join('device_sos_rooms as r', 'r.id', '=', 'l.device_sos_room_table_id')
+                ->whereBetween('l.alarm_start_datetime', [$from, $to])
+                ->whereNotNull('r.room_type');
+        } else {
+            $base = DB::table('device_sos_room_logs as l')
+                ->join('device_sos_rooms as r', 'r.id', '=', 'l.device_sos_room_table_id')
+
+                ->whereNotNull('r.room_type');
+        }
 
         if ($companyId) {
             $base->where('l.company_id', $companyId);
         }
 
+
+
+        $base->when($request->filled('common_search'), function ($q) use ($request) {
+            $s = trim($request->common_search);
+
+            $q->where(function ($qq) use ($s) {
+                $qq->where('l.room_id', 'ILIKE', "%{$s}%")
+                    ->orWhere('l.serial_number', 'ILIKE', "%{$s}%")
+                    ->orWhere('l.room_name', 'ILIKE', "%{$s}%")
+                    // IMPORTANT: use correct relation name (likely "room")
+                    // ->orWhereHas('room', function ($rq) use ($s) {
+                    //     $rq->where('room_type', 'ILIKE', "%{$s}%");
+                    // })
+                    // Optional: device location search
+                    // ->orWhereHas('device', function ($dq) use ($s) {
+                    //     $dq->where('location', 'ILIKE', "%{$s}%");
+                    // })
+                ;
+            });
+        });
         /*
          * SOS status filter
          */
@@ -644,6 +723,16 @@ class SOSRoomsControllers extends Controller
                 $q->where('l.sos_status', true)
                     ->whereNull('l.responded_datetime');
             } elseif ($request->sosStatus === 'RESPONDED') {
+                $q->whereNotNull('l.responded_datetime');
+            }
+        });
+
+        $base->when($request->filled('alarm_status'), function ($q) use ($request) {
+            if ($request->alarm_status === 'true') {
+                $q->where('l.sos_status', true);
+            } elseif ($request->alarm_status === 'false') {
+                $q->where('l.sos_status', false);
+            } elseif ($request->alarm_status === 'acknowledged') {
                 $q->whereNotNull('l.responded_datetime');
             }
         });
@@ -709,8 +798,8 @@ class SOSRoomsControllers extends Controller
             'colors' => ["#3b82f6", "#fb8c00", "#ef4444", "#3b82f6", "#fb8c00", "#ef4444"],
             'meta'      => [
                 'company_id' => $companyId,
-                'date_from'  => $from->toDateTimeString(),
-                'date_to'    => $to->toDateTimeString(),
+                'date_from'  => (isset($from)) ? $from->toDateTimeString() : '--',
+                'date_to'    => (isset($to)) ? $to->toDateTimeString() : '--',
             ],
         ]);
     }
@@ -723,13 +812,13 @@ class SOSRoomsControllers extends Controller
 
     public function SosLogsAnalyticsPdf(Request $request)
     {
-        if (count($request->all()) == 0) {
-            $request = new Request([
-                "company_id" => 8,
-                "date_from" => "2025-12-01",
-                "date_to" => "2025-12-31",
-            ]);
-        }
+        // if (count($request->all()) == 0) {
+        //     $request = new Request([
+        //         "company_id" => 8,
+        //         "date_from" => "2025-12-01",
+        //         "date_to" => "2025-12-31",
+        //     ]);
+        // }
 
 
         $report  = $this->getRecords($request);
@@ -902,12 +991,48 @@ class SOSRoomsControllers extends Controller
 
 
 
-        $from = Carbon::parse($request->date_from)->startOfDay();
-        $to   = Carbon::parse($request->date_to)->endOfDay();
+        $query = DB::table('device_sos_room_logs as l');
 
-        $query = DB::table('device_sos_room_logs as l')
-            ->whereBetween('l.alarm_start_datetime', [$from, $to])
-            ->whereNotNull('l.responded_datetime'); // responded SOS only
+
+
+        if ($request->filled('date_from')) {
+            $from = Carbon::parse($request->date_from)->startOfDay();
+            $to   = Carbon::parse($request->date_to)->endOfDay();
+
+
+            $query->whereBetween('l.alarm_start_datetime', [$from, $to]);
+        }
+
+
+        $query->whereNotNull('l.responded_datetime'); // responded SOS only
+
+        $query->when($request->filled('common_search'), function ($q) use ($request) {
+            $s = trim($request->common_search);
+
+            $q->where(function ($qq) use ($s) {
+                $qq->where('l.room_id', 'ILIKE', "%{$s}%")
+                    ->orWhere('l.serial_number', 'ILIKE', "%{$s}%")
+                    ->orWhere('l.room_name', 'ILIKE', "%{$s}%")
+                    // IMPORTANT: use correct relation name (likely "room")
+                    // ->orWhereHas('room', function ($rq) use ($s) {
+                    //     $rq->where('room_type', 'ILIKE', "%{$s}%");
+                    // })
+                    // Optional: device location search
+                    // ->orWhereHas('device', function ($dq) use ($s) {
+                    //     $dq->where('location', 'ILIKE', "%{$s}%");
+                    // })
+                ;
+            });
+        });
+        $query->when($request->filled('alarm_status'), function ($q) use ($request) {
+            if ($request->alarm_status === 'true') {
+                $q->where('l.sos_status', true);
+            } elseif ($request->alarm_status === 'false') {
+                $q->where('l.sos_status', false);
+            } elseif ($request->alarm_status === 'acknowledged') {
+                $q->whereNotNull('l.responded_datetime');
+            }
+        });
 
         if ($companyId) {
             $query->where('l.company_id', $companyId);
@@ -962,8 +1087,8 @@ class SOSRoomsControllers extends Controller
             ],
             'meta' => [
                 'company_id' => $companyId,
-                'date_from'  => $from->toDateTimeString(),
-                'date_to'    => $to->toDateTimeString(),
+                'date_from'  => (isset($from)) ? $from->toDateTimeString() : '--',
+                'date_to'    => (isset($to)) ? $to->toDateTimeString() : '--',
                 'db_driver'  => $driver,
             ],
         ]);
@@ -977,15 +1102,31 @@ class SOSRoomsControllers extends Controller
         //     'date_from'  => 'required|date',
         //     'date_to'    => 'required|date|after_or_equal:date_from',
         // ]);
+        if ($request->date_from) {
+            $from = Carbon::parse($request->date_from)->startOfDay();
+            $to   = Carbon::parse($request->date_to)->endOfDay();
+        }
 
-        $from = Carbon::parse($request->date_from)->startOfDay();
-        $to   = Carbon::parse($request->date_to)->endOfDay();
-
-        $q = DB::table('device_sos_room_logs as l')
-            ->whereBetween('l.alarm_start_datetime', [$from, $to]);
+        if ($request->date_from) {
+            $q = DB::table('device_sos_room_logs as l')
+                ->whereBetween('l.alarm_start_datetime', [$from, $to]);
+        } else {
+            $q = DB::table('device_sos_room_logs as l');
+        }
 
         if ($companyId) {
             $q->where('l.company_id', $companyId);
+        }
+
+        if ($request->filled('alarm_status')) {
+            if ($request->alarm_status === "true") {
+                $q->where('sos_status', true);
+            } elseif ($request->alarm_status === "false") {
+                $q->where('sos_status', false);
+            } elseif ($request->alarm_status === "acknowledged") {
+                // Your "none" means acknowledged (active + responded)
+                $q->whereNotNull('responded_datetime');
+            }
         }
 
         $row = $q->selectRaw("
@@ -1003,8 +1144,8 @@ class SOSRoomsControllers extends Controller
             'series' => [$resolved, $responded, $pending],
             'meta'   => [
                 'company_id' => $companyId,
-                'date_from'  => $from->toDateTimeString(),
-                'date_to'    => $to->toDateTimeString(),
+                'date_from'  => (isset($from)) ? $from->toDateTimeString() : '--',
+                'date_to'    => (isset($to)) ? $to->toDateTimeString() : '--',
             ],
         ]);
     }

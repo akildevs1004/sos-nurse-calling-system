@@ -411,7 +411,7 @@ export default {
       const { start_date, end_date } = this.getCurrentMonthRange();
       // console.log(start_date, end_date);
 
-      if (!this.date_from) {
+      if (!this.date_from && !this.date_from && !this.commonSearch && !this.filterSOSStatus) {
         this.date_from = start_date;
         this.date_to = end_date;
 
@@ -436,8 +436,8 @@ export default {
         url += "&date_to=" + this.date_to;
 
       if (this.commonSearch) url += "&common_search=" + this.commonSearch;
-      if (this.filterAlarmStatus)
-        url += "&alarm_status=" + this.filterAlarmStatus;
+      if (this.filterSOSStatus)
+        url += "&alarm_status=" + this.filterSOSStatus;
 
       // url += "&tab=" + this.tab;
       //  url += "&alarm_status=" + this.filterAlarmStatus;

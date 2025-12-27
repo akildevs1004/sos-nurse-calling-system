@@ -295,13 +295,5 @@
         </tr>
     </table>
 
-    {{-- <div class="page-2-footer">
-        <table>
-            <tr>
-                <td>© {{ date('Y') }} INTELLIGENT NURSE CALL SYSTEM
-                </td>
-                <td style="text-align:right;">Page 2 </td>
-            </tr>
-        </table>
-    </div> --}}
+
 </div>

@@ -89,7 +89,7 @@
                     @include('sos.sos-chart-render-sos-response-minutes')
                 </td>
                 <td>
-                    {{-- @include('sos.sos-chart-render-sos-rooms-type') --}}
+
                 </td>
             </tr>
         </table>
