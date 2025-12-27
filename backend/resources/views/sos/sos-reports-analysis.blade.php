@@ -285,7 +285,8 @@
 
         // 4th chart: change filename to your actual chart file
         // Example: room_type_donut.png / room_type_bars.png / top_locations.png etc.
-        $chartRoomType = 'file://' . public_path('storage/reports/charts/room_type_donut.png');
+        // $chartRoomType = 'file://' . public_path('storage/reports/charts/room_type_donut.png');
+
     @endphp
 
     {{-- PAGE 1 --}}
@@ -297,11 +298,10 @@
     @include('sos.sos-report-analysis-page2')
 
     {{-- PAGE 3 --}}
-    {{-- <div class="page">
+    <div class="page">
 
-        <div class="h2" style="margin-bottom:12px;"> SOS Call Logs</div>
 
-        @include('sos.sos-reports-logs-color')
+        @include('sos.sos-reports-logs-with-color')
 
 
         <div class="note" style="margin-top:16px;">
@@ -318,12 +318,12 @@
         <div class="footer">
             <table>
                 <tr>
-                    <td>© {{ date('Y') }} CardioSOS System</td>
-                    <td style="text-align:right;">Page 3 of 3</td>
+                    <td>© {{ date('Y') }} INTELLIGENT NURSE CALL SYSTEM </td>
+                    <td style="text-align:right;"> </td>
                 </tr>
             </table>
         </div>
-    </div> --}}
+    </div>
 
 </body>
 

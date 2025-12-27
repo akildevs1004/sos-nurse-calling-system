@@ -15,7 +15,7 @@
 
         </td>
         <td>
-            @include('sos.sos-chart-render-sos-rooms-type')
+            {{-- @include('sos.sos-chart-render-sos-rooms-type') --}}
 
         </td>
 

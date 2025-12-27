@@ -287,9 +287,9 @@
             </td>
 
             <td style="padding:5px">
-                <div class="chart-card">
+                <div class="chart-card " style="height:240px!important">
                     <div class="chart-title">SOS Rooms / Sources</div>
-                    <img src="{{ $chartRoomType }}" class="chart-img">
+                    @include('sos.sos-chart-render-sos-rooms-type')
                 </div>
             </td>
         </tr>

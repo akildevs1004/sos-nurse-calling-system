@@ -215,7 +215,30 @@
     </footer> --}}
 
     <main>
+        {{-- HEADER --}}
+        <table class="header">
+            <tr>
+                <td class="header-left">
+                    @if (env('APP_ENV') !== 'local')
+                        <img src="{{ $company->logo }}" style="width:70px; max-width:70px;">
+                    @else
+                        <img src="{{ getcwd() . '/' . $company->logo_raw }}" style="width:70px; max-width:70px;">
+                    @endif
+
+                    <div class="title"> {{ $company->name }}</div>
+                    <div class="subtitle">Intelligent Nurse Call System</div>
+                </td>
+                <td class="header-right">
+                    <div class="report-title">SOS Call Report</div>
+                    <div class="subtitle" style="letter-spacing:normal;text-transform:none;">
+                        Detailed Analytics
+                    </div>
+                </td>
+            </tr>
+        </table>
+
         <div class="clearfix"></div>
+        <div class="h2" style="margin-bottom:12px;"> SOS Call Logs</div>
 
         {{-- ===== Clean SOS table like screenshot ===== --}}
         <table class="report-table">
