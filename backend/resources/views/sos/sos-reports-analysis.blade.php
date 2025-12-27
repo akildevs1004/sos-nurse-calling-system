@@ -248,8 +248,6 @@
 
     @php
         // Icon paths (local)
-        $icon1 = 'file://' . public_path('pdf_icons/pdfreporticon1.png');
-        $icon2 = 'file://' . public_path('pdf_icons/pdfreporticon2.png');
 
         // Safe defaults
         $unitName = $unitName ?? 'Unit';
@@ -299,7 +297,7 @@
     @include('sos.sos-report-analysis-page2')
 
     {{-- PAGE 3 --}}
-    <div class="page">
+    {{-- <div class="page">
 
         <div class="h2" style="margin-bottom:12px;"> SOS Call Logs</div>
 
@@ -325,7 +323,7 @@
                 </tr>
             </table>
         </div>
-    </div>
+    </div> --}}
 
 </body>
 

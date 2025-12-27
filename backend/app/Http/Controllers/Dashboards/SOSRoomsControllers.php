@@ -842,6 +842,29 @@ class SOSRoomsControllers extends Controller
 
 
 
+        //page 1
+        $freq = $this->sosHourlyMixedRoomsReport($request)->getData(true);
+
+        $hourValues = $freq["series"][0]["data"] ?? [];
+        $maxHour = null;
+        $maxValue = null;
+        // Guard: empty data
+        if (empty($hourValues)) {
+            $maxHour = null;
+            $maxValue = null;
+        } else {
+            $maxValue = max($hourValues);
+            $maxHour  = array_search($maxValue, $hourValues);
+        }
+        if ($maxHour) {
+
+            $from = date('g A', strtotime("$maxHour:00"));
+            $to   = date('g A', strtotime((($maxHour + 1) % 24) . ":00"));
+
+            $data['maxHour'] = $maxHour ? $from . " - " . $to : null;
+        } else {
+            $data['maxHour'] =   null;
+        }
 
 
 
@@ -865,6 +888,7 @@ class SOSRoomsControllers extends Controller
 
 
 
+        // return view('sos.sos-reports-analysis', $data);
 
 
 

@@ -64,6 +64,11 @@
             color: #0f172a;
         }
 
+
+        td {
+            font-family: "Inter" !important;
+        }
+
         /* ===============================
            PAGE
         =============================== */
@@ -99,21 +104,21 @@
 
         .cover-accent {
             width: 4px;
-            height: 92px;
+            height: 250px;
             background: #137fec;
             border-radius: 2px;
             margin-top: 6px;
         }
 
         .cover-h1 {
-            font-size: 44px;
+            font-size: 65px;
             font-weight: 900;
             line-height: 1.05;
             margin: 0;
         }
 
         .cover-unit {
-            font-size: 18px;
+            font-size: 30px;
             margin-top: 12px;
             color: #64748b;
             font-weight: 600;
@@ -133,8 +138,8 @@
         }
 
         .label {
-            width: 180px;
-            font-size: 10px;
+            width: 250px;
+            font-size: 18px;
             font-weight: 900;
             letter-spacing: .08em;
             text-transform: uppercase;
@@ -142,8 +147,8 @@
         }
 
         .value {
-            font-size: 15px;
-            font-weight: 800;
+            font-size: 22px;
+            /* font-weight: 800; */
         }
 
         /* ===============================
@@ -160,6 +165,18 @@
             font-size: 14px;
             font-weight: 900;
             margin-bottom: 12px;
+        }
+
+        .exec-head {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .exec-head img {
+            width: 18px;
+            height: 18px;
+            margin-top: 10px;
         }
 
         .mini-icon {
@@ -276,6 +293,8 @@
 
 <body>
     @php
+        $icon1 = 'file://' . public_path('pdf_icons/pdfreporticon1.png');
+        $icon2 = 'file://' . public_path('pdf_icons/pdfreporticon2.png');
         $unitName = $unitName ?? 'Cardiology Unit A';
         $reportPeriod = $reportPeriod ?? '-';
         $generatedOn = $generatedOn ?? '-';
@@ -287,24 +306,32 @@
         $topLocation = $topLocation ?? '-';
         $topLocationCalls = $topLocationCalls ?? 0;
 
-        $peakWindow = $peakWindow ?? '-';
-        $summaryLine1 = $summaryLine1 ?? 'Resolution rate achieved: ' . $resolvedPct;
-        $summaryLine2 = $summaryLine2 ?? 'Peak activity observed: ' . $peakWindow;
+        $maxHour = $maxHour ?? '-';
+        $summaryLine1 = $summaryLine1 ?? ' ' . $resolvedPct;
+        $summaryLine2 = $summaryLine2 ?? ' ' . $maxHour . ' ';
     @endphp
 
     {{-- PAGE 1 --}}
     <div class="page">
         <div class="cover-wrap">
 
+            <img src="{{ $icon1 }}" class="chart-img">
+
+            <br />
+            <br />
+            <br />
+
             <table class="cover-title-row">
                 <tr>
                     <td class="cover-title-left">
                         <div class="cover-accent"></div>
                     </td>
-                    <td class="cover-title-right">
+                    <td class="cover-title-right" style="height:100px;">
+
                         {{-- No inline font needed --}}
                         <p class="cover-h1">SOS Call<br>Report</p>
                         <p class="cover-unit">{{ $unitName }}</p>
+
                     </td>
                 </tr>
             </table>
@@ -312,7 +339,7 @@
             <table class="cover-meta">
                 <tr>
                     <td class="label">Report Period</td>
-                    <td class="value">{{ $reportPeriod }}</td>
+                    <td class="value">Report Period {{ $reportPeriod }}</td>
                 </tr>
                 <tr>
                     <td class="label">Generated On</td>
@@ -325,13 +352,22 @@
             </table>
 
             <div class="exec-card">
-                <div class="exec-head"><span class="mini-icon"></span>Executive Summary</div>
+
+
+                <div class="exec-head" style="display:flex; align-items:flex-center; gap:10px;">
+                    <img src="{{ $icon2 }}" alt=""
+                        style="width:18px; height:18px; margin-top:10px; display:block;" />
+                    <span>Executive Summary</span>
+                </div>
+
+
 
                 <table class="exec-grid">
                     <tr>
                         <td class="exec-left">
                             <p class="exec-text">
-                                During the report period, a total of <strong>{{ $totalCalls }}</strong> SOS calls were
+                                During the report period, a total of <strong>{{ $totalCalls }}</strong> SOS calls
+                                were
                                 registered,
                                 achieving an average response time of <strong>{{ $avgResponse }}</strong>.
                                 Highest activity was recorded at <strong>{{ $topLocation }}</strong>
@@ -339,8 +375,20 @@
                             </p>
 
                             <ul class="exec-bullets">
-                                <li><span class="dot dot-green"></span>{{ $summaryLine1 }}</li>
-                                <li><span class="dot dot-amber"></span>{{ $summaryLine2 }}</li>
+                                <li><span class="dot dot-green"></span>Resolution rate achieved:
+                                    <strong>{{ $summaryLine1 }}</strong>
+
+
+
+
+
+
+
+
+                                </li>
+                                <li><span class="dot dot-amber"></span>Peak activity observed:
+                                    <strong>{{ $summaryLine2 }}</strong>
+                                </li>
                             </ul>
                         </td>
 
