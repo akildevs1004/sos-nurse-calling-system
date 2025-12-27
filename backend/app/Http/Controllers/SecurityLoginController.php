@@ -24,7 +24,7 @@ class SecurityLoginController extends Controller
      */
     public function index(Request $request)
     {
-        $model = SecurityLogin::with(["user"])->where("company_id", $request->company_id);
+        $model = SecurityLogin::with(["user", "sosRooms"])->where("company_id", $request->company_id);
 
         $model->when($request->filled("common_search"), function ($q) use ($request) {
 

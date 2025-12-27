@@ -1,6 +1,6 @@
 <!-- components/Security/SecurityRoomsPopup.vue -->
 <template>
-  <v-dialog v-model="dialogProxy" max-width="820px" persistent>
+  <v-dialog v-model="dialogProxy" max-width="900px" persistent>
     <v-card>
       <v-card-title class="popup_background">
         <span>Assigned SOS Rooms</span>
@@ -9,23 +9,11 @@
       </v-card-title>
 
       <v-card-text>
-        <!-- Security header -->
-        <!-- <div v-if="security" class="mb-4">
-          <div style="font-size: 14px;">
-            <strong>Security:</strong>
-            {{ security.first_name }} {{ security.last_name }}
-            <span class="ml-2" v-if="security.user?.email" style="opacity:.8">
-              ({{ security.user.email }})
-            </span>
-          </div>
-        </div> -->
-
         <!-- Add room -->
         <v-row dense>
-          <v-col cols="12" md="9">
+          <v-col cols="12" md="6" class="mt-3">
             <v-autocomplete v-model="selectedRoomToAdd" :items="roomsAll" item-text="room_name" item-value="id"
-              label="Add SOS Room" dense outlined clearable hide-details :loading="loadingRooms"
-              :disabled="loadingRooms || !securityId">
+              label="Add SOS Room" dense outlined clearable hide-details :loading="loadingRooms">
               <template v-slot:item="{ item }">
                 <div class="d-flex align-center justify-space-between" style="width:100%">
                   <div>{{ item.room_name }}</div>
@@ -36,8 +24,7 @@
           </v-col>
 
           <v-col cols="12" md="3" class="d-flex align-center">
-            <v-btn block :disabled="!selectedRoomToAdd || loadingAssigned || loadingRooms || !securityId"
-              @click="addRoom()">
+            <v-btn block class="primary" style="margin-top:8px" @click="addRoom()">
               Add
             </v-btn>
           </v-col>
@@ -45,30 +32,45 @@
 
         <v-divider class="my-4"></v-divider>
 
-        <!-- Assigned list -->
+        <!-- Assigned list header -->
         <div class="d-flex align-center mb-2" style="font-size: 14px;">
           <strong class="mr-2">Assigned:</strong> {{ assigned.length }}
           <v-spacer></v-spacer>
+
           <v-btn x-small text :disabled="loadingAssigned || !securityId" @click="fetchAssigned()">
             <v-icon small class="mr-1">mdi-reload</v-icon> Reload
           </v-btn>
         </div>
 
-        <div v-if="loadingAssigned" class="py-8 text-center">
-          Loading...
-        </div>
+        <!-- Assigned rooms table -->
+        <v-data-table dense :headers="assignedHeaders" :items="assigned" :loading="loadingAssigned" class="elevation-0"
+          :items-per-page="10" :footer-props="{ itemsPerPageOptions: [5, 10, 25, 50] }"
+          no-data-text="No rooms assigned.">
+          <template v-slot:item.sno="{ item, index }">
+            <span>{{ +index }}</span>
+          </template>
 
-        <div v-else>
-          <div v-if="assigned.length === 0" class="py-4">
-            No rooms assigned.
-          </div>
 
-          <div v-else>
-            <v-chip v-for="r in assigned" :key="r.id" class="ma-1" close @click:close="removeRoom(r)">
-              {{ r.room_name }}
-            </v-chip>
-          </div>
-        </div>
+          <template v-slot:item.room_name="{ item }">
+            <span>{{ item.room_name }}</span>
+          </template>
+
+          <template v-slot:item.id="{ item }">
+            <span>{{ item.room_id }}</span>
+          </template>
+
+          <template v-slot:item.actions="{ item }">
+            <v-tooltip top>
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn icon v-bind="attrs" v-on="on" @click="removeRoom(item)"
+                  :disabled="loadingAssigned || !securityId">
+                  <v-icon color="error">mdi-delete</v-icon>
+                </v-btn>
+              </template>
+              <span>Remove</span>
+            </v-tooltip>
+          </template>
+        </v-data-table>
       </v-card-text>
 
       <v-card-actions>
@@ -94,6 +96,14 @@ export default {
     selectedRoomToAdd: null,
     loadingRooms: false,
     loadingAssigned: false,
+
+    assignedHeaders: [
+      { text: "#", value: "sno", width: 80 },
+
+      { text: "Room Name", value: "room_name" },
+      { text: "Room Id", value: "id", width: 110 },
+      { text: "", value: "actions", sortable: false, align: "end", width: 80 },
+    ],
   }),
   computed: {
     dialogProxy: {
@@ -113,11 +123,9 @@ export default {
   },
   watch: {
     value(v) {
-      // When opened, load data
       if (v) this.init();
     },
     securityId() {
-      // If security changes while open, refresh assigned list
       if (this.value) this.init();
     },
   },
@@ -141,12 +149,9 @@ export default {
         this.loadingRooms = true;
 
         const { data } = await this.$axios.get("device_sos_rooms", {
-          params: {
-            company_id: this.companyId,
-          },
+          params: { company_id: this.companyId },
         });
 
-        // Normalize for item-text if your backend returns different key
         const list = Array.isArray(data) ? data : [];
         this.roomsAll = list.map((r) => ({
           ...r,

@@ -31,5 +31,12 @@
     "to": "/alarm/rooms",
     "menu": "rooms",
     "module": "settings"
+  },
+  {
+    "icon": "mdi mdi-server",
+    "title": "Staff",
+    "to": "/alarm/security",
+    "menu": "security",
+    "module": "security"
   }
 ]

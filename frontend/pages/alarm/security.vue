@@ -27,7 +27,7 @@
 
     <v-card elevation="0" class="mt-0" :style="'height:' + (browserHeight - 20) + 'px'">
       <v-toolbar dense flat>
-        <v-toolbar-title> <span> Securities</span></v-toolbar-title>
+        <v-toolbar-title> <span> Staff/Securities</span></v-toolbar-title>
         <!-- <v-tooltip top color="primary">
                 <template v-slot:activator="{ on, attrs }"> -->
         <v-btn title="Reload" dense class="ma-0 px-0" x-small :ripple="false" @click="getDataFromApi" text>
@@ -91,8 +91,8 @@
             </v-col>
           </v-row>
         </template>
-        <template v-slot:item.customers="{ item }">
-          {{ item.customers_assigned?.length || "0" }}
+        <template v-slot:item.sosrooms="{ item }">
+          {{ item.sos_rooms?.length || "0" }}
         </template>
 
 
@@ -116,14 +116,14 @@
             <v-list width="120" dense>
               <v-list-item v-if="can('Securitys_view')" @click="viewItem(item)">
                 <v-list-item-title style="cursor: pointer">
-                  <v-icon color="secondary" small> mdi-eye </v-icon>
+                  <v-icon small> mdi-eye </v-icon>
                   View
                 </v-list-item-title>
               </v-list-item>
 
               <v-list-item @click="editItem(item)" v-if="can('Securitys_edit')">
                 <v-list-item-title style="cursor: pointer">
-                  <v-icon color="secondary" small> mdi-pencil </v-icon>
+                  <v-icon small> mdi-pencil </v-icon>
                   Edit
                 </v-list-item-title>
               </v-list-item>
@@ -157,7 +157,7 @@
 
 <script>
 
-import EditSecurity from '../components/Security/EditSecurity.vue';
+import EditSecurity from '@/components/Security/EditSecurity.vue';
 import SecurityRoomsPopup from "@/components/Security/SecuritySosRoomsList.vue";
 
 
@@ -220,8 +220,8 @@ export default {
         value: "email",
       },
       {
-        text: "Customers",
-        value: "customers",
+        text: "SOS Rooms",
+        value: "sosrooms",
       },
 
       {

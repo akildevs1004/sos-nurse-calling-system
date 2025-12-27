@@ -15,7 +15,7 @@ class SecuritySosRoomsListController extends Controller
         // abort_unless($security->company_id == $request->company_id, 403);
 
         $assigned = $security->sosRooms()
-            ->select('device_sos_rooms.id', 'device_sos_rooms.name') // adjust columns
+            ->select('device_sos_rooms.id', 'device_sos_rooms.name', 'device_sos_rooms.room_id') // adjust columns
             ->orderBy('name')
             ->get();
 

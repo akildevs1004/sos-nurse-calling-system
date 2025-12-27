@@ -1058,6 +1058,9 @@ export default {
         rooms: {
           elevation: 0,
           selected: "",
+        }, security: {
+          elevation: 0,
+          selected: "",
         },
         whatsapp: {
           elevation: 0,
