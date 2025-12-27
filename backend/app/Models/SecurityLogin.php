@@ -34,4 +34,14 @@ class SecurityLogin extends Model
         }
         return asset('security/' . $value);
     }
+
+    public function sosRooms()
+    {
+        return $this->belongsToMany(
+            DeviceSosRooms::class,
+            'security_sos_rooms_lists',
+            'security_user_id',
+            'sos_room_table_id'
+        )->withTimestamps();
+    }
 }

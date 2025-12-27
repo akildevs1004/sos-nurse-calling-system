@@ -6,6 +6,8 @@
         {{ response }}
       </v-snackbar>
     </div>
+    <SecurityRoomsPopup v-model="dialogSecurityRooms" :security="selectedSecurityForRooms"
+      :companyId="$auth.user.company_id" @notify="onNotify" @updated="getDataFromApi()" />
 
     <v-dialog v-model="newSecurityDialog" max-width="800px">
       <v-card>
@@ -92,6 +94,8 @@
         <template v-slot:item.customers="{ item }">
           {{ item.customers_assigned?.length || "0" }}
         </template>
+
+
         <template v-slot:item.contact_number="{ item }">
           {{ item.contact_number }}
         </template>
@@ -123,14 +127,20 @@
                   Edit
                 </v-list-item-title>
               </v-list-item>
-              <v-list-item v-if="can('Securitys_view')" @click="viewCustomers(item)">
+              <v-list-item v-if="can('Securitys_view')" @click="openRooms(item)">
+                <v-list-item-title style="cursor: pointer">
+                  <v-icon small>mdi-door</v-icon>
+                  SOS Rooms
+                </v-list-item-title>
+              </v-list-item>
+              <!-- <v-list-item v-if="can('Securitys_view')" @click="viewCustomers(item)">
                 <v-list-item-title style="cursor: pointer">
                   <v-icon color="secondary" small>
                     mdi-account-multiple
                   </v-icon>
                   Customers
                 </v-list-item-title>
-              </v-list-item>
+              </v-list-item> -->
               <v-list-item v-if="can('Securitys_delete')" @click="deleteItem(item)">
                 <v-list-item-title style="cursor: pointer">
                   <v-icon color="error" small> mdi-delete </v-icon>
@@ -148,14 +158,19 @@
 <script>
 
 import EditSecurity from '../components/Security/EditSecurity.vue';
+import SecurityRoomsPopup from "@/components/Security/SecuritySosRoomsList.vue";
 
 
 export default {
   components: {
     EditSecurity,
+    SecurityRoomsPopup
+
 
   },
   data: () => ({
+    dialogSecurityRooms: false,
+    selectedSecurityForRooms: null,
     dialogSecurityCustomers: false,
     editId: null,
     item: null,
@@ -277,6 +292,20 @@ export default {
     can(per) {
       return true;
     },
+
+    openRooms(item) {
+      this.selectedSecurityForRooms = item;
+      this.dialogSecurityRooms = true;
+    },
+    onNotify({ type, text }) {
+      // reuse your existing snackbar/response
+      this.snackbar = true;
+      this.response = text;
+
+      // optionally set a color if you already have it
+      // this.responseStatusColor = type === "error" ? "error" : "success";
+    },
+
     caps(str) {
       if (str == "" || str == null) {
         return "---";

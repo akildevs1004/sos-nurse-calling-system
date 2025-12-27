@@ -6,11 +6,12 @@ use App\Http\Controllers\DeviceCameraModel2Controller;
 use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\DeviceStatusController;
 use App\Http\Controllers\DeviceTemperatureSensorsController;
+use App\Http\Controllers\SecuritySosRoomsController;
 use App\Models\Device;
 use App\Services\MqttService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\SecuritySosRoomsListController;
 
 Route::get('/dashboard_rooms', [SOSRoomsControllers::class, 'dashboardRooms']);
 Route::get('/dashboard_stats', [SOSRoomsControllers::class, 'dashboardStats']);
@@ -64,6 +65,12 @@ Route::get('/tv_reload',  function () {
 
 Route::apiResource('security', SecurityLoginController::class);
 Route::get("security-dropdownlist", [SecurityLoginController::class, "securityDropdownlist"]);
+
+Route::get('security/{security}/sos-rooms', [SecuritySosRoomsListController::class, 'index']);
+Route::post('security/{security}/sos-rooms', [SecuritySosRoomsListController::class, 'store']);
+Route::delete('security/{security}/sos-rooms/{room}', [SecuritySosRoomsListController::class, 'destroy']);
+
+Route::get('device_sos_rooms', [SecuritySosRoomsListController::class, 'roomsList']);
 
 
 
