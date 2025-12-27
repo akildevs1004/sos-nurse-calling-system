@@ -86,6 +86,20 @@
                   </v-row>
                 </v-list-item-title>
               </v-list-item>
+              <v-list-item @click="downloadOptions('analysisreport')">
+                <v-list-item-title style="cursor: pointer">
+                  <v-row>
+                    <v-col cols="5">
+                      <img style="padding-top: 5px" src="/icons/icon_pdf.png" class="iconsize" />
+                    </v-col>
+                    <v-col cols="7" style="padding-left: 0px; padding-top: 19px">
+                      Analysis
+                    </v-col>
+                  </v-row>
+                </v-list-item-title>
+              </v-list-item>
+
+
             </v-list>
           </v-menu>
         </v-col>
@@ -298,6 +312,26 @@ export default {
       if (isNaN(d.getTime())) return String(v);
       return d.toLocaleString();
     },
+    getCurrentMonthRange() {
+      const now = new Date();
+
+      // Start of month
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      // End of month (day 0 of next month = last day of current month)
+      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+      // Format YYYY-MM-DD
+      const format = d =>
+        d.getFullYear() + '-' +
+        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+        String(d.getDate()).padStart(2, '0');
+
+      return {
+        start_date: format(start),
+        end_date: format(end)
+      };
+    },
 
     roomTypeIcon(type) {
       switch ((type || "").toLowerCase()) {
@@ -373,11 +407,26 @@ export default {
         filterSensorname = this.eventFilter;
       }
 
+
+      const { start_date, end_date } = this.getCurrentMonthRange();
+      // console.log(start_date, end_date);
+
+      if (!this.date_from) {
+        this.date_from = start_date;
+        this.date_to = end_date;
+
+      }
+
       let url = process.env.BACKEND_URL;
       if (option == "print") url += "/sos_logs_print_pdf";
       if (option == "excel") url += "/sos_logs_export_excel";
       if (option == "download")
         url += "/sos_logs_download_pdf";
+
+      if (option == "analysisreport")
+        url += "/sos/report/chart-render";
+
+
       //if (option == "download") url += "/alarm_events_download_pdf";
 
       url += "?company_id=" + this.$auth.user.company_id;
@@ -392,6 +441,8 @@ export default {
 
       // url += "&tab=" + this.tab;
       //  url += "&alarm_status=" + this.filterAlarmStatus;
+
+
 
       window.open(url, "_blank");
     },

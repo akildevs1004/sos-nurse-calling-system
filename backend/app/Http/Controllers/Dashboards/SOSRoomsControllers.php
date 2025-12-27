@@ -972,11 +972,11 @@ class SOSRoomsControllers extends Controller
     {
         $companyId = (int) $request->company_id;
 
-        $request->validate([
-            'company_id' => 'nullable|integer',
-            'date_from'  => 'required|date',
-            'date_to'    => 'required|date|after_or_equal:date_from',
-        ]);
+        // $request->validate([
+        //     'company_id' => 'nullable|integer',
+        //     'date_from'  => 'required|date',
+        //     'date_to'    => 'required|date|after_or_equal:date_from',
+        // ]);
 
         $from = Carbon::parse($request->date_from)->startOfDay();
         $to   = Carbon::parse($request->date_to)->endOfDay();
@@ -1011,13 +1011,13 @@ class SOSRoomsControllers extends Controller
     public function chartRender(Request $request)
     {
 
-        if (count($request->all()) == 0) {
-            $request = new Request([
-                "company_id" => 8,
-                "date_from" => "2025-12-01",
-                "date_to" => "2025-12-31",
-            ]);
-        }
+        // if (count($request->all()) == 0) {
+        //     $request = new Request([
+        //         "company_id" => 8,
+        //         "date_from" => "2025-12-01",
+        //         "date_to" => "2025-12-31",
+        //     ]);
+        // }
 
         // 1) Call Frequency (24h)
         $freq = $this->sosHourlyMixedRoomsReport($request)->getData(true);
