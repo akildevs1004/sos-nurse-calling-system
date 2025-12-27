@@ -11,7 +11,7 @@
             margin: 14mm 14mm 14mm 14mm;
         }
 
-        body {
+        /* body {
             font-family: Arial, sans-serif;
             color: #0f172a;
             font-size: 12px;
@@ -142,7 +142,7 @@
             border-bottom: 1px solid #e2e8f0;
         }
 
-        /* PDF-safe simple charts */
+
         .bar-wrap {
             height: 140px;
             border: 1px solid #e2e8f0;
@@ -206,7 +206,7 @@
             border-collapse: collapse;
         }
 
-        /* ===== 4 CHARTS GRID (PDF SAFE) ===== */
+
         .chart-grid {
             width: 100%;
             border-collapse: separate;
@@ -239,6 +239,8 @@
 
             text-align: center
         }
+
+        */
     </style>
 </head>
 
@@ -289,205 +291,12 @@
     @endphp
 
     {{-- PAGE 1 --}}
-    <div class="page">
-        <div style="margin-top: 10px;">
-            <table>
-                <tr>
-                    <td style="width:80px; vertical-align: top; border-bottom:0;">
-                        <img src="{{ $icon1 }}" style="width:70px; max-width:70px;">
-                    </td>
 
-                    <td style="vertical-align: top; border-bottom:0;">
-                        <div style="border-left:4px solid #137fec; padding-left:14px;">
-                            <p class="h1">SOS Call Report</p>
-                            <p class="muted" style="font-size:16px; margin:10px 0 0 0;">{{ $unitName }}</p>
-                        </div>
-
-                        <div style="margin-top:40px;">
-                            <table>
-                                <tr>
-                                    <td class="muted" style="width:220px; border-bottom:0; font-size:18px;">
-                                        <strong>REPORT PERIOD</strong>
-                                    </td>
-                                    <td style="border-bottom:0; font-size:18px;">
-                                        <strong>{{ $reportPeriod }}</strong>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="muted" style="border-bottom:0; font-size:18px;">
-                                        <strong>GENERATED ON</strong>
-                                    </td>
-                                    <td style="border-bottom:0; font-size:18px;">
-                                        <strong>{{ $generatedOn }}</strong>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        <div class="card" style="font-size:16px; margin-top:40px;">
-                            <div class="h3" style="margin-bottom:12px;">
-                                <img src="{{ $icon2 }}"
-                                    style="vertical-align:middle; width:18px; margin-right:6px;">
-                                Executive Summary
-                            </div>
-
-                            <table style="border-collapse: collapse;">
-                                <tr>
-                                    <td style="width:60%; vertical-align: top; padding-right:14px; border-bottom:0;">
-                                        <div style="color:#475569; line-height:1.5;">
-                                            During the report period, a total of
-                                            <strong style="color:#b91c1c;">{{ $totalCalls }}</strong>
-                                            SOS calls were registered, achieving an average response time of
-                                            <strong>{{ $avgResponse }}</strong>.
-                                            This report was generated on <strong>{{ $generatedOn }}</strong>,
-                                            with <strong>{{ $topLocation }}</strong> identified as the highest SOS
-                                            activity location
-                                            ({{ $topLocationCalls }} calls).
-                                        </div>
-                                    </td>
-
-                                    <td style="width:40%; vertical-align: top; border-bottom:0;">
-                                        <div
-                                            style="background:#f8fafc; border:1px solid #cfd3d8; border-radius:10px; padding:12px;">
-                                            <div class="card-title" style="font-size:16px;">Key Metrics at a Glance
-                                            </div>
-                                            <table>
-                                                <tr>
-                                                    <td style="padding:6px 0; border:0;">Total Calls</td>
-                                                    <td
-                                                        style="padding:6px 0; border:0; text-align:right; font-weight:800;">
-                                                        {{ $totalCalls }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td colspan="2"
-                                                        style="height:1px; background:#e2e8f0; padding:0; border:0;">
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td style="padding:6px 0; border:0;">Avg Response</td>
-                                                    <td
-                                                        style="padding:6px 0; border:0; text-align:right; font-weight:800;">
-                                                        {{ $avgResponse }}</td>
-                                                </tr>
-                                                <tr>
-                                                    <td colspan="2"
-                                                        style="height:1px; background:#e2e8f0; padding:0; border:0;">
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td style="padding:6px 0; border:0;">Top Location</td>
-                                                    <td
-                                                        style="padding:6px 0; border:0; text-align:right; font-weight:800;">
-                                                        {{ $topLocation }}</td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </table>
-
-                        </div>
-                    </td>
-                </tr>
-            </table>
-        </div>
-    </div>
+    @include('sos.sos-report-analysis-page1')
 
     {{-- PAGE 2 --}}
-    <div class="page">
 
-        <table class="border-b" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">
-            <tr>
-                <td style="padding-bottom:12px; border-bottom:0;">
-                    <div style="font-size:18px; font-weight:800;">CardioSOS</div>
-                    <div class="muted small" style="letter-spacing:0.08em; text-transform:uppercase;">Intelligent Nurse
-                        Call System</div>
-                </td>
-                <td style="text-align:right; padding-bottom:12px; border-bottom:0;">
-                    <div style="font-size:16px; font-weight:800;">SOS Call Report</div>
-                    <div class="muted">Detailed Analytics</div>
-                </td>
-            </tr>
-        </table>
-
-        <table style="margin-bottom:24px;">
-            <tr>
-                <td style="width:25%; padding-right:10px; border-bottom:0;">
-                    <div class="card">
-                        <div class="card-title">Total Calls</div>
-                        <p class="big">{{ $totalCalls }}</p>
-                    </div>
-                </td>
-                <td style="width:25%; padding-right:10px; border-bottom:0;">
-                    <div class="card">
-                        <div class="card-title">Avg Response</div>
-                        <p class="big">{{ $avgResponse }}</p>
-                    </div>
-                </td>
-                <td style="width:25%; padding-right:10px; border-bottom:0;">
-                    <div class="card">
-                        <div class="card-title">Resolved</div>
-                        <p class="big">{{ $resolvedPct }}</p>
-                        <div class="progress" style="margin-top:10px;">
-                            <div style="width: {{ rtrim($resolvedPct, '%') }}%;"></div>
-                        </div>
-                    </div>
-                </td>
-                <td style="width:25%; border-bottom:0;">
-                    <div class="card">
-                        <div class="card-title">Top Location</div>
-                        <p style="font-size:16px; font-weight:800; margin:0;">{{ $topLocation }}</p>
-                        <div class="small muted" style="margin-top:8px;">{{ $topLocationCalls }} calls</div>
-                    </div>
-                </td>
-            </tr>
-        </table>
-
-        <div class="section-title">Data Visualization</div>
-
-        {{-- 4 CHARTS (2x2) --}}
-        <table class="chart-grid">
-            <tr>
-
-
-                <td class="chart-cell" style="border-bottom:0;">
-                    <div class="chart-card">
-                        <div class="chart-title">Hourly SOS Calls </div>
-                        <img src="{{ $chartHourlySos }}" class="chart-img" alt="Hourly SOS">
-                    </div>
-                </td>
-                <td class="chart-cell" style="border-bottom:0;">
-                    <div class="chart-card">
-                        <div class="chart-title">Response/Acknowledgement Hourly </div>
-                        <img src="{{ $chartResponseHourly }}" class="chart-img" alt="Response Hourly SOS">
-                    </div>
-                </td>
-            </tr>
-
-            <tr>
-                <td class="chart-cell" style="border-bottom:0;">
-                    <div class="chart-card">
-                        <div class="chart-title">SOS Status Breakdown</div>
-                        <img src="{{ $chartStatusDonut }}" class="chart-img" alt="SOS Status Donut">
-                    </div>
-                </td>
-
-                <td class="chart-cell" style="border-bottom:0;">
-                    <div class="chart-card">
-                        <div class="chart-title">SOS Rooms / Sources</div>
-                        @include('sos.sos-chart-render-sos-rooms-type')
-                    </div>
-                </td>
-            </tr>
-        </table>
-
-        {{-- If you want, you can add a small note under charts --}}
-        <div class="muted small" style="margin-top:8px;">
-            Charts are rendered from pre-generated PNG images stored under
-            <strong>public/storage/reports/charts</strong>.
-        </div>
-
-    </div>
+    @include('sos.sos-report-analysis-page2')
 
     {{-- PAGE 3 --}}
     <div class="page">

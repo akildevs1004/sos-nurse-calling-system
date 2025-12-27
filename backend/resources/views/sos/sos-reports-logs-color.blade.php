@@ -7,16 +7,6 @@
     <title>SOS Reports</title>
 
     <style>
-        @page {
-            margin: 20px 20px 20px 20px;
-        }
-
-        /* body {
-            font-family: DejaVu Sans, Arial, sans-serif;
-            font-size: 11px;
-            color: #0f172a;
-        } */
-
         /* ===== Header helpers (if you keep your include) ===== */
         .clearfix {
             clear: both;
@@ -59,7 +49,7 @@
         /* Column sizing similar to screenshot */
         .col-id {
 
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+
             font-size: 10px;
             color: #334155;
             white-space: nowrap;
@@ -208,7 +198,7 @@
     @endphp
 
     {{-- Header --}}
-    <header>
+    {{-- <header>
         @include('header', [
             'company' => $company,
             'title1' => $title1,
@@ -217,12 +207,12 @@
         ])
     </header>
 
-    {{-- Footer --}}
+
     <footer>
         @include('footer', [
             'company' => $company,
         ])
-    </footer>
+    </footer> --}}
 
     <main>
         <div class="clearfix"></div>
