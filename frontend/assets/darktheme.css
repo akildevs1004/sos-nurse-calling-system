@@ -101,6 +101,20 @@ color:#FFF!important;
 
 }
 
+  .v-application .popup_background
+{
+   background-color: #101922!important;
+
+
+}
+
+
+
+.theme--dark .popup_background .v-icon
+{
+  color:#FFF!important;
+}
+
 .roomCardIndividual.theme--dark.v-card
 {
   background-color: #101922!important;
@@ -287,6 +301,11 @@ color:#FFF!important;
 }
 .theme--dark .teal-text { color: #5eead4 !important; }
 
+
+.theme--dark  popup_background
+{
+color:black!important;;
+}
 /*
 :root {
     --v-anchor-base: #6946dd;

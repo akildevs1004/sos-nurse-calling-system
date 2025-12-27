@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SecurityLoginController;
 use App\Http\Controllers\Dashboards\SOSRoomsControllers;
 use App\Http\Controllers\DeviceCameraModel2Controller;
 use App\Http\Controllers\DeviceController;
@@ -58,6 +59,12 @@ Route::get('/tv_reload',  function () {
         null
     );
 });
+
+
+
+Route::apiResource('security', SecurityLoginController::class);
+Route::get("security-dropdownlist", [SecurityLoginController::class, "securityDropdownlist"]);
+
 
 
 
