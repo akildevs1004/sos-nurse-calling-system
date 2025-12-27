@@ -6,7 +6,6 @@
       </v-snackbar>
     </div>
 
-
     <SosAlarmPopupMqtt @triggerUpdateDashboard="requestDashboardSnapshot()" />
 
     <!-- ONE SCROLL CONTAINER FOR EVERYTHING -->
@@ -35,7 +34,7 @@
         </v-col>
       </v-row>
 
-      <!-- ================= FILTER ROW ================= -->
+      <!-- ================= FILTER ROW (with Cards/Row selector) ================= -->
       <div class="d-flex flex-wrap align-center mt-1 mb-3">
         <v-btn-toggle v-model="filterMode" mandatory class="mr-4">
           <v-btn small value="all">All</v-btn>
@@ -44,6 +43,16 @@
         </v-btn-toggle>
 
         <v-spacer />
+
+        <!-- Cards per row selector (TV only) -->
+        <div class="d-flex align-center mr-4" v-if="deviceType === 'tv'">
+          <div class="text-caption grey--text mr-2">Cards / Row</div>
+          <v-btn-toggle v-model="roomsPerRow" mandatory dense>
+            <v-btn small :value="2">2</v-btn>
+            <v-btn small :value="4">4</v-btn>
+            <v-btn small :value="6">6</v-btn>
+          </v-btn-toggle>
+        </div>
 
         <div class="d-flex align-center mt-2 mt-md-0">
           <div class="d-flex align-center mr-4">
@@ -55,8 +64,8 @@
         </div>
       </div>
 
-      <!-- ================= ROOMS GRID (RESPONSIVE + SCROLL) ================= -->
-      <div class="roomsGrid">
+      <!-- ================= ROOMS GRID (dynamic columns + scroll) ================= -->
+      <div class="roomsGrid" :style="roomsGridStyle">
         <div v-for="d in filteredDevices" :key="d.id || d.room_id" class="roomCell">
           <v-card outlined class="pa-3 roomCard roomCardIndividual" :class="cardClass(d)">
             <div class="d-flex align-start">
@@ -111,7 +120,6 @@
               </v-chip>
 
               <div v-if="!d.alarm?.responded_datetime">
-
                 <v-btn class="mt-2 blink-btn" small v-if="d.alarm_status === true" @click="udpateResponse(d.alarm?.id)">
                   <v-icon>mdi-cursor-default-click</v-icon> Acknowledge
                 </v-btn>
@@ -145,6 +153,8 @@
 import mqtt from "mqtt";
 import SosAlarmPopupMqtt from "@/components/SOS/SosAlarmPopupMqtt.vue";
 
+const ROOMS_PER_ROW_KEY = "tv_rooms_per_row";
+
 export default {
   layout: "tvmonitorlayout",
   auth: false,
@@ -160,6 +170,9 @@ export default {
 
       snackbar: false,
       snackbarResponse: "",
+
+      // Rooms grid selector (TV)
+      roomsPerRow: 4, // default 4
 
       // Stats
       avgResponseText: "00:00",
@@ -189,7 +202,6 @@ export default {
         rooms: "",
         stats: "",
         reload: ""
-
       },
 
       // optional debug
@@ -210,14 +222,18 @@ export default {
 
     // Stats: 1/row on mobile, 2/row on tablet, 6/row on TV
     statsColsMd() {
-      // md column span when viewport >= md
-      // tablet is md only: 6 => 2 cards per row
-      // tv often lg+: but keep fallback
       return this.deviceType === "tv" ? 4 : 6;
     },
     statsColsLg() {
-      // lg+: on TV show 6 cards per row => 2 columns each
       return this.deviceType === "tv" ? 2 : 3;
+    },
+
+    // Rooms grid columns style (CSS variable)
+    roomsGridStyle() {
+      // Mobile/tablet: use fixed cols via CSS classes
+      if (this.deviceType !== "tv") return {};
+      const cols = [2, 4, 6].includes(Number(this.roomsPerRow)) ? Number(this.roomsPerRow) : 4;
+      return { "--rooms-cols": cols };
     },
 
     activeSosCount() {
@@ -300,14 +316,23 @@ export default {
     }
   },
 
+  watch: {
+    roomsPerRow(v) {
+      const n = Number(v);
+      if ([2, 4, 6].includes(n)) localStorage.setItem(ROOMS_PER_ROW_KEY, String(n));
+    }
+  },
+
   created() {
     this.message = "created";
   },
 
   mounted() {
-    this.snackbarResponse = "Ok";
-
     this.snackbarResponse = "Mounted";
+
+    // Restore saved roomsPerRow (TV)
+    const saved = Number(localStorage.getItem(ROOMS_PER_ROW_KEY));
+    if ([2, 4, 6].includes(saved)) this.roomsPerRow = saved;
 
     // Duration ticking
     this.timer = setInterval(() => this.updateDurationAll(), this.TIMER_MS);
@@ -325,7 +350,6 @@ export default {
   },
 
   destroyed() {
-    // extra safety (Nuxt keep-alive edge cases)
     try {
       this.disconnectMqtt();
       if (this.timer) clearInterval(this.timer);
@@ -335,11 +359,7 @@ export default {
   methods: {
     // ---------- MQTT ----------
     connectMqtt() {
-
-
       if (this.client) return;
-
-
 
       if (!this.mqttUrl) {
         this.snackbar = true;
@@ -359,7 +379,6 @@ export default {
       this.topics.stats = `tv/${companyId}/dashboard/stats`;
       this.topics.reload = `tv/reload`;
 
-
       this.client = mqtt.connect(this.mqttUrl, {
         reconnectPeriod: 3000,
         keepalive: 30,
@@ -373,16 +392,15 @@ export default {
           if (err) {
             this.snackbar = true;
             this.snackbarResponse = "MQTT subscribe failed";
-
             console.log("Step1 MQTT subscribe failed");
             return;
           }
+
           this.requestDashboardSnapshot();
 
           this.snackbar = true;
           this.snackbarResponse = "Server Connected";
           console.log("Step1 MQTT subscribed");
-
         });
       });
 
@@ -402,7 +420,6 @@ export default {
         if (this.topics.stats) this.client.unsubscribe(this.topics.stats);
         if (this.topics.reload) this.client.unsubscribe(this.topics.reload);
 
-
         this.client.end(true);
         this.client = null;
         this.isConnected = false;
@@ -410,14 +427,8 @@ export default {
     },
 
     requestDashboardSnapshot() {
-
-
       console.log("Step5- MQTT Request sending");
-
       if (!this.client || !this.isConnected) return;
-
-      this.snackbar = true;
-      this.snackbarResponse = "MQTT requestDashboardSnapshot";
 
       this.reqId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
       const companyId = Number(process.env.TV_COMPANY_ID || 0);
@@ -435,24 +446,17 @@ export default {
 
       console.log("Step6- MQTT Request sent", payload);
 
-
       this.client.publish(this.topics.req, JSON.stringify(payload), { qos: 0, retain: false });
 
       this.snackbar = true;
       this.snackbarResponse = "MQTT Request sent";
 
       console.log("Step7- MQTT Request sent success");
-
-
       this.message = "snapshot requested";
     },
 
     onMqttMessage(topic, payload) {
-
       console.log("Step8- Message received");
-
-
-      // console.log("topic", topic);
 
       if (topic !== this.topics.rooms && topic !== this.topics.stats && topic !== this.topics.reload) return;
 
@@ -460,33 +464,26 @@ export default {
       try {
         msg = JSON.parse(payload.toString());
         console.log("Step9- Message received", topic, msg);
-
-
       } catch (e) {
         console.log("Step10- Error", e);
-
         return;
       }
-
-      // Strict reqId matching if needed:
-      // if (msg.reqId && this.reqId && msg.reqId !== this.reqId) return;
 
       if (topic === this.topics.rooms) {
         const data = msg?.data;
         const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
         this.devices = this.normalizeRooms(list);
-
-        console.log(this.devices);
-
         this.updateDurationAll();
         return;
       }
+
       if (topic === this.topics.reload) {
         try {
           window.location.reload();
         } catch (e) { }
         return;
       }
+
       if (topic === this.topics.stats) {
         const s = msg?.data || {};
 
@@ -578,43 +575,33 @@ export default {
       });
     },
 
-    // ---------- ACK (still HTTP) ----------
+    // ---------- ACK ----------
     async udpateResponse(alarmId) {
-
       if (!alarmId) return;
-      this.reqId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
       this.loading = true;
       const companyId = Number(process.env.TV_COMPANY_ID || 0);
+
       const payload = {
-        reqId: this.reqId,
+        reqId: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
         params: {
           company_id: companyId,
-          alarmId: alarmId,
-
+          alarmId
         }
       };
 
-      this.client.publish(`tv/${companyId}/dashboard_alarm_response`, JSON.stringify(payload), { qos: 0, retain: false });
+      try {
+        if (this.client && this.isConnected) {
+          this.client.publish(`tv/${companyId}/dashboard_alarm_response`, JSON.stringify(payload), {
+            qos: 0,
+            retain: false
+          });
+        }
+      } catch (e) { }
+
       this.loading = false;
       this.requestDashboardSnapshot();
-      alert("Acknowledgement is Received..")
-
-
-      // try {
-      //   const { data } = await this.$axios.post("dashboard_alarm_response", {
-      //     company_id: Number(process.env.TV_COMPANY_ID || 0),
-      //     alarmId
-      //   });
-
-      //   this.snackbar = true;
-      //   this.snackbarResponse = data.message || "Updated";
-      // } catch (e) {
-      //   this.snackbar = true;
-      //   this.snackbarResponse = e?.response?.data?.message || e?.message || "ACK failed";
-      // } finally {
-      //   this.loading = false;
-      // }
+      alert("Acknowledgement is Received..");
     }
   }
 };
@@ -634,25 +621,26 @@ export default {
   overflow-x: hidden;
 }
 
-/* Rooms responsive grid */
+/* Rooms grid (dynamic columns via CSS variable) */
 .roomsGrid {
   display: grid;
   gap: 12px;
+  grid-template-columns: repeat(var(--rooms-cols, 4), minmax(0, 1fr));
 }
 
 /* MOBILE */
 .is-mobile .roomsGrid {
-  grid-template-columns: repeat(1, minmax(0, 1fr));
+  --rooms-cols: 1;
 }
 
 /* TABLET */
 .is-tablet .roomsGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  --rooms-cols: 2;
 }
 
-/* TV */
+/* TV default */
 .is-tv .roomsGrid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  --rooms-cols: 4;
 }
 
 /* Cards */

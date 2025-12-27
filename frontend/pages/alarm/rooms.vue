@@ -23,9 +23,9 @@
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="DialogDeviceSettings" width="900px" style="background-color: #fff !important">
+    <v-dialog v-model="DialogDeviceSettings" width="900px">
       <v-card elevation="2">
-        <v-card-title dense class="popup_background">
+        <v-card-title dense class="popup_background" dark>
           <span>Device Config Settings</span>
           <v-spacer></v-spacer>
           <v-icon @click="DialogDeviceSettings = false" outlined>
