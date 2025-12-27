@@ -339,13 +339,13 @@
     </main>
 
     {{-- FOOTER (page-3 only) --}}
-    {{-- <div class="page-3-footer">
+    <div class="page-3-footer">
         <table>
             <tr>
-                <td>© {{ date('Y') }} CardioSOS System</td>
-                <td style="text-align:right;">Page 3 of 3</td>
+                <td>© {{ date('Y') }} </td>
+                <td style="text-align:right;"> </td>
             </tr>
         </table>
-    </div> --}}
+    </div>
 
 </div>

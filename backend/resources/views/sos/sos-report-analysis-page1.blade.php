@@ -339,7 +339,7 @@
             <table class="cover-meta">
                 <tr>
                     <td class="label">Report Period</td>
-                    <td class="value">Report Period {{ $reportPeriod }}</td>
+                    <td class="value">{{ $reportPeriod }}</td>
                 </tr>
                 <tr>
                     <td class="label">Generated On</td>
