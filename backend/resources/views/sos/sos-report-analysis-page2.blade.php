@@ -19,11 +19,11 @@
         color: #0f172a;
     }
 
-    .page-2 {
+    /* .page-2 {
         page-break-after: always;
         padding-bottom: 18mm;
         font-size: 12px;
-    }
+    } */
 
     /* HEADER */
     .page-2 .header {
@@ -295,8 +295,7 @@
         </tr>
     </table>
 
-
-    <div class="page-2-footer">
+    {{-- <div class="page-2-footer">
         <table>
             <tr>
                 <td>© {{ date('Y') }} INTELLIGENT NURSE CALL SYSTEM
@@ -304,7 +303,5 @@
                 <td style="text-align:right;">Page 2 </td>
             </tr>
         </table>
-    </div>
-</div>
-
+    </div> --}}
 </div>
