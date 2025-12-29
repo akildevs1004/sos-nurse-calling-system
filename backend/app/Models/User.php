@@ -67,7 +67,10 @@ class User extends Authenticatable
     // {
     //     return $this->hasOne(Company::class);
     // }
-
+    public function security()
+    {
+        return $this->belongsTo(SecurityLogin::class, "id", "user_id");
+    }
     public function company()
     {
         return $this->belongsTo(Company::class, 'company_id');

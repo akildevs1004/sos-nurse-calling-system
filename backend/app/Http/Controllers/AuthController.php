@@ -172,16 +172,19 @@ class AuthController extends Controller
         // @params User Id, action,type,companyId.
         $this->recordActivity($user->id, "Login", "Authentication", $user->company_id, $user->user_type);
 
-        $user->user_type = $this->getUserType($user);
+        // $user->user_type = $this->getUserType($user);
 
         // $user->branch_array = [1,   5];
 
-        if ($user->branch_id == 0 &&  $user->is_master === false && $request->filled("source")) {
-            throw ValidationException::withMessages([
-                'email' => ["You do not have permission to Access this Page"],
-            ]);
-        }
+        // if ($user->branch_id == 0 &&  $user->is_master === false && $request->filled("source")) {
+        //     throw ValidationException::withMessages([
+        //         'email' => ["You do not have permission to Access this Page"],
+        //     ]);
+        // }
 
+        if ($user->user_type == "security") {
+            $user->load("security");
+        }
 
 
         unset($user->company);
@@ -200,7 +203,7 @@ class AuthController extends Controller
 
 
         $user->load(["company", "role:id,name,role_type"]);
-        $user->user_type = $this->getUserType($user);
+        //$user->user_type = $this->getUserType($user);
         //$user->branch_array = [1,   5];
         $user->permissions = $user->assigned_permissions ? $user->assigned_permissions->permission_names : [];
         unset($user->assigned_permissions);
