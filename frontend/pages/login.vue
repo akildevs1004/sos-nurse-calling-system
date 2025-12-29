@@ -2,11 +2,7 @@
   <div class="mobileBGColor111 bg-body">
     <v-dialog persistent v-model="dialogWhatsapp" width="600px">
       <v-card>
-        <v-card-title
-          dense
-          class="white--text"
-          style="background-color: #6946dd; color: #fff !important"
-        >
+        <v-card-title dense class="white--text" style="background-color: #6946dd; color: #fff !important">
           Whatsapp Verification
           <v-spacer></v-spacer>
           <v-icon @click="dialogWhatsapp = false" outlined dark color="white">
@@ -36,30 +32,18 @@
                 </h2>
                 <br />
                 <!-- <v-form ref="form" method="post" v-model="whatsappFormValid" lazy-validation> -->
-                <label
-                  for=""
-                  class="pb-5"
-                  style="font-weight: bold; font-size: 20px"
-                  >Type your 6 Digit Security Code</label
-                >
+                <label for="" class="pb-5" style="font-weight: bold; font-size: 20px">Type your 6 Digit Security
+                  Code</label>
                 <div class="form-outline mb-4">
-                  <v-otp-input
-                    v-model="otp"
-                    length="6"
-                    :rules="requiredRules"
-                  ></v-otp-input>
+                  <v-otp-input v-model="otp" length="6" :rules="requiredRules"></v-otp-input>
                 </div>
 
                 <div class="text-center pt-1 mb-5 pb-1">
                   <span v-if="msg" class="error--text">
                     {{ msg }}
                   </span>
-                  <v-btn
-                    :loading="loading"
-                    @click="checkOTP(otp)"
-                    class="btn btn-block fa-lg mt-1 mb-3"
-                    style="background-color: #6946dd; color: #fff"
-                  >
+                  <v-btn :loading="loading" @click="checkOTP(otp)" class="btn btn-block fa-lg mt-1 mb-3"
+                    style="background-color: #6946dd; color: #fff">
                     Verify OTP
                   </v-btn>
                   <!-- <v-btn :loading="loading" @click="checkOTP(otp)"
@@ -68,9 +52,7 @@
                     </v-btn> -->
                 </div>
 
-                <div
-                  class="d-flex align-items-center justify-content-center pb-4"
-                ></div>
+                <div class="d-flex align-items-center justify-content-center pb-4"></div>
                 <!-- </v-form> -->
               </div>
             </div>
@@ -98,27 +80,20 @@
 
     <v-row class="" style="height: 100%">
       <v-col xs="12" sm="12" md="12" lg="5" style="padding: 0px">
-        <div
-          class="card-body p-md-5 mx-md111111-4"
-          style="
+        <div class="card-body p-md-5 mx-md111111-4" style="
             padding: 3rem !important;
             max-width: 500px;
             margin: auto;
             text-align: center;
-          "
-        >
+          ">
           <div style="min-height: 100px">
             <div style="width: 100%" class="text-center">
-              <v-img
-                class="text-center"
-                style="
+              <v-img class="text-center" style="
                   width: 250px;
                   padding: 0px;
                   margin: auto;
                   text-align: center;
-                "
-                src="/logo22.png"
-              ></v-img>
+                " src="/logo22.png"></v-img>
             </div>
             <h3 class="pb-7 pt-15" style="color: black">
               Welcome To
@@ -126,50 +101,20 @@
             </h3>
           </div>
           <div>
-            <v-form
-              ref="form"
-              method="post"
-              v-model="valid"
-              lazy-validation
-              autocomplete="off"
-              class="loginpage"
-            >
+            <v-form ref="form" method="post" v-model="valid" lazy-validation autocomplete="off" class="loginpage">
               <div class="form-outline">
-                <v-text-field
-                  role="presentation"
-                  label="Email"
-                  v-model="credentials.email"
-                  :hide-details="false"
-                  id="form2Example11"
-                  autofill="false"
-                  required
-                  dense
-                  outlined
-                  type="email"
-                  prepend-inner-icon="mdi-account"
-                  append-icon="mdi-at"
-                  autocomplete="off"
-                  aria-autocomplete="none"
-                  class="theme--light"
-                  style="color: black !important"
-                ></v-text-field>
+                <v-text-field role="presentation" label="Email" v-model="credentials.email" :hide-details="false"
+                  id="form2Example11" autofill="false" required dense outlined type="email"
+                  prepend-inner-icon="mdi-account" append-icon="mdi-at" autocomplete="off" aria-autocomplete="none"
+                  class="theme--light" style="color: black !important"></v-text-field>
               </div>
 
               <div class="form-outline">
-                <v-text-field
-                  role="presentation"
-                  label="Password"
-                  dense
-                  outlined
-                  autocomplete="off"
-                  prepend-inner-icon="mdi-lock  "
-                  :append-icon="show_password ? 'mdi-eye' : 'mdi-eye-off'"
-                  :type="show_password ? 'text' : 'password'"
-                  v-model="credentials.password"
-                  class="input-group--focused theme--light"
-                  @click:append="show_password = !show_password"
-                  style="color: black !important"
-                ></v-text-field>
+                <v-text-field role="presentation" label="Password" dense outlined autocomplete="off"
+                  prepend-inner-icon="mdi-lock  " :append-icon="show_password ? 'mdi-eye' : 'mdi-eye-off'"
+                  :type="show_password ? 'text' : 'password'" v-model="credentials.password"
+                  class="input-group--focused theme--light" @click:append="show_password = !show_password"
+                  style="color: black !important"></v-text-field>
               </div>
 
               <v-row>
@@ -178,18 +123,13 @@
                     <template v-slot:label>
                       <label style="">Remember&nbsp;Password</label>
                     </template>
-                  </v-checkbox> -->
+</v-checkbox> -->
                 </v-col>
                 <v-col md="6" class="text-right pt-6">
                   <!-- <nuxt-link to="/reset-password"
                                   >Forgot password?</nuxt-link
                                 > -->
-                  <v-btn
-                    text
-                    @click="openForgotPassword"
-                    style="font-weight: normal"
-                    >Forgot password?</v-btn
-                  >
+                  <v-btn text @click="openForgotPassword" style="font-weight: normal">Forgot password?</v-btn>
                 </v-col>
               </v-row>
 
@@ -197,17 +137,13 @@
                 <span v-if="msg" class="error--text111" style="color: #ff9f87">
                   {{ msg }}
                 </span>
-                <v-btn
-                  :loading="loading"
-                  @click="login()"
-                  class="btn btn-block mt-1 mb-3 p-4 btntext loginbutton"
+                <v-btn :loading="loading" @click="login()" class="btn btn-block mt-1 mb-3 p-4 btntext loginbutton"
                   style="
                     width: 100%;
                     height: 48px;
                     background-color: #6c2ac2;
                     color: #fff;
-                  "
-                >
+                  ">
                   Login
                 </v-btn>
               </div>
@@ -218,37 +154,18 @@
           <v-row class="text-center" style="font-size: 13px">
             <v-col class="pa-5">
               For Technical Support :
-              <a
-                target="_blank"
-                href="https://wa.me/971529048025?text=Hello Xtreme Guard. I need your support."
-                ><v-icon color="black">mdi-whatsapp</v-icon></a
-              >
-              <a
-                style="text-decoration: none; color: black"
-                href="tel:+971529048025"
-                >+971 52 904 8025</a
-              ></v-col
-            >
+              <a target="_blank" href="https://wa.me/971529048025?text=Hello Xtreme Guard. I need your support."><v-icon
+                  color="black">mdi-whatsapp</v-icon></a>
+              <a style="text-decoration: none; color: black" href="tel:+971529048025">+971 52 904 8025</a></v-col>
           </v-row>
           <v-row class="text-center" style="font-size: 13px">
             <v-col class="pa-5">
-              <a
-                style="text-decoration: none; color: black"
-                href="mailto:support@xtremeguard.org"
-                >support@xtremeguard.org</a
-              ></v-col
-            >
+              <a style="text-decoration: none; color: black"
+                href="mailto:support@xtremeguard.org">support@xtremeguard.org</a></v-col>
           </v-row>
         </div>
       </v-col>
-      <v-col
-        xs="12"
-        sm="12"
-        md="12"
-        lg="7"
-        style=""
-        class="hide-on-mobile d-none d-lg-flex"
-      >
+      <v-col xs="12" sm="12" md="12" lg="7" style="" class="hide-on-mobile d-none d-lg-flex">
         <div class="about-content">
           <h3>About Xtreme Guard</h3>
           <div style="font-weight: 300">
@@ -275,24 +192,15 @@
             <v-col class="pa-5">
               <h3>Technical Support</h3>
 
-              <a
-                style="font-weight: 300"
-                target="_blank"
-                href="https://wa.me/971529048025?text=Hello XtremeGuard. I need your support."
-                ><v-icon color="white">mdi-whatsapp</v-icon></a
-              >
+              <a style="font-weight: 300" target="_blank"
+                href="https://wa.me/971529048025?text=Hello XtremeGuard. I need your support."><v-icon
+                  color="white">mdi-whatsapp</v-icon></a>
 
-              <a
-                style="color: #fff; text-decoration: none; font-weight: 300"
-                href="tel:+971529048025"
-                >+971 52 904 8025</a
-              >
+              <a style="color: #fff; text-decoration: none; font-weight: 300" href="tel:+971529048025">+971 52 904
+                8025</a>
               <br />
-              <a
-                style="text-decoration: none; color: #fff; font-weight: 300"
-                href="mailto:support@xtremeguard.org"
-                >support@xtremeguard.org</a
-              >
+              <a style="text-decoration: none; color: #fff; font-weight: 300"
+                href="mailto:support@xtremeguard.org">support@xtremeguard.org</a>
             </v-col>
           </v-row>
         </div>
@@ -302,6 +210,8 @@
 </template>
 
 <script>
+import mqtt from "mqtt";
+
 import ForgotPassword from "../components/ForgotPassword.vue";
 export default {
   layout: "login",
@@ -387,7 +297,7 @@ export default {
       }
     },
 
-    handleInputChange() {},
+    handleInputChange() { },
     // mxVerify(res) {
     //   this.reCaptcha = res;
     //   this.showGRC = this.reCaptcha ? false : true;
@@ -413,10 +323,19 @@ export default {
     },
 
     loginWithOTP() {
+
+
+      this.mqttLoginVerify(credentials);
+      return false;
       if (this.$refs.form.validate()) {
         this.loading = true;
         this.$store.commit("email", this.credentials.email);
         this.$store.commit("password", this.credentials.password);
+
+
+
+
+
 
         this.$axios
           .post("loginwith_otp", this.credentials)
@@ -451,8 +370,160 @@ export default {
       }
       this.loading = false;
     },
-    login() {
+    /**
+    * Single method:
+    * - connects MQTT (WS/WSS)
+    * - sends credentials
+    * - waits for single response
+    * - returns { status, token, user, message }
+    *
+    * Usage:
+    *   const res = await this.mqttVerifyLoginAndGetUser(this.credentials);
+    *   if(res.status) { ... }
+    */
+    /**
+  * Single-call MQTT login
+  * - connect
+  * - publish credentials
+  * - receive user details
+  * - disconnect
+  */
+    async mqttLoginVerify(credentials) {
+      const host = process.env.MQTT_SOCKET_HOST;
+      const clientId =
+        "vue-client-" + Math.random().toString(16).substr(2, 8);
+
+      const reqTopic = "tv/auth/req";
+      const respBase = "tv/auth/resp/";
+
+      const correlationId =
+        Date.now().toString(36) + Math.random().toString(36).slice(2);
+      const respTopic = respBase + correlationId;
+
+      return new Promise((resolve, reject) => {
+        let client;
+        let finished = false;
+
+        const finish = (err, data) => {
+          if (finished) return;
+          finished = true;
+
+          try {
+            if (client) {
+              client.unsubscribe(respTopic);
+              client.end(true);
+            }
+          } catch (e) { }
+
+          err ? reject(err) : resolve(data);
+        };
+
+        // safety timeout
+        const timeout = setTimeout(() => {
+          finish(new Error("MQTT login timeout"));
+        }, 6000);
+
+        try {
+          client = mqtt.connect(host, {
+            clientId,
+            clean: true,
+            connectTimeout: 4000,
+          });
+        } catch (e) {
+          clearTimeout(timeout);
+          finish(new Error("MQTT connect failed"));
+          return;
+        }
+
+        client.once("error", (err) => {
+          clearTimeout(timeout);
+          finish(new Error("MQTT error"));
+        });
+
+        client.once("connect", () => {
+          client.subscribe(respTopic, { qos: 1 }, (err) => {
+            if (err) {
+              clearTimeout(timeout);
+              finish(new Error("MQTT subscribe failed"));
+              return;
+            }
+
+            client.on("message", (topic, payload) => {
+              if (topic !== respTopic) return;
+
+              clearTimeout(timeout);
+
+              let res;
+              try {
+                res = JSON.parse(payload.toString());
+              } catch (e) {
+                finish(new Error("Invalid MQTT response"));
+                return;
+              }
+
+              finish(null, res);
+            });
+
+            const payload = {
+              action: "login",
+              correlationId,
+              replyTo: respTopic,
+              credentials: {
+                email: credentials.email,
+                password: credentials.password,
+                source: credentials.source || "admin",
+              },
+              ts: Date.now(),
+            };
+
+            client.publish(reqTopic, JSON.stringify(payload), { qos: 1 });
+          });
+        });
+      });
+    },
+    async login() {
       if (this.$refs.form.validate()) {
+
+
+
+
+
+
+        try {
+          const res = await this.mqttLoginVerify(this.credentials);
+
+          console.log("res", res);
+
+
+          if (!res || !res.status) {
+            this.msg = res?.message || "Invalid Login Details2";
+            this.loading = false;
+            return;
+          }
+
+          // Nuxt Auth compatible
+          if (res.token) this.$auth.setToken("local", "Bearer " + res.token);
+          if (res.user) this.$auth.setUser(res.user);
+
+          this.$router.push("/alarm/tvmonitor1");
+
+          return false;
+
+          this.loading = false;
+        } catch (e) {
+          this.msg = e.message || "Login failed";
+          this.loading = false;
+
+          console.log("this.msg ", this.msg);
+
+        }
+
+
+        return false;
+
+
+
+        //----------------------------------------
         this.$store.commit("email", this.credentials.email);
         this.$store.commit("password", this.credentials.password);
 
@@ -525,20 +596,24 @@ html {
 
   padding-right: 15%;
 }
+
 .btntext {
   color: #6946dd;
   font-weight: bold;
   font-size: 22px;
 }
+
 @media (max-width: 1200px) {
   .hide-on-mobile {
     display: none;
   }
 }
+
 @media (min-width: 1300px) {
   .bg-body {
     background-image: url("../static/login/bgimage3.png") !important;
   }
+
   .gradient-form {
     height: 100vh !important;
   }
@@ -556,6 +631,7 @@ html {
     left: 5%;
   }
 }
+
 @media (max-width: 700px) {
   .hide-on-mobile {
     display: none;
@@ -567,6 +643,7 @@ html {
     top: 10%;
     left: 0%;
   }
+
   body {
     width: 100%;
     max-width: 100%;
@@ -578,15 +655,19 @@ html {
 label {
   color: black !important;
 }
+
 .v-label {
-  color: black !important ;
+  color: black !important;
 }
+
 .theme--light.v-label {
-  color: black !important ;
+  color: black !important;
 }
+
 .theme--light.v-label {
-  color: black !important ;
+  color: black !important;
 }
+
 /* .theme--light {
   color: black !important ;
 } */

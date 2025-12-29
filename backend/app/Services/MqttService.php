@@ -10,12 +10,14 @@ use Illuminate\Support\Facades\Log;
 use App\Models\Device;
 use App\Models\DeviceSosRoomLogs;
 use App\Models\DeviceSosRooms;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class MqttService
 {
@@ -475,7 +477,7 @@ class MqttService
                         $roomsRes = $controller->updateResponseDatetime(new Request($params));
                     } catch (\Throwable $e) {
 
-                        // echo $e->getMessage();
+                        echo $e->getMessage();
                         Log::error('TV MQTT responder error', [
                             'topic' => $topic,
                             'message' => $message,
@@ -483,6 +485,84 @@ class MqttService
                         ]);
                     }
                 }, 0);
+
+                $this->mqtt->subscribe('tv/auth/req', function (string $topic, string $message) {
+
+
+                    echo $message;
+
+                    //echo $topic;
+
+
+                    try {
+
+                        // $message = "";
+                        $payload = json_decode($message, true, 512, JSON_THROW_ON_ERROR);
+
+                        echo $payload["credentials"]["email"];
+
+                        $user = User::where('email', $payload["credentials"]["email"])
+                            ->with("company:id,user_id,name,location,logo,company_code,expiry")
+                            ->select()
+                            ->first();
+
+
+                        if (!$user || !Hash::check($payload["credentials"]["password"], $user->password)) {
+
+                            $message = "Invalid Login Details";
+                        } else {
+                            unset($user->company);
+                            unset($user->employee);
+                            unset($user->assigned_permissions);
+
+                            $data = [
+                                'status' => true,
+                                'token' => $user->createToken('myApp')->plainTextToken,
+                                'user' => $user
+                            ];
+
+                            $this->mqtt->publish(
+                                "tv/auth/resp/" . $payload["correlationId"],
+                                json_encode(['data' => $data], JSON_UNESCAPED_SLASHES),
+                                0,
+                                false
+                            );
+                        }
+
+
+
+
+
+
+
+                        // $parts = explode('/', $topic); // tv/{companyId}/dashboard/request
+                        // $companyId = (int)($parts[1] ?? 0);
+                        // if ($companyId <= 0) return;
+
+                        // // $alarmId = (string)($payload['alarmId'] ?? '');
+                        // $params = (array)($payload['params'] ?? []);
+
+                        // // Force company id from topic (cannot be spoofed)
+                        // $params['company_id'] = $companyId;
+                        // $params['alarmId'] = $params['alarmId'];
+
+
+                        // // Call your existing controller methods directly (NO HTTP)
+                        // $controller = app(SOSRoomsControllers::class);
+
+                        // $roomsRes = $controller->updateResponseDatetime(new Request($params));
+                    } catch (\Throwable $e) {
+
+                        echo $e->getMessage();
+                        Log::error('TV MQTT responder error', [
+                            'topic' => $topic,
+                            'message' => $message,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }, 0);
+
+
 
 
 

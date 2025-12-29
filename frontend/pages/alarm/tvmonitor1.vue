@@ -42,24 +42,36 @@
           <v-btn small value="off">SOS OFF</v-btn>
         </v-btn-toggle>
 
+
+        <div class="text-caption grey--text mr-2">Cards Per Row</div>
+        <v-btn-toggle v-model="roomsPerRow" mandatory dense>
+          <v-btn small :value="2">2</v-btn>
+          <v-btn small :value="4">4</v-btn>
+          <v-btn small :value="6">6</v-btn>
+        </v-btn-toggle>
+
         <v-spacer />
 
         <!-- Cards per row selector (TV only) -->
-        <div class="d-flex align-center mr-4" v-if="deviceType === 'tv'">
-          <div class="text-caption grey--text mr-2">Cards / Row</div>
-          <v-btn-toggle v-model="roomsPerRow" mandatory dense>
-            <v-btn small :value="2">2</v-btn>
-            <v-btn small :value="4">4</v-btn>
-            <v-btn small :value="6">6</v-btn>
-          </v-btn-toggle>
+        <div class="d-flex align-center mr-4">
+
         </div>
 
         <div class="d-flex align-center mt-2 mt-md-0">
-          <div class="d-flex align-center mr-4">
+          <!-- <div class="d-flex align-center mr-4">
             <span class="dot dot-red mr-2"></span><span class="text-caption grey--text">SOS ON</span>
           </div>
           <div class="d-flex align-center">
             <span class="dot dot-grey mr-2"></span><span class="text-caption grey--text">SOS OFF</span>
+          </div> -->
+          <div class="d-flex align-center mt-2 mt-md-0" v-if="$auth?.user">
+            <span class="text-caption mr-3">
+              Welcome, <strong>{{ $auth.user.security.first_name }} {{ $auth.user.security.last_name }}</strong>
+            </span>
+
+            <v-btn x-small outlined color="error" @click="logout">
+              Logout
+            </v-btn>
           </div>
         </div>
       </div>
@@ -374,6 +386,11 @@ export default {
   },
 
   methods: {
+    logout() {
+      // example
+      this.$router.push('/logout');
+      // or call API logout then redirect
+    },
     // ---------- MQTT ----------
     connectMqtt() {
       if (this.client) return;
