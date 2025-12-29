@@ -100,8 +100,15 @@
             </div>
 
             <div class="text-right tv-chip-wrap mt-2">
+              <span v-if="!d.alarm?.responded_datetime">
+                <v-btn class="mt-2 blink-btn"
+                  :style="d.alarm?.alarm_end_datetime == null && d.alarm?.responded_datetime == null ? 'margin-top: 0px!important;' : ''"
+                  small v-if="d.alarm_status === true" @click="udpateResponse(d.alarm?.id)">
+                  <v-icon>mdi-cursor-default-click</v-icon> Acknowledge
+                </v-btn>
+              </span>
               <v-chip small v-if="d.alarm?.responded_datetime == null"
-                :style="d.alarm?.alarm_end_datetime == null && d.alarm?.responded_datetime == null ? 'margin-top:-30px!important;' : ''"
+                :style="d.alarm?.alarm_end_datetime == null && d.alarm?.responded_datetime == null ? 'margin-top: 0px!important;' : ''"
                 :color="d.alarm_status === true ? (d.alarm?.responded_datetime ? '#f97316' : 'red') : 'grey'">
                 {{
                   d.alarm_status === true
@@ -119,15 +126,11 @@
                 }}
               </v-chip>
 
-              <div v-if="!d.alarm?.responded_datetime">
-                <v-btn class="mt-2 blink-btn" small v-if="d.alarm_status === true" @click="udpateResponse(d.alarm?.id)">
-                  <v-icon>mdi-cursor-default-click</v-icon> Acknowledge
-                </v-btn>
-              </div>
+
             </div>
 
             <div class="mt-2 text-center" v-if="d.alarm_status === true"
-              :style="d.alarm?.alarm_end_datetime == null && d.alarm?.responded_datetime == null ? 'margin-top:-30px!important;' : ''">
+              :style="d.alarm?.alarm_end_datetime == null && d.alarm?.responded_datetime == null ? 'margin-top:0px!important;' : ''">
               <div class="text-h4 font-weight-bold mono">
                 {{ d.duration || "00:00:00" }}
               </div>
@@ -382,7 +385,7 @@ export default {
       }
 
       const companyId = this.$auth?.user ? this.$auth?.user?.company_id : Number(process.env.TV_COMPANY_ID || 0);
-      const securityId = 3;// this.$auth?.user?.security?.id || 0;
+      const securityId = this.$auth?.user?.security?.id || 0;
 
       if (!companyId) {
         this.snackbar = true;
@@ -411,8 +414,8 @@ export default {
         this.client.subscribe([this.topics.rooms, this.topics.stats, this.topics.reload], { qos: 0 }, (err) => {
           if (err) {
             this.snackbar = true;
-            this.snackbarResponse = "MQTT subscribe failed";
-            console.log("Step1 MQTT subscribe failed");
+            this.snackbarResponse = "Server subscribe failed";
+            console.log("Step1 Server subscribe failed");
             return;
           }
 
@@ -420,7 +423,7 @@ export default {
 
           this.snackbar = true;
           this.snackbarResponse = "Server Connected";
-          console.log("Step1 MQTT subscribed");
+          console.log("Step1 Server subscribed");
         });
       });
 
@@ -447,7 +450,7 @@ export default {
     },
 
     requestDashboardSnapshot() {
-      console.log("Step5- MQTT Request sending");
+      console.log("Step5- ServerRequest sending");
       if (!this.client || !this.isConnected) return;
 
       this.reqId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -472,7 +475,7 @@ export default {
       this.client.publish(this.topics.req, JSON.stringify(payload), { qos: 0, retain: false });
 
       this.snackbar = true;
-      this.snackbarResponse = "MQTT Request sent";
+      this.snackbarResponse = "Server Request sent";
 
       console.log("Step7- MQTT Request sent success");
       this.message = "snapshot requested";
