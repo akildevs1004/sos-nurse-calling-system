@@ -63,6 +63,10 @@ Route::get('/tv_reload',  function () {
 
 
 
+
+//TV MONITOR
+
+
 Route::apiResource('security', SecurityLoginController::class);
 Route::get("security-dropdownlist", [SecurityLoginController::class, "securityDropdownlist"]);
 

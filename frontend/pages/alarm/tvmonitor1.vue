@@ -157,7 +157,7 @@ const ROOMS_PER_ROW_KEY = "tv_rooms_per_row";
 
 export default {
   layout: "tvmonitorlayout",
-  auth: false,
+  // auth: true,
   name: "TvSosFloor",
   components: { SosAlarmPopupMqtt },
 
@@ -205,7 +205,8 @@ export default {
       },
 
       // optional debug
-      message: ""
+      message: "",
+      filterRoomTableIds: [],
     };
   },
 
@@ -324,7 +325,20 @@ export default {
   },
 
   created() {
+    this.$vuetify.theme.dark = true;
     this.message = "created";
+
+    //filter rooms
+
+    const sosRooms = this.$auth?.user?.security?.sos_rooms ?? [];
+
+    this.filterRoomTableIds = Array.isArray(sosRooms)
+      ? sosRooms.map(r => r.id)
+      : [];
+
+
+    // console.log(" console.log(this.$auth.user);", this.$auth.user.security);
+
   },
 
   mounted() {
@@ -367,12 +381,16 @@ export default {
         return;
       }
 
-      const companyId = Number(process.env.TV_COMPANY_ID || 0);
+      const companyId = this.$auth?.user ? this.$auth?.user?.company_id : Number(process.env.TV_COMPANY_ID || 0);
+      const securityId = 3;// this.$auth?.user?.security?.id || 0;
+
       if (!companyId) {
         this.snackbar = true;
         this.snackbarResponse = "TV_COMPANY_ID missing in env";
         return;
       }
+      // securityId = 3;
+      // alert(securityId);
 
       this.topics.req = `tv/${companyId}/dashboard/request`;
       this.topics.rooms = `tv/${companyId}/dashboard/rooms`;
@@ -387,6 +405,8 @@ export default {
 
       this.client.on("connect", () => {
         this.isConnected = true;
+
+
 
         this.client.subscribe([this.topics.rooms, this.topics.stats, this.topics.reload], { qos: 0 }, (err) => {
           if (err) {
@@ -431,7 +451,8 @@ export default {
       if (!this.client || !this.isConnected) return;
 
       this.reqId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-      const companyId = Number(process.env.TV_COMPANY_ID || 0);
+      const companyId = this.$auth?.user ? this.$auth?.user?.company_id : Number(process.env.TV_COMPANY_ID || 0);
+      const securityId = this.$auth?.user?.security?.id || 0;
 
       const payload = {
         reqId: this.reqId,
@@ -440,11 +461,13 @@ export default {
           date_from: this.date_from || null,
           date_to: this.date_to || null,
           roomType: this.room?.value || null,
-          sosStatus: this.status || null
+          sosStatus: this.status || null,
+          securityId: securityId || null,
+
         }
       };
 
-      console.log("Step6- MQTT Request sent", payload);
+      console.log("Step6- MQTT Request sent", payload, securityId, this.topics.req);
 
       this.client.publish(this.topics.req, JSON.stringify(payload), { qos: 0, retain: false });
 
@@ -580,7 +603,7 @@ export default {
       if (!alarmId) return;
 
       this.loading = true;
-      const companyId = Number(process.env.TV_COMPANY_ID || 0);
+      const companyId = this.$auth?.user ? this.$auth?.user?.company_id : Number(process.env.TV_COMPANY_ID || 0);
 
       const payload = {
         reqId: `${Date.now()}-${Math.random().toString(16).slice(2)}`,

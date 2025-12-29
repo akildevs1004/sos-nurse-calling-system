@@ -9,9 +9,22 @@
 <script>
 export default {
   name: "TvLayout",
-  auth: false,
-  middleware: [] // hard bypass
+  auth: true,
+  middleware: [],// hard bypass,
+
+  created() {
+
+
+    if (!this.$auth.user) {
+      {
+        this.logout();
+        return "";
+      }
+    }
+  }
 };
+
+
 </script>
 
 <style>

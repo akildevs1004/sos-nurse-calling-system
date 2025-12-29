@@ -31,7 +31,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/loginwith_otp', [AuthController::class, 'loginwithOTP']);
 Route::post('/check_otp/{key}', [AuthController::class, 'verifyOTP']);
 
-
+//"me"
 Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
 Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 

@@ -182,9 +182,6 @@ class AuthController extends Controller
         //     ]);
         // }
 
-        if ($user->user_type == "security") {
-            $user->load("security");
-        }
 
 
         unset($user->company);
@@ -206,7 +203,19 @@ class AuthController extends Controller
         //$user->user_type = $this->getUserType($user);
         //$user->branch_array = [1,   5];
         $user->permissions = $user->assigned_permissions ? $user->assigned_permissions->permission_names : [];
-        unset($user->assigned_permissions);
+        // unset($user->assigned_permissions);
+
+
+        // if ($user->user_type == "customer") {
+        //     $user->load("customer");
+        // }
+        if ($user->user_type == "security") {
+            $user->load("security");
+            $user->load("security.sosRooms");
+        }
+        // if ($user->user_type == "technician") {
+        //     $user->load("technician");
+        // }
 
         return ['user' => $user];
     }

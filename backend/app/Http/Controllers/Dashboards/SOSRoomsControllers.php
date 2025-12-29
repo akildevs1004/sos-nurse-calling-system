@@ -14,6 +14,7 @@ use App\Models\DeviceSosRooms;
 use App\Models\Employee;
 use App\Models\HostCompany;
 use App\Models\Leave;
+use App\Models\SecuritySosRoomsList;
 use App\Models\Visitor;
 use App\Models\VisitorAttendance;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -53,14 +54,25 @@ class SOSRoomsControllers extends Controller
         $slaMinutes = 1;
 
 
+        $filterRoomIds = collect();
 
+        if ($request->filled('securityId')) {
+            $securityId =   (int) $request->securityId;
+
+            // IMPORTANT: pick the correct column:
+            // - If this table stores DeviceSosRooms IDs, pluck('device_sos_room_id') (example)
+            // - If it stores its own row IDs, pluck('id') will be wrong for filtering rooms.
+            $filterRoomIds = SecuritySosRoomsList::where('security_user_id', $securityId)
+                ->pluck('sos_room_table_id'); // <-- adjust this column name to your schema
+        }
 
         // total responded calls
         $totalSOSActive = DeviceSosRoomLogs::with('room')
             ->where('company_id', $companyId)
             ->where("alarm_end_datetime", null)
-            ->when($request->filled('date_from'), function ($q) use ($request) {
-                $q->whereDate('alarm_start_datetime', '>=', $request->date_from);
+
+            ->when($filterRoomIds->isNotEmpty(), function ($q) use ($filterRoomIds) {
+                $q->whereIn('device_sos_room_table_id', $filterRoomIds);
             })
             ->when($request->filled('date_to'), function ($q) use ($request) {
                 $q->whereDate('alarm_end_datetime', '<=', $request->date_to);
@@ -76,6 +88,12 @@ class SOSRoomsControllers extends Controller
             ->where('company_id', $companyId)
 
             ->where('alarm_end_datetime', null)
+
+
+            ->when($filterRoomIds->isNotEmpty(), function ($q) use ($filterRoomIds) {
+                $q->whereIn('device_sos_room_table_id', $filterRoomIds);
+            })
+
             ->when($request->filled('date_from'), function ($q) use ($request) {
                 $q->whereDate('alarm_start_datetime', '>=', $request->date_from);
             })
@@ -92,12 +110,19 @@ class SOSRoomsControllers extends Controller
             })
             ->count();
         $repeatedCalls = DeviceSosRoomLogs::where('company_id', $companyId)->whereDate('alarm_start_datetime', date("Y-m-d"))
+
+            ->when($filterRoomIds->isNotEmpty(), function ($q) use ($filterRoomIds) {
+                $q->whereIn('device_sos_room_table_id', $filterRoomIds);
+            })
             ->whereNotNull('alarm_start_datetime')
             ->select('room_id')
             ->groupBy('room_id')
             ->havingRaw('COUNT(*) > 1')
             ->count();
         $ackCount = DeviceSosRoomLogs::where('company_id', $companyId)->whereDate('alarm_start_datetime', date("Y-m-d"))
+            ->when($filterRoomIds->isNotEmpty(), function ($q) use ($filterRoomIds) {
+                $q->whereIn('device_sos_room_table_id', $filterRoomIds);
+            })
             ->whereNotNull('responded_datetime')
             ->select('id')
             ->groupBy('id')
@@ -105,12 +130,18 @@ class SOSRoomsControllers extends Controller
             ->count();
 
         $averageMinutes = DeviceSosRoomLogs::where('company_id', $companyId)
+            ->when($filterRoomIds->isNotEmpty(), function ($q) use ($filterRoomIds) {
+                $q->whereIn('device_sos_room_table_id', $filterRoomIds);
+            })
             ->whereNotNull('response_in_minutes')
 
             ->avg('response_in_minutes');
 
         // responded within SLA
         $withinSla = DeviceSosRoomLogs::where('company_id', $companyId)
+            ->when($filterRoomIds->isNotEmpty(), function ($q) use ($filterRoomIds) {
+                $q->whereIn('device_sos_room_table_id', $filterRoomIds);
+            })
             ->whereNotNull('response_in_minutes')
             ->where('response_in_minutes', '<=', $slaMinutes)
             ->count();
@@ -143,28 +174,41 @@ class SOSRoomsControllers extends Controller
     {
         $companyId = (int) $request->company_id;
 
-        $deviceRooms = DeviceSosRooms::query()
+        $filterRoomIds = collect();
+
+        if ($request->filled('securityId')) {
+            $securityId =   (int) $request->securityId;
+
+            // IMPORTANT: pick the correct column:
+            // - If this table stores DeviceSosRooms IDs, pluck('device_sos_room_id') (example)
+            // - If it stores its own row IDs, pluck('id') will be wrong for filtering rooms.
+            $filterRoomIds = SecuritySosRoomsList::where('security_user_id', $securityId)
+                ->pluck('sos_room_table_id'); // <-- adjust this column name to your schema
+        }
+
+        $query = DeviceSosRooms::query()
             ->with([
                 'device',
                 'latestAlarm' => function ($q) use ($companyId) {
                     $q->where('company_id', $companyId);
                 }
             ])
-
-
-
             ->where('company_id', $companyId)
-            ->orderby('room_id', "asc")
+            ->orderBy('room_id', 'asc');
 
-            ->get()
+        if ($filterRoomIds->isNotEmpty()) {
+            $query->whereIn('id', $filterRoomIds);
+        }
+
+        $deviceRooms = $query->get()
             ->map(function ($room) {
-                // keep your output key name: alarm
                 $room->setAttribute('alarm', $room->latestAlarm);
                 unset($room->latestAlarm);
                 return $room;
             });
 
         return response()->json($deviceRooms);
+
         // $companyId = $request->company_id;
 
 
