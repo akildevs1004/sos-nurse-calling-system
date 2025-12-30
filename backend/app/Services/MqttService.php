@@ -133,7 +133,7 @@ class MqttService
                             return;
                         }
 
-
+                        echo "\n SOS Status : " . $status;
                         if ($status === "ON") {
 
                             // $now = now()->format("Y-m-d H:i:s");
@@ -175,7 +175,7 @@ class MqttService
                         } elseif ($status === "OFF") {
 
 
-                            echo "\nOFF 11111111" . $deviceSosRoom->id;
+                            echo "\n SOS OFF  " . $deviceSosRoom->id;
 
                             // $now = now()->format("Y-m-d H:i:s");
 
@@ -209,23 +209,7 @@ class MqttService
                                 }
                             }
 
-                            // if (count($openLog) == 0) {
-                            //     // Optional: if OFF arrives without an ON, you can still store it as standalone
-                            //     $alarmId = DeviceSosRoomLogs::create([
-                            //         "company_id"               => $device->company_id,
-                            //         "device_id"                => $device->id,
-                            //         "device_sos_room_table_id" => $deviceSosRoom->id,
-                            //         "room_id"                  => $roomId,
-                            //         "room_name"                => $name,
-                            //         "serial_number"            => $serialNumber,
-                            //         "sos_status"               => false,
-                            //         "off_code"                 => $code,
-                            //         "created_datetime"         => $now,
-                            //         "alarm_end_datetime"       => $now,
-                            //     ]);
 
-                            //     File::prepend($logPath, "[" . now() . "] Info: SOS Alarm Is created $alarmId serial=$serialNumber room_id=$roomId\n");
-                            // }
                             echo "\nOFF " . $deviceSosRoom->id;
                             echo  $deviceSosRoom->update([
                                 'alarm_status'     => false,
@@ -338,20 +322,20 @@ class MqttService
                             $rows = [];
                             $incomingDeviceRoomIds = [];
 
-                            echo count($sosDevices);
+                            echo "\n SOS Devices Count:" . count($sosDevices);
 
                             foreach ($sosDevices as $d) {
 
 
                                 if (!is_array($d)) continue;
 
-                                echo count($d);
+                                echo "\n SOS Devices Count: " . count($d);
 
 
                                 // IMPORTANT: use config "id" as stable device room identifier
                                 $deviceRoomId = isset($d['roomId']) ? (int)$d['roomId'] : null;
 
-                                echo ($deviceRoomId);
+                                echo "\n SOS Devices Room Id: " . ($deviceRoomId);
                                 if (!$deviceRoomId) continue;
 
                                 $incomingDeviceRoomIds[] = $deviceRoomId;
@@ -371,9 +355,9 @@ class MqttService
                                     'created_at'      => now(),
                                 ];
                             }
-                            echo "\n";
 
-                            echo count($rows);
+
+                            echo "\n SOS Devices Update Rooms Count: " . count($rows);
                             // Upsert present rooms
                             if (!empty($rows)) {
                                 DB::table('device_sos_rooms')->upsert(

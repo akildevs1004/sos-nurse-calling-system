@@ -467,9 +467,10 @@ export default {
     },
 
     requestDashboardSnapshot() {
-      console.log("Step5- ServerRequest sending");
-      if (!this.client || !this.isConnected) return;
 
+      if (!this.client || !this.isConnected) return;
+      alert("Request Received")
+      console.log("Step5- ServerRequest sending");
       this.reqId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
       const companyId = this.$auth?.user ? this.$auth?.user?.company_id : Number(process.env.TV_COMPANY_ID || 0);
       const securityId = this.$auth?.user?.security?.id || 0;

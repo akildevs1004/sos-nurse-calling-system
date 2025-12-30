@@ -210,6 +210,7 @@
 </template>
 
 <script>
+import mqtt from "mqtt";
 
 
 import ForgotPassword from "../components/ForgotPassword.vue";
@@ -361,51 +362,220 @@ export default {
       }
       this.loading = false;
     },
-    login() {
-      if (this.$refs.form.validate()) {
-        this.$store.commit("email", this.credentials.email);
-        this.$store.commit("password", this.credentials.password);
+    async isBackendUp() {
+      const base = process.env.BACKEND_URL; // if exists
+      const url = base ? `${base}/test` : "health";
 
-        this.msg = "";
-        this.loading = true;
-        this.$auth
-          .loginWith("local", { data: this.credentials })
-          .then(({ data }) => {
-            // console.log("$auth.user", data, this.$auth.user);
-
-            if (data.user.branch_id == 0 && data.user.is_master == false) {
-              this.snackbar = true;
-              this.snackbarMessage =
-                "You do not have Permission to access this page";
-              this.msg = "You do not have Permission to access this page";
-
-              // window.location.href = process.env.EMPLOYEE_APP_URL;
-              // this.$router.push("/login");
-              return false;
-            }
-
-            if (
-              this.$auth.user.role_id == 0 &&
-              this.$auth.user.user_type == "employee"
-            ) {
-              window.location.href = process.env.EMPLOYEE_APP_URL;
-              return "";
-            }
-
-            setTimeout(() => (this.loading = false), 2000);
-          })
-          .catch(({ response }) => {
-            if (!response) {
-              return false;
-            }
-            let { status, data, statusText } = response;
-            this.msg = status == 422 ? data.message : statusText;
-            setTimeout(() => (this.loading = false), 2000);
-          });
-      } else {
-        this.snackbar = true;
-        this.snackbarMessage = "Invalid Emaild and Password";
+      try {
+        await this.$axios.get(url, { timeout: 2000, params: { _t: Date.now() } });
+        return true;
+      } catch (e) {
+        return false;
       }
+    },
+    async login() {
+
+      //check MQTT
+
+      const backendOk = await this.isBackendUp();
+
+      // alert(backendOk);
+
+      if (backendOk == false) {
+
+        // ===== 2) MQTT LOGIN (backend not reachable) =====
+        try {
+          const res = await this.mqttLoginVerify(this.credentials);
+
+
+
+          if (!res || !res.data.status) {
+            this.msg = res?.message || "Invalid Login Details";
+            this.snackbar = true;
+            this.snackbarMessage = this.msg;
+            this.loading = false;
+            return;
+          }
+
+          // Set token + user (Nuxt Auth)
+          // if (res.data.token) this.$auth.token = res.data.token;
+          // if (res.data.user) this.$auth.user = res.data.user;
+          this.$auth.strategy.token.set("Bearer " + res.data.token);
+
+
+          if (res.data.user.user_type == "security") {
+
+            // alert( this.$auth.user.security.first_nam)
+            this.$auth.setUser(res.data.user);
+
+            this.$router.push("alarm/tvmonitor1");
+          }
+          else {
+            this.$router.push("logout");
+
+          }
+
+
+
+
+          this.loading = false;
+          return false;
+
+        } catch (e) {
+          this.msg = e?.message || "MQTT Login failed";
+          this.snackbar = true;
+          this.snackbarMessage = this.msg;
+          this.loading = false;
+
+          return false;
+        }
+
+      }
+      else {
+
+
+
+        if (this.$refs.form.validate()) {
+          this.$store.commit("email", this.credentials.email);
+          this.$store.commit("password", this.credentials.password);
+
+          this.msg = "";
+          this.loading = true;
+          this.$auth
+            .loginWith("local", { data: this.credentials })
+            .then(({ data }) => {
+              // console.log("$auth.user", data, this.$auth.user);
+
+              if (data.user.branch_id == 0 && data.user.is_master == false) {
+                this.snackbar = true;
+                this.snackbarMessage =
+                  "You do not have Permission to access this page";
+                this.msg = "You do not have Permission to access this page";
+
+                // window.location.href = process.env.EMPLOYEE_APP_URL;
+                // this.$router.push("/login");
+                return false;
+              }
+
+              if (
+                this.$auth.user.role_id == 0 &&
+                this.$auth.user.user_type == "employee"
+              ) {
+                window.location.href = process.env.EMPLOYEE_APP_URL;
+                return "";
+              }
+
+              setTimeout(() => (this.loading = false), 2000);
+            })
+            .catch(({ response }) => {
+              if (!response) {
+                return false;
+              }
+              let { status, data, statusText } = response;
+              this.msg = status == 422 ? data.message : statusText;
+              setTimeout(() => (this.loading = false), 2000);
+            });
+        } else {
+          this.snackbar = true;
+          this.snackbarMessage = "Invalid Emaild and Password";
+        }
+      }
+    },
+    async mqttLoginVerify(credentials) {
+      const host = process.env.MQTT_SOCKET_HOST;
+      const clientId =
+        "vue-client-" + Math.random().toString(16).substr(2, 8);
+
+      const reqTopic = "tv/auth/req";
+      const respBase = "tv/auth/resp/";
+
+      const correlationId =
+        Date.now().toString(36) + Math.random().toString(36).slice(2);
+      const respTopic = respBase + correlationId;
+
+      return new Promise((resolve, reject) => {
+        let client;
+        let finished = false;
+
+        const finish = (err, data) => {
+          if (finished) return;
+          finished = true;
+
+          try {
+            if (client) {
+              client.unsubscribe(respTopic);
+              client.end(true);
+            }
+          } catch (e) { }
+
+          err ? reject(err) : resolve(data);
+        };
+
+        // safety timeout
+        const timeout = setTimeout(() => {
+          finish(new Error("MQTT login timeout"));
+        }, 6000);
+
+        try {
+          client = mqtt.connect(host, {
+            clientId,
+            clean: true,
+            connectTimeout: 4000,
+          });
+        } catch (e) {
+
+          console.log("e", e);
+
+          clearTimeout(timeout);
+          finish(new Error("MQTT connect failed"));
+          return;
+        }
+
+        client.once("error", (err) => {
+          clearTimeout(timeout);
+          finish(new Error("MQTT error"));
+        });
+
+        client.once("connect", () => {
+          client.subscribe(respTopic, { qos: 1 }, (err) => {
+            if (err) {
+              clearTimeout(timeout);
+              finish(new Error("MQTT subscribe failed"));
+              return;
+            }
+
+            client.on("message", (topic, payload) => {
+              if (topic !== respTopic) return;
+
+              clearTimeout(timeout);
+
+              let res;
+              try {
+                res = JSON.parse(payload.toString());
+              } catch (e) {
+                finish(new Error("Invalid MQTT response"));
+                return;
+              }
+
+              finish(null, res);
+            });
+
+            const payload = {
+              action: "login",
+              correlationId,
+              replyTo: respTopic,
+              credentials: {
+                email: credentials.email,
+                password: credentials.password,
+                source: credentials.source || "admin",
+              },
+              ts: Date.now(),
+            };
+
+            client.publish(reqTopic, JSON.stringify(payload), { qos: 1 });
+          });
+        });
+      });
     },
 
 

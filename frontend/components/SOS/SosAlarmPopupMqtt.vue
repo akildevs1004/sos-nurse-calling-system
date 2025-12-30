@@ -101,11 +101,12 @@ export default {
 
   async mounted() {
 
-    // alert("Connected");
+    alert("Connected");
     await this.getDevicesFromApi();
 
 
-    if ((this.allowedSerials.length)) {
+    // if ((this.allowedSerials.length))
+    {
       this.mqttUrl = process.env.MQTT_SOCKET_HOST;
       this.connectMqtt();
     }
@@ -161,6 +162,8 @@ export default {
       });
 
       this.client.on("connect", () => {
+        console.log(" this.isConnected", "Connected");
+
         this.isConnected = true;
         this.client.subscribe("xtremesos/+/sosalarm", { qos: 1 });
       });
@@ -172,15 +175,29 @@ export default {
     },
 
     onMqttMessage(topic, payload) {
+
+      console.log("payload", payload);
       let msg;
       try {
         msg = JSON.parse(payload.toString());
-      } catch {
+      } catch (e) {
+        console.log("onMqttMessage", e, msg);
+
         return;
       }
 
-      if (!msg || msg.type !== "sos") return;
-      if (!msg.serialNumber || msg.id == null) return;
+      if (!msg || msg.type !== "sos") {
+
+        console.log("msg.type", msg.type);
+
+        return
+      };
+      if (!msg.serialNumber || msg.id == null) {
+
+        console.log("msg.id", msg.id);
+
+        return
+      };
 
       // Filter by company devices
       if (

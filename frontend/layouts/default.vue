@@ -1750,7 +1750,15 @@ export default {
     },
 
     setMenus() {
-      if (this.$auth.user.role.role_type == 0) {
+      if (!this.$auth.user.role) {
+        {
+          alert("Invalid User Type");
+          this.logout();
+        }
+
+        return "";
+      }
+      if (!this.$auth.user.role || this.$auth.user.role.role_type == 0) {
         {
           alert("Invalid User Type");
           this.logout();
