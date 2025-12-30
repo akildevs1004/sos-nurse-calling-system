@@ -101,7 +101,7 @@ export default {
 
   async mounted() {
 
-    alert("Connected");
+    // alert("Connected");
     await this.getDevicesFromApi();
 
 
