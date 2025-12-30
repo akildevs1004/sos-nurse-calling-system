@@ -12,9 +12,9 @@ object Prefs {
     private const val KEY_PROTOCOL = "kiosk_protocol"
     private const val KEY_ADMIN_PIN = "admin_pin"
 
-    // Defaults (only used on very first run)
+    // Defaults (used only on first run)
     private const val DEFAULT_IP = "192.168.2.28"
-    private const val DEFAULT_PORT = ""              // ✅ optional port default empty
+    private const val DEFAULT_PORT = "3000" // port optional
     private const val DEFAULT_PATH = "/alarm/tvmonitor1"
     private const val DEFAULT_PROTOCOL = "http"
 

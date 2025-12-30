@@ -4,11 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.Button
-import android.widget.EditText
-import android.widget.RadioButton
-import android.widget.RadioGroup
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 
 class SetupActivity : AppCompatActivity() {
@@ -30,7 +26,6 @@ class SetupActivity : AppCompatActivity() {
 
         val forceSettings = intent.getBooleanExtra("forceSettings", false)
 
-        // If URL exists AND not forced → go directly to WebView
         val savedUrl = Prefs.getUrl(this)
         if (savedUrl.isNotBlank() && !forceSettings) {
             openWebView(savedUrl)
@@ -40,27 +35,22 @@ class SetupActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_setup)
 
-        // Protocol UI
         protocolGroup = findViewById(R.id.protocolGroup)
         rbHttp = findViewById(R.id.rbHttp)
         rbHttps = findViewById(R.id.rbHttps)
 
-        // Overlay views
         contentLayout = findViewById(R.id.contentLayout)
         loadingOverlay = findViewById(R.id.loadingOverlay)
 
-        // Inputs
         ipInput = findViewById(R.id.ipInput)
         portInput = findViewById(R.id.portInput)
         pathInput = findViewById(R.id.pathInput)
         saveOpenBtn = findViewById(R.id.saveOpenBtn)
 
-        // Load saved values (or defaults)
         ipInput.setText(Prefs.getIp(this))
         portInput.setText(Prefs.getPort(this))
         pathInput.setText(Prefs.getPath(this))
 
-        // Load saved protocol
         val savedProtocol = Prefs.getProtocol(this)
         if (savedProtocol.equals("https", true)) rbHttps.isChecked = true else rbHttp.isChecked = true
 
@@ -78,7 +68,6 @@ class SetupActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Port optional, validate if entered
             if (portRaw.isNotEmpty()) {
                 val portNum = portRaw.toIntOrNull()
                 if (portNum == null || portNum !in 1..65535) {
@@ -97,7 +86,6 @@ class SetupActivity : AppCompatActivity() {
                 "$protocol://$ip$path"
             }
 
-            // Save everything
             Prefs.setNetworkFields(this, ip, portRaw, path, protocol)
             Prefs.setUrl(this, url)
 
@@ -140,9 +128,7 @@ class SetupActivity : AppCompatActivity() {
             try {
                 val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
                 imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
-            } catch (_: Exception) {
-                // Some TVs won't show soft keyboard; focus highlight still works.
-            }
+            } catch (_: Exception) { }
         }, 250)
     }
 

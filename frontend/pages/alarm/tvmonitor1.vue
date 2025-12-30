@@ -357,6 +357,7 @@ export default {
   },
 
   mounted() {
+
     this.snackbarResponse = "Mounted";
 
     // Restore saved roomsPerRow (TV)

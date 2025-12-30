@@ -9,24 +9,21 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Small settings/logout button (top-right) -->
-
-
     <ImageButton
         android:id="@+id/btnSettings"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
         android:layout_gravity="top|end"
-        android:layout_marginTop="4dp"
-        android:layout_marginEnd="1dp"
+        android:layout_marginEnd="6dp"
+        android:layout_marginTop="6dp"
+        android:padding="10dp"
         android:background="@drawable/focus_icon"
         android:contentDescription="Settings"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:padding="10dp"
+        android:src="@android:drawable/ic_lock_power_off"
         android:scaleType="centerInside"
-        android:src="@android:drawable/ic_lock_power_off" />
-    <!-- Optional: keep your admin hot zone (top-left) -->
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
+
     <View
         android:id="@+id/adminHotZone"
         android:layout_width="120dp"
