@@ -86,7 +86,7 @@
           <v-icon style="text-align: center;padding-right:5px;" @click="reload">mdi-refresh-circle </v-icon>
 
 
-          <v-btn x-small outlined color="error" @click="logout" style="margin-right:10px">
+          <v-btn x-small outlined color="error" @click="logout" style="margin-right:20px">
             Logout
           </v-btn>
         </div>
@@ -460,6 +460,8 @@ export default {
 
   methods: {
     startAutoPaging() {
+
+
       // stop old timer first
       this.stopAutoPaging();
 
@@ -904,6 +906,7 @@ export default {
   width: 100%;
   min-height: 40px;
   min-width: 0;
+  padding-top: 10px !important;
 }
 
 .roomLane2 {
