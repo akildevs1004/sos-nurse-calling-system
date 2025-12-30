@@ -39,4 +39,9 @@ body,
   min-height: 100vh;
   padding: 0;
 }
+
+.theme--dark.v-application {
+  background: #1a2632 !important;
+  color: #FFFFFF;
+}
 </style>

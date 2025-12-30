@@ -177,9 +177,12 @@
                 <div class="mt-3" style="">
 
 
-                  <v-icon size="40" v-if="d.room_type == 'toilet' || 'toilet-ph'" color="yellow"> mdi-toilet </v-icon>
-                  <v-icon size="40" v-if="d.room_type == 'room' || 'room-ph'" color="blue"> mdi-bed </v-icon>
-                  <v-icon size="40" v-if="d.room_type == 'room-ph' || 'toilet-ph'" color="red"> mdi-wheelchair </v-icon>
+                  <v-icon size="40" v-if="d.room_type == 'toilet' || d.room_type == 'toilet-ph'" color="yellow">
+                    mdi-toilet </v-icon>
+                  <v-icon size="40" v-else-if="d.room_type == 'room' || d.room_type == 'room-ph'" color="blue"> mdi-bed
+                  </v-icon>
+                  <v-icon size="40" v-if="d.room_type == 'room-ph' || d.room_type == 'toilet-ph'" color="red">
+                    mdi-wheelchair </v-icon>
 
 
                   <v-icon v-if="!d.room_type || d.room_type == ''" size="40" color="blue"> mdi-bed </v-icon>

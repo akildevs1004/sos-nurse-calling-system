@@ -1,3 +1,4 @@
+<!-- TvDashboard.vue -->
 <template>
   <div class="tv-page" :class="deviceClass">
     <v-snackbar v-model="snackbar" :timeout="3000" elevation="24" class="center-snackbar">
@@ -6,168 +7,139 @@
 
     <SosAlarmPopupMqtt @triggerUpdateDashboard="requestDashboardSnapshot()" />
 
-    <!-- ONE SCROLL CONTAINER FOR EVERYTHING -->
-    <div class="pageScroll">
+    <!-- TV LAYOUT (NO SCROLL) -->
+    <div class="tvLayout">
+      <!-- HEADER -->
+      <div class="tvHeader">
+        <div class="d-flex justify-end align-center" v-if="$auth?.user">
+          <span class="text-caption mr-3">
+            Welcome,
+            <strong>
+              {{ $auth.user?.security?.first_name || "" }}
+              {{ $auth.user?.security?.last_name || "" }}
+            </strong>
+          </span>
 
-      <v-row>
-        <v-col cols="12" class="d-flex justify-end">
-          <div class="d-flex align-center mt-2 mt-md-0" v-if="$auth?.user">
-            <span class="text-caption mr-3">
-              Welcome,
-              <strong>
-                {{ $auth.user?.security?.first_name || '' }}
-                {{ $auth.user?.security?.last_name || '' }}
-              </strong>
-            </span>
-
-            <v-btn x-small outlined color="error" @click="logout">
-              Logout
-            </v-btn>
+          <!-- Screen size indicator -->
+          <div class="tvResolution mr-3">
+            {{ screenWidth }} × {{ screenHeight }} px
           </div>
-        </v-col>
-      </v-row>
-      <!-- ================= TOP STATISTICS ================= -->
-      <v-row dense class="mb-2">
-        <v-col v-for="s in statCards" :key="s.key" cols="12" sm="6" :md="statsColsMd" :lg="statsColsLg">
-          <v-card outlined class="pa-4 roomCard stat-card1" :class="s.cardClass">
+
+          <v-btn x-small outlined color="error" @click="logout" style="margin-right:10px">
+            Logout
+          </v-btn>
+        </div>
+      </div>
+
+      <!-- STATS: ONE ROW -->
+      <v-row dense class="tvStatsRow">
+        <v-col v-for="s in statCards" :key="s.key" cols="2" class="tvStatCol">
+          <v-card outlined class="pa-3 roomCard stat-card1 tvStatCard" :class="s.cardClass">
             <div class="d-flex align-center">
-              <div>
+              <div class="min-w-0">
                 <div class="text-caption text-uppercase font-weight-bold stat-title" :class="s.textClass">
                   {{ s.title }}
                 </div>
-                <div class="d-flex align-baseline mt-2">
+
+                <div class="d-flex align-baseline mt-1">
                   <div class="text-h4 font-weight-bold">{{ s.value }}</div>
-                  <div class="ml-2 stat-sub" :class="s.textClass">{{ s.sub }}</div>
+                  <div class="ml-2 stat-sub" :class="s.textClass">
+                    {{ s.sub }}
+                  </div>
                 </div>
               </div>
+
               <v-spacer />
+
               <v-icon class="stat-icon" :class="s.textClass">{{ s.icon }}</v-icon>
             </div>
 
-            <v-progress-linear style="margin-top:-10px!important" v-if="s.key === 'avg'" class="mt-1" height="4"
-              :value="avgResponsePct" rounded />
+            <v-progress-linear v-if="s.key === 'avg'" class="mt-1" height="4" :value="avgResponsePct" rounded
+              style="margin-top:-10px!important" />
           </v-card>
         </v-col>
       </v-row>
 
-      <!-- ================= FILTER ROW (with Cards/Row selector) ================= -->
-      <div class="d-flex flex-wrap align-center mt-1 mb-3">
+      <!-- TOOLBAR -->
+      <div class="tvToolbar d-flex align-center">
         <v-btn-toggle v-model="filterMode" mandatory class="mr-4">
           <v-btn small value="all">All</v-btn>
           <v-btn small value="on">SOS ON</v-btn>
           <v-btn small value="off">SOS OFF</v-btn>
         </v-btn-toggle>
 
-
         <div class="text-caption grey--text mr-2">Cards Per Row</div>
         <v-btn-toggle v-model="roomsPerRow" mandatory dense>
-          <v-btn small :value="2">2</v-btn>
-          <v-btn small :value="4">4</v-btn>
-          <v-btn small :value="6">6</v-btn>
+          <v-btn small :value="2" @click="roomsPerRow = 2">2</v-btn>
+          <v-btn small :value="4" @click="roomsPerRow = 4">4</v-btn>
+          <v-btn small :value="6" @click="roomsPerRow = 6">6</v-btn>
         </v-btn-toggle>
 
         <v-spacer />
 
-        <!-- Cards per row selector (TV only) -->
-        <div class="d-flex align-center mr-4">
-
-        </div>
-
-        <div class="d-flex align-center mt-2 mt-md-0">
-          <!-- <div class="d-flex align-center mr-4">
-            <span class="dot dot-red mr-2"></span><span class="text-caption grey--text">SOS ON</span>
+        <!-- Pagination -->
+        <div class="d-flex align-center">
+          <v-btn small outlined class="mr-2" @click="prevPage" :disabled="pageIndex === 0">Prev</v-btn>
+          <div class="text-caption grey--text mr-2">
+            Page {{ pageIndex + 1 }} / {{ totalPages }}
           </div>
-          <div class="d-flex align-center">
-            <span class="dot dot-grey mr-2"></span><span class="text-caption grey--text">SOS OFF</span>
-          </div> -->
-
+          <v-btn small outlined @click="nextPage" :disabled="pageIndex >= totalPages - 1">Next</v-btn>
         </div>
       </div>
 
-      <!-- ================= ROOMS GRID (dynamic columns + scroll) ================= -->
-      <div class="roomsGrid" :style="roomsGridStyle">
-        <div v-for="d in filteredDevices" :key="d.id || d.room_id" class="roomCell">
-          <v-card outlined class="pa-3 roomCard roomCardIndividual" :class="cardClass(d)">
-            <div class="d-flex align-start">
-              <div class="min-w-0">
-                <div class="text-h6 font-weight-black text-truncate">{{ d.name }}</div>
+      <!-- ROOMS AREA (FILL REST OF SCREEN, NO SCROLL) -->
+      <div class="tvRoomsArea">
+        <div class="roomsGrid tvRoomsGrid" :style="roomsGridStyle">
+          <div v-for="d in pagedDevices" :key="d.id || d.room_id" class="roomCell">
+            <v-card outlined class="pa-2 roomCard roomCardIndividual tvRoomCard"
+              :class="[cardClass(d), 'room-cols-' + roomsPerRow]">
+              <!-- SINGLE LANE: Name | Signal | Alarm Icon | Status | Ack -->
+              <div class="roomLane">
+                <div class="laneName text-truncate">{{ d.name }}</div>
 
-                <div class="mt-3">
-                  <v-icon v-if="d.room_type === 'room-ph' || d.room_type === 'toilet-ph'" size="40"
-                    class="roomIcon roomIconPh">
-                    mdi-wheelchair
-                  </v-icon>
+                <!-- Signal -->
+                <v-icon class="laneIcon"
+                  :color="d.device?.status_id == 1 ? 'green' : (d.device?.status_id == 2 ? 'red' : '')">
+                  {{ d.device?.status_id == 1 ? "mdi-wifi" : (d.device?.status_id == 2 ? "mdi-wifi-off" : "mdi-wifi") }}
+                </v-icon>
 
-                  <v-icon v-else-if="d.room_type === 'toilet'" size="40" class="roomIcon roomIconToilet">
-                    mdi-toilet
-                  </v-icon>
+                <!-- Alarm Icon -->
+                <v-icon v-if="d.alarm_status === true" class="laneIcon" color="red">mdi-bell</v-icon>
+                <v-icon v-else class="laneIcon" color="grey">mdi-bell-outline</v-icon>
 
-                  <v-icon v-else-if="d.room_type === 'room'" size="40" class="roomIcon roomIconRoom">
-                    mdi-bed
-                  </v-icon>
+                <!-- Alarm Status -->
+                <v-chip x-small class="laneChip"
+                  :color="d.alarm_status === true ? (d.alarm?.responded_datetime ? '#f97316' : 'red') : 'grey'">
+                  {{
+                    d.alarm_status === true
+                      ? (d.alarm?.responded_datetime ? "ACK" : "PENDING")
+                      : "OK"
+                  }}
+                </v-chip>
 
-                  <v-icon v-else size="40" class="roomIcon roomIconDefault">mdi-bed</v-icon>
-                </div>
-              </div>
-
-              <v-spacer />
-
-              <div>
-                <v-icon v-if="d.alarm_status === true" color="red">mdi-bell</v-icon>
-                <v-icon v-if="d.device?.status_id == 1" color="green">mdi-wifi</v-icon>
-                <v-icon v-else-if="d.device?.status_id == 2" color="red">mdi-wifi-off</v-icon>
-              </div>
-            </div>
-
-            <div class="text-right tv-chip-wrap mt-2">
-              <span v-if="!d.alarm?.responded_datetime">
-                <v-btn class="mt-2 blink-btn"
-                  :style="d.alarm?.alarm_end_datetime == null && d.alarm?.responded_datetime == null ? 'margin-top: 0px!important;' : ''"
-                  small v-if="d.alarm_status === true" @click="udpateResponse(d.alarm?.id)">
-                  <v-icon>mdi-cursor-default-click</v-icon> Acknowledge
+                <!-- Ack button always present (disabled when not needed) -->
+                <v-btn x-small class="laneAckBtn blink-btn"
+                  :disabled="!(d.alarm_status === true && !d.alarm?.responded_datetime)"
+                  @click="udpateResponse(d.alarm?.id)">
+                  ACK
                 </v-btn>
-              </span>
-              <v-chip small v-if="d.alarm?.responded_datetime == null"
-                :style="d.alarm?.alarm_end_datetime == null && d.alarm?.responded_datetime == null ? 'margin-top: 0px!important;' : ''"
-                :color="d.alarm_status === true ? (d.alarm?.responded_datetime ? '#f97316' : 'red') : 'grey'">
-                {{
-                  d.alarm_status === true
-                    ? (d.alarm?.responded_datetime ? "ACKNOWLEDGED" : "PENDING")
-                    : "RESOLVED"
-                }}
-              </v-chip>
-
-              <v-chip small v-else-if="d.alarm?.responded_datetime != null"
-                :color="d.alarm_status === true ? (d.alarm?.responded_datetime ? '#f97316' : 'red') : 'grey'">
-                {{
-                  d.alarm_status === true
-                    ? (d.alarm?.responded_datetime ? "ACKNOWLEDGED1" : "PENDING")
-                    : "RESOLVED"
-                }}
-              </v-chip>
-
-
-            </div>
-
-            <div class="mt-2 text-center" v-if="d.alarm_status === true"
-              :style="d.alarm?.alarm_end_datetime == null && d.alarm?.responded_datetime == null ? 'margin-top:0px!important;' : ''">
-              <div class="text-h4 font-weight-bold mono">
-                {{ d.duration || "00:00:00" }}
               </div>
-              <div class="text-body-1 red--text font-weight-bold text-uppercase timeText">
-                {{ d.alarm?.alarm_start_datetime || d.alarm_start_datetime }}
-              </div>
-            </div>
 
-            <div class="mt-2 text-center grey--text" v-else>
-              <v-icon large color="green">mdi-check-circle</v-icon>
-              <div class="text-body-2 font-weight-medium mt-1">No Active Call</div>
-            </div>
-          </v-card>
+              <!-- OPTIONAL: Duration line -->
+              <div class="laneDurationWrap" v-if="d.alarm_status === true">
+                <div class="laneDuration mono">{{ d.duration || "00:00:00" }}</div>
+              </div>
+
+              <div class="laneOkWrap" v-else>
+                <v-icon color="green" class="okIcon">mdi-check-circle</v-icon>
+                <span class="okText">No Active Call</span>
+              </div>
+            </v-card>
+          </div>
         </div>
-      </div>
 
-      <v-progress-linear v-if="loading" indeterminate height="3" class="my-2" />
+        <v-progress-linear v-if="loading" indeterminate height="3" class="my-2" />
+      </div>
     </div>
   </div>
 </template>
@@ -180,7 +152,6 @@ const ROOMS_PER_ROW_KEY = "tv_rooms_per_row";
 
 export default {
   layout: "tvmonitorlayout",
-  // auth: true,
   name: "TvSosFloor",
   components: { SosAlarmPopupMqtt },
 
@@ -194,8 +165,15 @@ export default {
       snackbar: false,
       snackbarResponse: "",
 
-      // Rooms grid selector (TV)
-      roomsPerRow: 4, // default 4
+      roomsPerRow: 4, // 2 | 4 | 6
+
+      // TV paging (NO SCROLL)
+      pageIndex: 0,
+      tvRowsPerScreen: 3,
+
+      // Screen size indicator
+      screenWidth: 0,
+      screenHeight: 0,
 
       // Stats
       avgResponseText: "00:00",
@@ -205,7 +183,7 @@ export default {
       totalSOSCount: 0,
       activeDisabledSos: 0,
 
-      // params (same as your API)
+      // params
       room: null,
       status: null,
       date_from: "",
@@ -220,44 +198,31 @@ export default {
       client: null,
       isConnected: false,
       reqId: "",
-      topics: {
-        req: "",
-        rooms: "",
-        stats: "",
-        reload: ""
-      },
+      topics: { req: "", rooms: "", stats: "", reload: "" },
 
-      // optional debug
       message: "",
       filterRoomTableIds: [],
     };
   },
 
   computed: {
-    // --- Breakpoint driven device mode ---
     deviceType() {
-      if (this.$vuetify.breakpoint.smAndDown) return "mobile"; // xs/sm
-      if (this.$vuetify.breakpoint.mdOnly) return "tablet"; // md
-      return "tv"; // lg/xl
+      if (this.$vuetify.breakpoint.smAndDown) return "mobile";
+      if (this.$vuetify.breakpoint.mdOnly) return "tablet";
+      return "tv";
     },
     deviceClass() {
       return `is-${this.deviceType}`;
     },
 
-    // Stats: 1/row on mobile, 2/row on tablet, 6/row on TV
-    statsColsMd() {
-      return this.deviceType === "tv" ? 4 : 6;
-    },
-    statsColsLg() {
-      return this.deviceType === "tv" ? 2 : 3;
-    },
-
-    // Rooms grid columns style (CSS variable)
+    // IMPORTANT: This now applies for ALL sizes so 2/4/6 always works
     roomsGridStyle() {
-      // Mobile/tablet: use fixed cols via CSS classes
-      if (this.deviceType !== "tv") return {};
       const cols = [2, 4, 6].includes(Number(this.roomsPerRow)) ? Number(this.roomsPerRow) : 4;
-      return { "--rooms-cols": cols };
+      return {
+        "--rooms-cols": cols,
+        "--card-max-w": "450px",
+        "--card-max-h": "200px",
+      };
     },
 
     activeSosCount() {
@@ -280,62 +245,28 @@ export default {
       return this.devices;
     },
 
+    // ===== NO-SCROLL PAGINATION =====
+    pageSize() {
+      const cols = [2, 4, 6].includes(Number(this.roomsPerRow)) ? Number(this.roomsPerRow) : 4;
+      return cols * this.tvRowsPerScreen;
+    },
+    totalPages() {
+      const n = this.filteredDevices?.length || 0;
+      return Math.max(1, Math.ceil(n / this.pageSize));
+    },
+    pagedDevices() {
+      const start = this.pageIndex * this.pageSize;
+      return (this.filteredDevices || []).slice(start, start + this.pageSize);
+    },
+
     statCards() {
       return [
-        {
-          key: "active",
-          title: "Active SOS",
-          value: this.stats.activeSos,
-          sub: "Calls",
-          icon: "mdi-bell-alert",
-          cardClass: "stat-critical",
-          textClass: "critical-text"
-        },
-        {
-          key: "disabled",
-          title: "Disabled",
-          value: this.activeDisabledSos,
-          sub: "Calls",
-          icon: "mdi-wheelchair",
-          cardClass: "stat-amber",
-          textClass: "amber-text"
-        },
-        {
-          key: "repeated",
-          title: "Repeated",
-          value: this.stats.repeated,
-          sub: "Calls",
-          icon: "mdi-alarm-light",
-          cardClass: "stat-info",
-          textClass: "info-text"
-        },
-        {
-          key: "ack",
-          title: "Acknowledged",
-          value: this.stats.ackCount,
-          sub: "Calls",
-          icon: "mdi-check-circle",
-          cardClass: "stat-success",
-          textClass: "success-text"
-        },
-        {
-          key: "total",
-          title: "Total",
-          value: this.stats.totalSOSCount,
-          sub: "Calls",
-          icon: "mdi-counter",
-          cardClass: "stat-purple",
-          textClass: "purple-text"
-        },
-        {
-          key: "avg",
-          title: "Avg Response",
-          value: this.avgResponseText,
-          sub: "min",
-          icon: "mdi-timer",
-          cardClass: "stat-teal",
-          textClass: "teal-text"
-        }
+        { key: "active", title: "Active SOS", value: this.stats.activeSos, sub: "Calls", icon: "mdi-bell-alert", cardClass: "stat-critical", textClass: "critical-text" },
+        { key: "disabled", title: "Disabled", value: this.activeDisabledSos, sub: "Calls", icon: "mdi-wheelchair", cardClass: "stat-amber", textClass: "amber-text" },
+        { key: "repeated", title: "Repeated", value: this.stats.repeated, sub: "Calls", icon: "mdi-alarm-light", cardClass: "stat-info", textClass: "info-text" },
+        { key: "ack", title: "Acknowledged", value: this.stats.ackCount, sub: "Calls", icon: "mdi-check-circle", cardClass: "stat-success", textClass: "success-text" },
+        { key: "total", title: "Total", value: this.stats.totalSOSCount, sub: "Calls", icon: "mdi-counter", cardClass: "stat-purple", textClass: "purple-text" },
+        { key: "avg", title: "Avg Response", value: this.avgResponseText, sub: "min", icon: "mdi-timer", cardClass: "stat-teal", textClass: "teal-text" }
       ];
     }
   },
@@ -344,62 +275,62 @@ export default {
     roomsPerRow(v) {
       const n = Number(v);
       if ([2, 4, 6].includes(n)) localStorage.setItem(ROOMS_PER_ROW_KEY, String(n));
+      this.pageIndex = 0;
+    },
+    filterMode() {
+      this.pageIndex = 0;
+    },
+    filteredDevices() {
+      if (this.pageIndex > this.totalPages - 1) this.pageIndex = 0;
     }
   },
 
   created() {
     this.$vuetify.theme.dark = true;
-    this.message = "created";
-
-    //filter rooms
 
     const sosRooms = this.$auth?.user?.security?.sos_rooms ?? [];
-
-    this.filterRoomTableIds = Array.isArray(sosRooms)
-      ? sosRooms.map(r => r.id)
-      : [];
-
-
-    // console.log(" console.log(this.$auth.user);", this.$auth.user.security);
-
+    this.filterRoomTableIds = Array.isArray(sosRooms) ? sosRooms.map(r => r.id) : [];
   },
 
   mounted() {
+    this.updateScreenSize();
+    window.addEventListener("resize", this.updateScreenSize);
 
-    this.snackbarResponse = "Mounted";
-
-    // Restore saved roomsPerRow (TV)
     const saved = Number(localStorage.getItem(ROOMS_PER_ROW_KEY));
     if ([2, 4, 6].includes(saved)) this.roomsPerRow = saved;
 
-    // Duration ticking
     this.timer = setInterval(() => this.updateDurationAll(), this.TIMER_MS);
 
-    // MQTT
-    this.mqttUrl = process.env.MQTT_SOCKET_HOST; // ws://IP:9001
+    this.mqttUrl = process.env.MQTT_SOCKET_HOST;
     this.connectMqtt();
   },
 
   beforeDestroy() {
+    window.removeEventListener("resize", this.updateScreenSize);
     try {
       if (this.timer) clearInterval(this.timer);
       this.disconnectMqtt();
-    } catch (e) { }
-  },
-
-  destroyed() {
-    try {
-      this.disconnectMqtt();
-      if (this.timer) clearInterval(this.timer);
     } catch (e) { }
   },
 
   methods: {
-    logout() {
-      // example
-      this.$router.push('/logout');
-      // or call API logout then redirect
+    updateScreenSize() {
+      this.screenWidth = window.innerWidth;
+      this.screenHeight = window.innerHeight;
     },
+
+    // ===== PAGING =====
+    nextPage() {
+      if (this.pageIndex < this.totalPages - 1) this.pageIndex++;
+    },
+    prevPage() {
+      if (this.pageIndex > 0) this.pageIndex--;
+    },
+
+    logout() {
+      this.$router.push("/logout");
+    },
+
     // ---------- MQTT ----------
     connectMqtt() {
       if (this.client) return;
@@ -411,15 +342,11 @@ export default {
       }
 
       const companyId = this.$auth?.user ? this.$auth?.user?.company_id : Number(process.env.TV_COMPANY_ID || 0);
-      const securityId = this.$auth?.user?.security?.id || 0;
-
       if (!companyId) {
         this.snackbar = true;
         this.snackbarResponse = "TV_COMPANY_ID missing in env";
         return;
       }
-      // securityId = 3;
-      // alert(securityId);
 
       this.topics.req = `tv/${companyId}/dashboard/request`;
       this.topics.rooms = `tv/${companyId}/dashboard/rooms`;
@@ -435,26 +362,17 @@ export default {
       this.client.on("connect", () => {
         this.isConnected = true;
 
-
-
         this.client.subscribe([this.topics.rooms, this.topics.stats, this.topics.reload], { qos: 0 }, (err) => {
           if (err) {
             this.snackbar = true;
             this.snackbarResponse = "Server subscribe failed";
-            console.log("Step1 Server subscribe failed");
             return;
           }
-
           this.requestDashboardSnapshot();
-
-          this.snackbar = true;
-          this.snackbarResponse = "Server Connected";
-          console.log("Step1 Server subscribed");
         });
       });
 
       this.client.on("message", this.onMqttMessage);
-
       this.client.on("close", () => (this.isConnected = false));
       this.client.on("offline", () => (this.isConnected = false));
       this.client.on("error", () => (this.isConnected = false));
@@ -476,10 +394,8 @@ export default {
     },
 
     requestDashboardSnapshot() {
-
       if (!this.client || !this.isConnected) return;
-      // alert("Request Received")
-      console.log("Step5- ServerRequest sending");
+
       this.reqId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
       const companyId = this.$auth?.user ? this.$auth?.user?.company_id : Number(process.env.TV_COMPANY_ID || 0);
       const securityId = this.$auth?.user?.security?.id || 0;
@@ -492,33 +408,20 @@ export default {
           date_to: this.date_to || null,
           roomType: this.room?.value || null,
           sosStatus: this.status || null,
-          securityId: securityId || null,
-
+          securityId: securityId || null
         }
       };
 
-      console.log("Step6- MQTT Request sent", payload, securityId, this.topics.req);
-
       this.client.publish(this.topics.req, JSON.stringify(payload), { qos: 0, retain: false });
-
-      this.snackbar = true;
-      this.snackbarResponse = "Server Request sent";
-
-      console.log("Step7- MQTT Request sent success");
-      this.message = "snapshot requested";
     },
 
     onMqttMessage(topic, payload) {
-      console.log("Step8- Message received");
-
       if (topic !== this.topics.rooms && topic !== this.topics.stats && topic !== this.topics.reload) return;
 
       let msg;
       try {
         msg = JSON.parse(payload.toString());
-        console.log("Step9- Message received", topic, msg);
       } catch (e) {
-        console.log("Step10- Error", e);
         return;
       }
 
@@ -531,15 +434,12 @@ export default {
       }
 
       if (topic === this.topics.reload) {
-        try {
-          window.location.reload();
-        } catch (e) { }
+        try { window.location.reload(); } catch (e) { }
         return;
       }
 
       if (topic === this.topics.stats) {
         const s = msg?.data || {};
-
         this.repeated = s.repeated || 0;
         this.ackCount = s.ackCount || 0;
         this.totalSOSCount = s.totalSOSCount || 0;
@@ -574,12 +474,10 @@ export default {
     parseStartMs(dateStr) {
       if (!dateStr) return null;
       const raw = String(dateStr).trim();
-
       if (raw.includes("T")) {
         const ms = Date.parse(raw);
         return Number.isFinite(ms) ? ms : null;
       }
-
       const clean = raw.replace(/\.\d+$/, "");
       const isoLocal = clean.replace(" ", "T");
       const ms = Date.parse(isoLocal);
@@ -637,18 +535,12 @@ export default {
 
       const payload = {
         reqId: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-        params: {
-          company_id: companyId,
-          alarmId
-        }
+        params: { company_id: companyId, alarmId }
       };
 
       try {
         if (this.client && this.isConnected) {
-          this.client.publish(`tv/${companyId}/dashboard_alarm_response`, JSON.stringify(payload), {
-            qos: 0,
-            retain: false
-          });
+          this.client.publish(`tv/${companyId}/dashboard_alarm_response`, JSON.stringify(payload), { qos: 0, retain: false });
         }
       } catch (e) { }
 
@@ -661,70 +553,182 @@ export default {
 </script>
 
 <style scoped>
+/* ===== PAGE ===== */
 .tv-page {
   height: 100vh;
-  padding: 12px;
+  overflow: hidden;
+  padding: 10px 12px;
   box-sizing: border-box;
 }
 
-/* Scroll entire content */
-.pageScroll {
-  height: calc(100vh - 24px);
-  overflow-y: auto;
-  overflow-x: hidden;
+.tvLayout {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Rooms grid (dynamic columns via CSS variable) */
+.tvHeader {
+  flex: 0 0 auto;
+  margin-bottom: 6px;
+}
+
+/* stats */
+.tvStatsRow {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.tvStatCol {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.tvStatCard {
+  height: 86px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* toolbar */
+.tvToolbar {
+  flex: 0 0 auto;
+  margin-top: 6px;
+  margin-bottom: 8px;
+}
+
+/* rooms */
+.tvRoomsArea {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* IMPORTANT: roomsPerRow works on ALL screen sizes */
 .roomsGrid {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(var(--rooms-cols, 4), minmax(0, 1fr));
+  justify-content: center;
+  align-content: start;
 }
 
-/* MOBILE */
-.is-mobile .roomsGrid {
-  --rooms-cols: 1;
+.tvRoomsGrid {
+  height: 100%;
+  overflow: hidden;
+  grid-auto-rows: minmax(0, 1fr);
 }
 
-/* TABLET */
-.is-tablet .roomsGrid {
-  --rooms-cols: 2;
+.roomCell {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  min-height: 0;
 }
 
-/* TV default */
-.is-tv .roomsGrid {
-  --rooms-cols: 4;
-}
-
-/* Cards */
+/* cards */
 .roomCard {
   border-radius: 12px;
+  overflow: hidden;
 }
 
 .roomCardIndividual {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
 }
 
-/* Typography scaling */
-.text-h4 {
-  font-size: clamp(20px, 2.2vh, 44px) !important;
+/* HARD LIMIT CARD SIZE */
+.tvRoomCard {
+  width: 100%;
+  max-width: var(--card-max-w, 450px);
+  height: 100%;
+  max-height: var(--card-max-h, 200px);
+  overflow: hidden;
 }
 
-.text-h6 {
-  font-size: clamp(14px, 1.6vh, 28px) !important;
+/* ===== SINGLE LANE ===== */
+.roomLane {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto auto;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  min-height: 40px;
 }
 
-.text-caption {
-  font-size: clamp(11px, 1.1vh, 18px) !important;
+.laneName {
+  font-weight: 900;
+  font-size: clamp(13px, 1.4vh, 18px);
+}
+
+.laneIcon {
+  font-size: clamp(14px, 1.4vw, 22px) !important;
+  line-height: 1;
+}
+
+.laneChip {
+  height: 20px;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  padding: 0 8px;
+}
+
+.laneAckBtn {
+  min-width: 52px !important;
+  height: 22px !important;
+  padding: 0 10px !important;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+/* optional duration */
+.laneDurationWrap {
+  margin-top: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.laneDuration {
+  font-size: clamp(14px, 1.6vh, 22px);
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+/* OK */
+.laneOkWrap {
+  margin-top: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.okIcon {
+  font-size: clamp(14px, 1.4vw, 22px) !important;
+  line-height: 1;
+}
+
+.okText {
+  font-weight: 800;
+  font-size: clamp(11px, 1.2vh, 16px);
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.min-w-0 {
+  min-width: 0;
 }
 
 .mono {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
-/* Status borders */
+/* borders */
 .cardOn {
   border: 2px solid rgba(239, 68, 68, 0.95);
   box-shadow: 0 0 18px rgba(239, 68, 68, 0.18);
@@ -738,24 +742,7 @@ export default {
   border: 2px solid #f97316;
 }
 
-/* Dots */
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  display: inline-block;
-}
-
-.dot-red {
-  background: #ef4444;
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.25);
-}
-
-.dot-grey {
-  background: #64748b;
-}
-
-/* Blink */
+/* blink */
 @keyframes blink {
   0% {
     opacity: 1;
@@ -774,7 +761,14 @@ export default {
   animation: blink 1s infinite;
 }
 
-/* Stat colors */
+/* stats icon */
+.stat-icon {
+  font-size: clamp(18px, 1.8vw, 34px);
+  line-height: 1;
+  opacity: 0.95;
+}
+
+/* stat colors */
 .stat-critical {
   border-color: #ef4444 !important;
   background: rgba(239, 68, 68, 0.05);
@@ -805,7 +799,7 @@ export default {
   background: rgba(20, 184, 166, 0.05);
 }
 
-/* Text colors */
+/* text colors */
 .critical-text {
   color: #ef4444 !important;
 }
@@ -839,32 +833,19 @@ export default {
   opacity: 0.9;
 }
 
-.stat-icon {
-  font-size: 34px;
-  opacity: 0.95;
+/* resolution badge */
+.tvResolution {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #1a2632;
+  color: #e5e7eb;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
-/* Room icons */
-.roomIcon {
-  opacity: 0.95;
-}
-
-.roomIconPh {
-  color: #ef4444;
-}
-
-.roomIconToilet {
-  color: #f59e0b;
-}
-
-.roomIconRoom {
-  color: #3b82f6;
-}
-
-.roomIconDefault {
-  color: #3b82f6;
-}
-
+/* snackbar center */
 .center-snackbar {
   position: fixed !important;
   left: 50%;
