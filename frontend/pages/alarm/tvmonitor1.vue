@@ -1,15 +1,31 @@
 <template>
   <div class="tv-page" :class="deviceClass">
-    <div class="text-center ma-2">
-      <v-snackbar v-model="snackbar" top="top" elevation="24">
-        {{ snackbarResponse }}
-      </v-snackbar>
-    </div>
+    <v-snackbar v-model="snackbar" :timeout="3000" elevation="24" class="center-snackbar">
+      {{ snackbarResponse }}
+    </v-snackbar>
 
     <SosAlarmPopupMqtt @triggerUpdateDashboard="requestDashboardSnapshot()" />
 
     <!-- ONE SCROLL CONTAINER FOR EVERYTHING -->
     <div class="pageScroll">
+
+      <v-row>
+        <v-col cols="12" class="d-flex justify-end">
+          <div class="d-flex align-center mt-2 mt-md-0" v-if="$auth?.user">
+            <span class="text-caption mr-3">
+              Welcome,
+              <strong>
+                {{ $auth.user?.security?.first_name || '' }}
+                {{ $auth.user?.security?.last_name || '' }}
+              </strong>
+            </span>
+
+            <v-btn x-small outlined color="error" @click="logout">
+              Logout
+            </v-btn>
+          </div>
+        </v-col>
+      </v-row>
       <!-- ================= TOP STATISTICS ================= -->
       <v-row dense class="mb-2">
         <v-col v-for="s in statCards" :key="s.key" cols="12" sm="6" :md="statsColsMd" :lg="statsColsLg">
@@ -64,15 +80,7 @@
           <div class="d-flex align-center">
             <span class="dot dot-grey mr-2"></span><span class="text-caption grey--text">SOS OFF</span>
           </div> -->
-          <div class="d-flex align-center mt-2 mt-md-0" v-if="$auth?.user">
-            <span class="text-caption mr-3">
-              Welcome, <strong>{{ $auth.user.security.first_name }} {{ $auth.user.security.last_name }}</strong>
-            </span>
 
-            <v-btn x-small outlined color="error" @click="logout">
-              Logout
-            </v-btn>
-          </div>
         </div>
       </div>
 
@@ -855,5 +863,14 @@ export default {
 
 .roomIconDefault {
   color: #3b82f6;
+}
+
+.center-snackbar {
+  position: fixed !important;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 9999;
 }
 </style>
