@@ -511,9 +511,14 @@ class MqttService
 
                             $message = "Invalid Login Details";
                         } else {
-                            unset($user->company);
-                            unset($user->employee);
-                            unset($user->assigned_permissions);
+                            // unset($user->company);
+                            // unset($user->employee);
+                            // unset($user->assigned_permissions);
+
+                            if ($user->user_type == "security") {
+                                $user->load("security");
+                                $user->load("security.sosRooms");
+                            }
 
                             $data = [
                                 'status' => true,

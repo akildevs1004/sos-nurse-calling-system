@@ -210,7 +210,7 @@
 </template>
 
 <script>
-import mqtt from "mqtt";
+
 
 import ForgotPassword from "../components/ForgotPassword.vue";
 export default {
@@ -323,19 +323,10 @@ export default {
     },
 
     loginWithOTP() {
-
-
-      this.mqttLoginVerify(credentials);
-      return false;
       if (this.$refs.form.validate()) {
         this.loading = true;
         this.$store.commit("email", this.credentials.email);
         this.$store.commit("password", this.credentials.password);
-
-
-
-
-
 
         this.$axios
           .post("loginwith_otp", this.credentials)
@@ -370,160 +361,8 @@ export default {
       }
       this.loading = false;
     },
-    /**
-    * Single method:
-    * - connects MQTT (WS/WSS)
-    * - sends credentials
-    * - waits for single response
-    * - returns { status, token, user, message }
-    *
-    * Usage:
-    *   const res = await this.mqttVerifyLoginAndGetUser(this.credentials);
-    *   if(res.status) { ... }
-    */
-    /**
-  * Single-call MQTT login
-  * - connect
-  * - publish credentials
-  * - receive user details
-  * - disconnect
-  */
-    async mqttLoginVerify(credentials) {
-      const host = process.env.MQTT_SOCKET_HOST;
-      const clientId =
-        "vue-client-" + Math.random().toString(16).substr(2, 8);
-
-      const reqTopic = "tv/auth/req";
-      const respBase = "tv/auth/resp/";
-
-      const correlationId =
-        Date.now().toString(36) + Math.random().toString(36).slice(2);
-      const respTopic = respBase + correlationId;
-
-      return new Promise((resolve, reject) => {
-        let client;
-        let finished = false;
-
-        const finish = (err, data) => {
-          if (finished) return;
-          finished = true;
-
-          try {
-            if (client) {
-              client.unsubscribe(respTopic);
-              client.end(true);
-            }
-          } catch (e) { }
-
-          err ? reject(err) : resolve(data);
-        };
-
-        // safety timeout
-        const timeout = setTimeout(() => {
-          finish(new Error("MQTT login timeout"));
-        }, 6000);
-
-        try {
-          client = mqtt.connect(host, {
-            clientId,
-            clean: true,
-            connectTimeout: 4000,
-          });
-        } catch (e) {
-          clearTimeout(timeout);
-          finish(new Error("MQTT connect failed"));
-          return;
-        }
-
-        client.once("error", (err) => {
-          clearTimeout(timeout);
-          finish(new Error("MQTT error"));
-        });
-
-        client.once("connect", () => {
-          client.subscribe(respTopic, { qos: 1 }, (err) => {
-            if (err) {
-              clearTimeout(timeout);
-              finish(new Error("MQTT subscribe failed"));
-              return;
-            }
-
-            client.on("message", (topic, payload) => {
-              if (topic !== respTopic) return;
-
-              clearTimeout(timeout);
-
-              let res;
-              try {
-                res = JSON.parse(payload.toString());
-              } catch (e) {
-                finish(new Error("Invalid MQTT response"));
-                return;
-              }
-
-              finish(null, res);
-            });
-
-            const payload = {
-              action: "login",
-              correlationId,
-              replyTo: respTopic,
-              credentials: {
-                email: credentials.email,
-                password: credentials.password,
-                source: credentials.source || "admin",
-              },
-              ts: Date.now(),
-            };
-
-            client.publish(reqTopic, JSON.stringify(payload), { qos: 1 });
-          });
-        });
-      });
-    },
-    async login() {
+    login() {
       if (this.$refs.form.validate()) {
-
-
-
-
-
-
-        try {
-          const res = await this.mqttLoginVerify(this.credentials);
-
-          console.log("res", res);
-
-
-          if (!res || !res.status) {
-            this.msg = res?.message || "Invalid Login Details2";
-            this.loading = false;
-            return;
-          }
-
-          // Nuxt Auth compatible
-          if (res.token) this.$auth.setToken("local", "Bearer " + res.token);
-          if (res.user) this.$auth.setUser(res.user);
-
-          this.$router.push("/alarm/tvmonitor1");
-
-          return false;
-
-          this.loading = false;
-        } catch (e) {
-          this.msg = e.message || "Login failed";
-          this.loading = false;
-
-          console.log("this.msg ", this.msg);
-
-        }
-
-
-        return false;
-
-
-
-        //----------------------------------------
         this.$store.commit("email", this.credentials.email);
         this.$store.commit("password", this.credentials.password);
 
@@ -568,8 +407,12 @@ export default {
         this.snackbarMessage = "Invalid Emaild and Password";
       }
     },
-  },
-};
+
+
+  }
+}
+
+  ;
 </script>
 <style>
 body,

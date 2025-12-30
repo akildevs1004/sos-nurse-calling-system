@@ -642,6 +642,11 @@ Route::post('/upload', function (Request $request) {
     return $product_image = url('media/employee/file/' . $file);
     $data['file'] = $file;
 });
+Route::get('/test', function () {
+
+
+    return "Hello";
+});
 
 Route::get('/test/whatsapp', function () {
     $curl = curl_init();
