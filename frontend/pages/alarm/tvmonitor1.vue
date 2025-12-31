@@ -6,253 +6,243 @@
     </v-snackbar>
 
     <SosAlarmPopupMqtt @triggerUpdateDashboard="requestDashboardSnapshot()" />
-
     <!-- DETAILS POPUP (for 6-cards mode) -->
     <v-dialog v-model="detailsDialog" content-class="tvDetailsDialog" persistent>
       <v-card class="tvDetailsCard">
         <v-card-title class="d-flex align-center">
           <div class="font-weight-black">{{ selectedRoom?.name || "Room" }}</div>
           <v-spacer />
-          <v-btn icon @click="detailsDialog = false"><v-icon>mdi-close</v-icon></v-btn>
+          <v-btn icon @click="detailsDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
         </v-card-title>
 
         <v-card-text v-if="selectedRoom">
-          <div class="d-flex flex-wrap" style="gap:10px">
-            <v-chip small :color="selectedRoom.alarm_status ? 'red' : 'grey'">
-              {{ selectedRoom.alarm_status ? "SOS ON" : "SOS OFF" }}
-            </v-chip>
+          <div class="popupGrid">
+            <!-- LEFT SIDE: ALARM INFO -->
+            <div class="popupInfo">
+              <div class="d-flex flex-wrap" style="gap:10px">
+                <v-chip small :color="selectedRoom.alarm_status ? 'red' : 'grey'">
+                  {{ selectedRoom.alarm_status ? "SOS ON" : "SOS OFF" }}
+                </v-chip>
 
-            <v-chip small
-              :color="selectedRoom.alarm_status ? (selectedRoom.alarm?.responded_datetime ? '#f97316' : 'red') : 'grey'">
-              {{
-                selectedRoom.alarm_status
-                  ? (selectedRoom.alarm?.responded_datetime ? "ACKNOWLEDGED" : "PENDING")
-                  : "RESOLVED"
-              }}
-            </v-chip>
+                <v-chip small :color="selectedRoom.alarm_status
+                  ? (selectedRoom.alarm?.responded_datetime ? '#f97316' : 'red')
+                  : 'grey'">
+                  {{
+                    selectedRoom.alarm_status
+                      ? (selectedRoom.alarm?.responded_datetime ? "ACKNOWLEDGED" : "PENDING")
+                      : "RESOLVED"
+                  }}
+                </v-chip>
 
-            <v-chip small :color="selectedRoom.device?.status_id == 1 ? 'green' : 'red'">
-              {{ selectedRoom.device?.status_id == 1 ? "SIGNAL OK" : "SIGNAL OFF" }}
-            </v-chip>
-          </div>
+                <v-chip small :color="selectedRoom.device?.status_id == 1 ? 'green' : 'red'">
+                  {{ selectedRoom.device?.status_id == 1 ? "SIGNAL OK" : "SIGNAL OFF" }}
+                </v-chip>
+              </div>
 
-          <div class="mt-4">
-            <div class="text-caption grey--text">Alarm Start</div>
-            <div class="font-weight-bold">
-              {{ selectedRoom.alarm?.alarm_start_datetime || selectedRoom.alarm_start_datetime || "-" }}
-            </div>
-          </div>
-
-          <div class="mt-3" v-if="selectedRoom.alarm_status">
-            <div class="text-caption grey--text">Duration</div>
-            <div class="font-weight-black" style="font-size:28px">
-              {{ selectedRoom.duration || "00:00:00" }}
-            </div>
-          </div>
-
-          <div class="mt-4 d-flex justify-end"
-            v-if="selectedRoom.alarm_status && !selectedRoom.alarm?.responded_datetime">
-            <v-btn color="warning" @click="udpateResponse(selectedRoom.alarm?.id)">
-              <v-icon left>mdi-cursor-default-click</v-icon>
-              Acknowledge
-            </v-btn>
-          </div>
-
-          <div class="mt-3" v-if="selectedRoom.alarm_status && selectedRoom.alarm?.responded_datetime">
-            <div class="text-caption grey--text">Acknowledged At</div>
-            <div class="font-weight-bold">{{ selectedRoom.alarm?.responded_datetime }}</div>
-          </div>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
-
-    <!-- TV LAYOUT (NO SCROLL) -->
-    <div class="tvLayout">
-      <!-- HEADER -->
-      <div class="tvHeader">
-        <div class="d-flex justify-end align-center" v-if="$auth?.user">
-          <span class="text-caption mr-3">
-            Welcome,
-            <strong>
-              {{ $auth.user?.security?.first_name || "" }}
-              {{ $auth.user?.security?.last_name || "" }}
-            </strong>
-          </span>
-
-          <!-- Screen size indicator -->
-          <!-- <div class="tvResolution mr-3">
-            {{ screenWidth }} × {{ screenHeight }} px
-          </div> -->
-          <v-icon style="text-align: center;padding-right:5px;" @click="reload">mdi-refresh-circle </v-icon>
-
-
-          <v-btn x-small outlined color="error" @click="logout" style="margin-right:20px">
-            Logout
-          </v-btn>
-        </div>
-      </div>
-
-      <!-- STATS: ONE ROW -->
-      <v-row dense class="tvStatsRow mx-0">
-        <v-col v-for="s in statCards" :key="s.key" cols="2" class="tvStatCol">
-          <v-card outlined style="width:100%" class="pa-3 roomCard stat-card1 tvStatCard" :class="s.cardClass">
-            <div class="d-flex align-center" style="width:100%">
-              <div class="min-w-0">
-                <div class="text-caption text-uppercase font-weight-bold stat-title" :class="s.textClass">
-                  {{ s.title }}
-                </div>
-
-                <div class="d-flex align-baseline mt-1">
-                  <div class="text-h4 font-weight-bold">{{ s.value }}</div>
-                  <div class="ml-2 stat-sub" :class="s.textClass">
-                    {{ s.sub }}
-                  </div>
+              <div class="mt-4">
+                <div class="text-caption grey--text">Alarm Start</div>
+                <div class="font-weight-bold">
+                  {{ selectedRoom.alarm?.alarm_start_datetime || selectedRoom.alarm_start_datetime || "-" }}
                 </div>
               </div>
 
-              <v-spacer />
+              <div class="mt-3" v-if="selectedRoom.alarm_status">
+                <div class="text-caption grey--text">Duration</div>
+                <div class="font-weight-black popupDuration">
+                  {{ selectedRoom.duration || "00:00:00" }}
+                </div>
+              </div>
 
-              <v-icon style="text-align: right;" class="stat-icon" :class="s.textClass">{{ s.icon }}</v-icon>
+              <div class="mt-4 d-flex justify-end"
+                v-if="selectedRoom.alarm_status && !selectedRoom.alarm?.responded_datetime">
+                <v-btn color="warning" @click="udpateResponse(selectedRoom.alarm?.id)">
+                  <v-icon left>mdi-cursor-default-click</v-icon>
+                  Acknowledge
+                </v-btn>
+              </div>
+
+              <div class="mt-3" v-if="selectedRoom.alarm_status && selectedRoom.alarm?.responded_datetime">
+                <div class="text-caption grey--text">Acknowledged At</div>
+                <div class="font-weight-bold">{{ selectedRoom.alarm?.responded_datetime }}</div>
+              </div>
             </div>
 
-            <!-- <v-progress-linear v-if="s.key === 'avg'" class="mt-1" height="4" :value="avgResponsePct" rounded
-              style="margin-top:-10px!important" /> -->
-          </v-card>
-        </v-col>
-      </v-row>
+            <!-- RIGHT SIDE: ROOM ICONS -->
+            <div class="popupIconsSide">
+              <v-icon class="popupMainIcon" :class="isToilet(selectedRoom) ? 'is-toilet' : 'is-bed'">
+                {{ isToilet(selectedRoom) ? 'mdi-toilet' : 'mdi-bed' }}
+              </v-icon>
 
-      <!-- TOOLBAR -->
-      <div class="tvToolbar d-flex align-center">
-        <v-btn-toggle v-model="filterMode" mandatory class="mr-4">
-          <v-btn small value="all">All</v-btn>
+              <v-icon v-if="isPh(selectedRoom)" class="popupPhIcon">
+                mdi-wheelchair
+              </v-icon>
+            </div>
+          </div>
+        </v-card-text>
+
+      </v-card>
+    </v-dialog>
+
+    <!-- ===== TOP BAR ===== -->
+    <div class="tvTopBar" ref="topBar">
+      <div class="tvTopLeft">
+        <div class="tvAppIcon">
+          <v-icon small>mdi-hospital-box-outline</v-icon>
+        </div>
+        <div class="tvBrand">
+          <div class="tvBrandTitle">Emergency Response System</div>
+          <div class="tvBrandSub">DASHBOARD VIEW</div>
+        </div>
+      </div>
+
+      <div class="tvTopCenter">
+        <div class="tvStatusChip">
+          <span class="tvStatusDot"></span>
+          <span class="tvStatusText">System Online</span>
+        </div>
+      </div>
+
+      <div class="tvTopRight" v-if="$auth?.user">
+        <div class="tvWelcome">
+          Welcome,
+          <strong>
+            {{ $auth.user?.security?.first_name || "" }}
+            {{ $auth.user?.security?.last_name || "" }}
+          </strong>
+        </div>
+
+        <v-btn icon class="tvIconBtn" @click="reload" aria-label="Reload">
+          <v-icon>mdi-refresh</v-icon>
+        </v-btn>
+
+        <v-btn small outlined color="error" class="tvLogoutBtn" @click="logout">
+          <v-icon left small>mdi-logout</v-icon>
+          Logout
+        </v-btn>
+      </div>
+    </div>
+
+    <!-- ===== STATS STRIP ===== -->
+    <div class="tvStatsStrip" ref="statsStrip">
+      <div class="tvStatsGrid">
+        <div v-for="s in statCards" :key="s.key" class="tvStatWrap">
+          <v-card outlined class="tvStatCard" :class="s.cardClass">
+            <div class="tvStatInner">
+              <div class="tvStatText">
+                <div class="tvStatTitle" :class="s.textClass">{{ s.title }}</div>
+                <div class="tvStatValueRow">
+                  <div class="tvStatValue">{{ s.value }}</div>
+                  <div class="tvStatSub" :class="s.textClass">{{ s.sub }}</div>
+                </div>
+              </div>
+              <v-icon class="tvStatIcon" :class="s.textClass">{{ s.icon }}</v-icon>
+            </div>
+          </v-card>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TOOLBAR ===== -->
+    <div class="tvToolbarBar" ref="toolbarBar">
+      <div class="tvToolbarLeft">
+        <v-btn-toggle v-model="filterMode" mandatory class="tvToggle">
+          <v-btn small value="all">ALL</v-btn>
           <v-btn small value="on">SOS ON</v-btn>
           <v-btn small value="off">SOS OFF</v-btn>
         </v-btn-toggle>
 
-        <div class="text-caption grey--text mr-2">Cards Per Row</div>
-        <v-btn-toggle v-model="roomsPerRow" mandatory dense>
-          <v-btn small :value="2" @click="roomsPerRow = 2">2</v-btn>
-          <v-btn small :value="6" @click="roomsPerRow = 6">6</v-btn>
+        <div class="tvToolbarDivider"></div>
+
+        <div class="tvToolbarLabel">CARDS PER ROW</div>
+        <v-btn-toggle v-model="roomsPerRow" mandatory class="tvToggle">
+          <v-btn small :value="2">2</v-btn>
+          <v-btn small :value="6">6</v-btn>
         </v-btn-toggle>
+      </div>
 
-        <v-spacer />
+      <div class="tvToolbarRight">
+        <v-btn small outlined class="tvNavBtn" @click="prevPage" :disabled="pageIndex === 0">
+          <v-icon left small>mdi-chevron-left</v-icon>
+          Prev
+        </v-btn>
 
-        <!-- Pagination -->
-        <div class="d-flex align-center">
-          <v-btn small outlined class="mr-2" @click="prevPage" :disabled="pageIndex === 0">Prev</v-btn>
-          <div class="text-caption grey--text mr-2">
-            Page {{ pageIndex + 1 }} / {{ totalPages }}
-          </div>
-          <v-btn small outlined @click="nextPage" :disabled="pageIndex >= totalPages - 1">Next</v-btn>
+        <div class="tvPageText">
+          Page {{ pageIndex + 1 }} / {{ totalPages }}
+        </div>
+
+        <v-btn small outlined class="tvNavBtn" @click="nextPage" :disabled="pageIndex >= totalPages - 1">
+          Next
+          <v-icon right small>mdi-chevron-right</v-icon>
+        </v-btn>
+      </div>
+    </div>
+
+    <!-- ===== ROOMS AREA ===== -->
+    <div class="tvRoomsArea" ref="roomsArea">
+      <div class="roomsGrid tvRoomsGrid" ref="roomsGrid" :style="roomsGridStyle">
+        <div v-for="d in pagedDevices" :key="d.id || d.room_id" class="roomCell">
+          <v-card outlined class="roomCard tvRoomCard  " @click="onRoomClick(d)" :class="cardClass(d)">
+
+            <!-- <v-card outlined class="roomCard tvRoomCard" :class="[cardClass(d), roomsPerRow === 6 ? 'clickableCard' : '']"
+            @click="onRoomClick(d)"> -->
+            <!-- TOP ROW -->
+            <div class="cardTop">
+              <div class="dot" :class="d.alarm_status ? 'dotOn' : 'dotOff'"></div>
+              <div class="roomName text-truncate">{{ d.name }}</div>
+
+              <div class="icons">
+                <v-icon small :color="d.device?.status_id == 1 ? 'green' : 'red'">
+                  {{ d.device?.status_id == 1 ? "mdi-wifi" : "mdi-wifi-off" }}
+                </v-icon>
+
+                <v-icon small :color="d.alarm_status ? 'red' : 'grey'">
+                  {{ d.alarm_status ? "mdi-bell" : "mdi-bell-outline" }}
+                </v-icon>
+
+                <v-chip x-small class="pill" v-if="d.alarm_status === true"
+                  :color="d.alarm?.responded_datetime ? '#f97316' : 'red'">
+                  {{ d.alarm?.responded_datetime ? "ACK" : "PENDING" }}
+                </v-chip>
+
+                <v-btn x-small class="ackBtn blink-btn" v-if="d.alarm_status === true && !d.alarm?.responded_datetime"
+                  @click.stop="udpateResponse(d.alarm?.id)">
+                  ACK
+                </v-btn>
+              </div>
+            </div>
+            <!-- ROOM ICONS (ONLY FOR 2-CARDS MODE) -->
+            <div class="roomIconsRow" v-if="roomsPerRow === 2" style="margin-top:-10px">
+              <!-- MAIN ICON -->
+              <v-icon class="roomMainIcon" :class="isToilet(d) ? 'is-toilet' : 'is-bed'">
+                {{ isToilet(d) ? 'mdi-toilet' : 'mdi-bed' }}
+              </v-icon>
+
+              <!-- PH / DISABLED OVERLAY -->
+              <v-icon v-if="isPh(d)" class="roomPhIcon">
+                mdi-wheelchair
+              </v-icon>
+            </div>
+            <!-- CENTER -->
+            <div class="cardMid">
+              <div class="timer mono" v-if="d.alarm_status === true">{{ d.duration || "00:00:00" }}</div>
+
+              <div class="okRow" v-else>
+                <v-icon small color="green">mdi-check-circle</v-icon>
+                <span class="okText">No Active Call</span>
+              </div>
+
+              <!-- alarm_start_datetime -->
+              <div class="startPill text-truncate" v-if="d.alarm_status === true">
+                Start: {{ d.alarm?.alarm_start_datetime || d.alarm_start_datetime || "-" }}
+              </div>
+            </div>
+          </v-card>
         </div>
       </div>
 
-      <!-- ROOMS AREA -->
-      <div class="tvRoomsArea">
-        <div class="roomsGrid tvRoomsGrid" :style="roomsGridStyle">
-          <div v-for="d in pagedDevices" :key="d.id || d.room_id" class="roomCell">
-            <v-card outlined class="pa-2 roomCard roomCardIndividual tvRoomCard"
-              :class="[cardClass(d), 'room-cols-' + roomsPerRow, roomsPerRow === 6 ? 'clickableCard' : '']"
-              @click="onRoomClick(d)">
-              <!-- MODE 2: FULL DETAILS -->
-              <template v-if="roomsPerRow === 2">
-                <div class="roomLane roomLane2">
-                  <div class="laneName text-truncate">{{ d.name }}</div>
-
-                  <v-icon class="laneIcon"
-                    :color="d.device?.status_id == 1 ? 'green' : (d.device?.status_id == 2 ? 'red' : '')">
-                    {{ d.device?.status_id == 1 ? "mdi-wifi" : (d.device?.status_id == 2 ? "mdi-wifi-off" : "mdi-wifi")
-                    }}
-                  </v-icon>
-
-                  <v-icon v-if="d.alarm_status === true" class="laneIcon" color="red">mdi-bell</v-icon>
-                  <v-icon v-else class="laneIcon" color="grey">mdi-bell-outline</v-icon>
-
-                  <v-chip x-small class="laneChip" v-if="d.alarm_status === true"
-                    :color="d.alarm?.responded_datetime ? '#f97316' : 'red'">
-                    {{ d.alarm?.responded_datetime ? "ACK" : "PENDING" }}
-                  </v-chip>
-
-                  <v-btn x-small class="laneAckBtn blink-btn"
-                    v-if="(d.alarm_status === true && !d.alarm?.responded_datetime)"
-                    @click.stop="udpateResponse(d.alarm?.id)">
-                    ACK
-                  </v-btn>
-                </div>
-                <!-- ROOM ICONS -->
-                <div class="roomIconsRow">
-                  <!-- MAIN ICON -->
-                  <v-icon class="roomMainIcon" :class="isToilet(d) ? 'is-toilet' : 'is-bed'">
-                    {{ isToilet(d) ? 'mdi-toilet' : 'mdi-bed' }}
-                  </v-icon>
-
-                  <!-- PH / DISABLED OVERLAY -->
-                  <v-icon v-if="isPh(d)" class="roomPhIcon">
-                    mdi-wheelchair
-                  </v-icon>
-                </div>
-                <div class="laneDurationWrap" v-if="d.alarm_status === true">
-                  <div class="laneDuration mono">{{ d.duration || "00:00:00" }}</div>
-                </div>
-
-                <div class="laneStartWrap" v-if="d.alarm_status === true" style="padding-bottom:10px">
-                  <div class="laneStartText text-truncate">
-                    Start: {{ d.alarm?.alarm_start_datetime || d.alarm_start_datetime }}
-                  </div>
-                </div>
-
-                <div class="laneOkWrap" v-else>
-                  <v-icon color="green" class="okIcon">mdi-check-circle</v-icon>
-                  <span class="okText">No Active Call</span>
-                </div>
-              </template>
-
-              <!-- MODE 6: ICONS ONLY -->
-              <template v-else>
-                <div class="miniCard">
-                  <div class="miniTop">
-                    <div class="miniName text-truncate">{{ d.name }}</div>
-                    <v-chip x-small class="miniChip"
-                      :color="d.alarm_status === true ? (d.alarm?.responded_datetime ? '#f97316' : 'red') : 'grey'">
-                      {{
-                        d.alarm_status === true
-                          ? (d.alarm?.responded_datetime ? "ACK" : "ON")
-                          : "OK"
-                      }}
-                    </v-chip>
-                  </div>
-
-                  <div class="miniIcons">
-                    <!-- ROOM ICON -->
-                    <v-icon class="miniIcon" :class="isToilet(d) ? 'is-toilet' : 'is-bed'">
-                      {{ isToilet(d) ? 'mdi-toilet' : 'mdi-bed' }}
-                    </v-icon>
-
-                    <!-- PH -->
-                    <v-icon v-if="isPh(d)" class="miniIcon is-ph">
-                      mdi-wheelchair
-                    </v-icon>
-
-                    <!-- SIGNAL -->
-                    <v-icon class="miniIcon" :color="d.device?.status_id == 1 ? 'green' : 'red'">
-                      {{ d.device?.status_id == 1 ? 'mdi-wifi' : 'mdi-wifi-off' }}
-                    </v-icon>
-
-                    <!-- ALARM -->
-                    <v-icon class="miniIcon" :color="d.alarm_status ? 'red' : 'grey'">
-                      {{ d.alarm_status ? 'mdi-bell' : 'mdi-bell-outline' }}
-                    </v-icon>
-                  </div>
-
-                  <div class="miniHint text-caption grey--text">Click for details</div>
-                </div>
-              </template>
-            </v-card>
-          </div>
-        </div>
-
-        <v-progress-linear v-if="loading" indeterminate height="3" class="my-2" />
-      </div>
+      <v-progress-linear v-if="loading" indeterminate height="3" class="my-2" />
     </div>
   </div>
 </template>
@@ -270,9 +260,8 @@ export default {
 
   data() {
     return {
-      autoPageTimer: null,
-      AUTO_PAGE_MS: 5000, // change interval (5 seconds)
-      autoPagingEnabled: true, // you can toggle if needed
+      detailsDialog: false,
+      selectedRoom: null,
       // UI
       filterMode: "all",
       devices: [],
@@ -281,20 +270,35 @@ export default {
       snackbar: false,
       snackbarResponse: "",
 
-      // ONLY 2 or 6
+      // Cards per row selector (2 or 6)
       roomsPerRow: 2,
 
-      // TV paging (NO SCROLL)
+      // Pagination
       pageIndex: 0,
-      tvRowsPerScreen: 3,
+      tvRowsPerScreen: 1, // ✅ computed from available height
 
-      // Screen size indicator
-      screenWidth: 0,
-      screenHeight: 0,
+      // Fixed card sizes per your requirement
+      CARD_H: 130,
+      CARD_W_2: 460,
+      CARD_W_6: 140,
 
-      // Popup
-      detailsDialog: false,
-      selectedRoom: null,
+      // Gap (vertical + horizontal)
+      GAP_2: 16,
+      GAP_6: 10,
+
+      // Resize / recalc debounce
+      recalcTimer: null,
+
+      // Duration timer
+      timer: null,
+      TIMER_MS: 1000,
+
+      // MQTT
+      mqttUrl: "",
+      client: null,
+      isConnected: false,
+      reqId: "",
+      topics: { req: "", rooms: "", stats: "", reload: "" },
 
       // Stats
       avgResponseText: "00:00",
@@ -310,18 +314,7 @@ export default {
       date_from: "",
       date_to: "",
 
-      // duration timer
-      timer: null,
-      TIMER_MS: 1000,
-
-      // MQTT
-      mqttUrl: "",
-      client: null,
-      isConnected: false,
-      reqId: "",
-      topics: { req: "", rooms: "", stats: "", reload: "" },
-
-      filterRoomTableIds: [],
+      filterRoomTableIds: []
     };
   },
 
@@ -335,24 +328,25 @@ export default {
       return `is-${this.deviceType}`;
     },
 
-    roomsGridStyle() {
-      const cols = [2, 6].includes(Number(this.roomsPerRow)) ? Number(this.roomsPerRow) : 2;
-      const maxW = cols === 2 ? "520px" : "240px";
-      const maxH = cols === 2 ? "210px" : "140px";
-      return { "--rooms-cols": cols, "--card-max-w": maxW, "--card-max-h": maxH };
+    // ✅ fixed sizes per mode
+    cardW() {
+      return Number(this.roomsPerRow) === 2 ? this.CARD_W_2 : this.CARD_W_6;
+    },
+    cardH() {
+      return this.CARD_H;
+    },
+    gridGap() {
+      return Number(this.roomsPerRow) === 2 ? this.GAP_2 : this.GAP_6;
     },
 
-    activeSosCount() {
-      return this.devices.filter((d) => d.alarm_status === true).length;
-    },
-    stats() {
+    roomsGridStyle() {
+      const cols = Number(this.roomsPerRow) === 2 ? 2 : 6;
+
       return {
-        totalPoints: this.devices.length,
-        activeSos: this.activeSosCount,
-        repeated: this.repeated,
-        ackCount: this.ackCount,
-        totalSOSCount: this.totalSOSCount,
-        activeDisabledSos: this.activeDisabledSos
+        "--rooms-cols": cols,
+        "--card-w": `${this.cardW}px`,
+        "--card-h": `${this.cardH}px`,
+        "--grid-gap": `${this.gridGap}px`
       };
     },
 
@@ -362,10 +356,10 @@ export default {
       return this.devices;
     },
 
-    // NO-SCROLL PAGINATION
+    // ✅ page size = cols * rows that fit (computed)
     pageSize() {
-      const cols = [2, 6].includes(Number(this.roomsPerRow)) ? Number(this.roomsPerRow) : 2;
-      return cols * this.tvRowsPerScreen;
+      const cols = Number(this.roomsPerRow) === 2 ? 2 : 6;
+      return cols * Math.max(1, Number(this.tvRowsPerScreen) || 1);
     },
     totalPages() {
       const n = this.filteredDevices?.length || 0;
@@ -374,6 +368,21 @@ export default {
     pagedDevices() {
       const start = this.pageIndex * this.pageSize;
       return (this.filteredDevices || []).slice(start, start + this.pageSize);
+    },
+
+    activeSosCount() {
+      return this.devices.filter((d) => d.alarm_status === true).length;
+    },
+
+    stats() {
+      return {
+        totalPoints: this.devices.length,
+        activeSos: this.activeSosCount,
+        repeated: this.repeated,
+        ackCount: this.ackCount,
+        totalSOSCount: this.totalSOSCount,
+        activeDisabledSos: this.activeDisabledSos
+      };
     },
 
     statCards() {
@@ -387,39 +396,28 @@ export default {
       ];
     }
   },
+
   watch: {
+    // keep pageIndex valid
     totalPages() {
-      // keep pageIndex valid
       if (this.pageIndex > this.totalPages - 1) this.pageIndex = 0;
-      // restart timer based on new totalPages
-      this.startAutoPaging();
     },
 
+    // When mode changes, recalc rows that fit, reset page
     roomsPerRow() {
       this.pageIndex = 0;
-      this.startAutoPaging();
+      this.safeLsSet(ROOMS_PER_ROW_KEY, String(this.roomsPerRow));
+      this.scheduleRecalcRows();
     },
 
     filterMode() {
       this.pageIndex = 0;
-      this.startAutoPaging();
+      this.scheduleRecalcRows();
     },
 
     filteredDevices() {
       if (this.pageIndex > this.totalPages - 1) this.pageIndex = 0;
-      this.startAutoPaging();
-    },
-
-    roomsPerRow(v) {
-      const n = Number(v);
-      this.safeLsSet(ROOMS_PER_ROW_KEY, String(n));
-      this.pageIndex = 0;
-    },
-    filterMode() {
-      this.pageIndex = 0;
-    },
-    filteredDevices() {
-      if (this.pageIndex > this.totalPages - 1) this.pageIndex = 0;
+      this.scheduleRecalcRows();
     }
   },
 
@@ -435,88 +433,90 @@ export default {
   },
 
   mounted() {
-    this.updateScreenSize();
-    window.addEventListener("resize", this.updateScreenSize);
+    window.addEventListener("resize", this.onResize);
 
     this.timer = setInterval(() => this.updateDurationAll(), this.TIMER_MS);
 
     this.mqttUrl = process.env.MQTT_SOCKET_HOST;
     this.connectMqtt();
 
-    this.startAutoPaging();
-
+    // initial compute rows that fit
+    this.scheduleRecalcRows();
   },
 
   beforeDestroy() {
-    window.removeEventListener("resize", this.updateScreenSize);
+    window.removeEventListener("resize", this.onResize);
     try {
       if (this.timer) clearInterval(this.timer);
       this.disconnectMqtt();
     } catch (e) { }
 
-    this.stopAutoPaging();
-
+    if (this.recalcTimer) clearTimeout(this.recalcTimer);
   },
 
   methods: {
-    startAutoPaging() {
-
-
-      // stop old timer first
-      this.stopAutoPaging();
-
-      if (!this.autoPagingEnabled) return;
-      if (!Number.isFinite(this.totalPages) || this.totalPages <= 1) return;
-
-      this.autoPageTimer = setInterval(() => {
-        // only rotate if still multiple pages
-        if (this.totalPages <= 1) return;
-
-        // go next, or loop to first
-        if (this.pageIndex < this.totalPages - 1) {
-          this.pageIndex++;
-        } else {
-          this.pageIndex = 0;
-        }
-      }, this.AUTO_PAGE_MS);
-    },
-
-    stopAutoPaging() {
-      if (this.autoPageTimer) {
-        clearInterval(this.autoPageTimer);
-        this.autoPageTimer = null;
-      }
-    },
-
-    // OPTIONAL: if user clicks, pause rotation briefly then resume
-    pauseAutoPaging(ms = 12000) {
-      this.stopAutoPaging();
-      if (!this.autoPagingEnabled) return;
-      setTimeout(() => this.startAutoPaging(), ms);
-    },
-
-    nextPage() {
-      if (this.pageIndex < this.totalPages - 1) this.pageIndex++;
-      else this.pageIndex = 0;
-
-      // optional pause after manual action
-      this.pauseAutoPaging();
-    },
-
-    prevPage() {
-      if (this.pageIndex > 0) this.pageIndex--;
-      else this.pageIndex = Math.max(0, this.totalPages - 1);
-
-      // optional pause after manual action
-      this.pauseAutoPaging();
-    },
     isToilet(d) {
-      return d.room_type === 'toilet' || d.room_type === 'toilet-ph';
+      return d?.room_type === "toilet" || d?.room_type === "toilet-ph";
     },
     isPh(d) {
-      return d.room_type === 'room-ph' || d.room_type === 'toilet-ph';
+      return d?.room_type === "room-ph" || d?.room_type === "toilet-ph";
     },
-    // SAFE LOCALSTORAGE
+    onRoomClick(room) {
+      if (Number(this.roomsPerRow) !== 6) return; // ONLY in 6 mode
+      this.selectedRoom = room;
+      this.detailsDialog = true;
+    },
+    // ===== pagination =====
+    nextPage() {
+      if (this.pageIndex < this.totalPages - 1) this.pageIndex++;
+    },
+    prevPage() {
+      if (this.pageIndex > 0) this.pageIndex--;
+    },
+
+    // ===== resize / compute rows =====
+    onResize() {
+      this.scheduleRecalcRows();
+    },
+
+    scheduleRecalcRows() {
+      if (this.recalcTimer) clearTimeout(this.recalcTimer);
+      this.recalcTimer = setTimeout(() => this.recalcRowsPerScreen(), 50);
+    },
+
+    // ✅ key logic: fill row-wise, next page only if next row can't fit
+    recalcRowsPerScreen() {
+      this.$nextTick(() => {
+        const area = this.$refs.roomsArea;
+        if (!area) return;
+
+        const availableH = area.getBoundingClientRect().height || 0;
+        if (availableH <= 0) return;
+
+        const rowH = this.cardH; // fixed 150
+        const gap = this.gridGap;
+
+        // rows = floor((available + gap) / (rowH + gap))
+        const rows = Math.max(1, Math.floor((availableH + gap) / (rowH + gap)));
+
+        if (rows !== this.tvRowsPerScreen) {
+          this.tvRowsPerScreen = rows;
+
+          // keep page valid
+          if (this.pageIndex > this.totalPages - 1) this.pageIndex = 0;
+        }
+      });
+    },
+
+    // ===== room card class =====
+    cardClass(d) {
+      if (!d) return "";
+      if (d.alarm_status === true && !d.alarm?.responded_datetime) return "cardOn";
+      if (d.alarm_status === true && d.alarm?.responded_datetime) return "cardAck";
+      return "cardOff";
+    },
+
+    // ===== SAFE LOCALSTORAGE =====
     safeLsGet(key) {
       try {
         if (typeof window === "undefined") return null;
@@ -534,37 +534,15 @@ export default {
       } catch (e) { }
     },
 
-    updateScreenSize() {
-      this.screenWidth = window.innerWidth;
-      this.screenHeight = window.innerHeight;
-    },
-
-    onRoomClick(room) {
-      if (Number(this.roomsPerRow) !== 6) return;
-      this.selectedRoom = room;
-      this.detailsDialog = true;
-    },
-
-    // ✅ FIX: cardClass method (was missing)
-    cardClass(d) {
-      if (!d) return "";
-      if (d.alarm_status === true && !d.alarm?.responded_datetime) return "cardOn";
-      if (d.alarm_status === true && d.alarm?.responded_datetime) return "cardAck";
-      return "cardOff";
-    },
-
-    nextPage() {
-      if (this.pageIndex < this.totalPages - 1) this.pageIndex++;
-    },
-    prevPage() {
-      if (this.pageIndex > 0) this.pageIndex--;
-    },
-
+    // ===== auth / nav =====
     logout() {
       this.$router.push("/logout");
     },
+    reload() {
+      try { window.location.reload(); } catch (e) { }
+    },
 
-    // MQTT
+    // ===== MQTT =====
     connectMqtt() {
       if (this.client) return;
 
@@ -618,10 +596,7 @@ export default {
         this.isConnected = false;
       } catch (e) { }
     },
-    reload() {
 
-      try { window.location.reload(); } catch (e) { }
-    },
     requestDashboardSnapshot() {
       if (!this.client || !this.isConnected) return;
 
@@ -659,6 +634,9 @@ export default {
         const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
         this.devices = this.normalizeRooms(list);
         this.updateDurationAll();
+
+        // ✅ recalc rows/pages after DOM updates
+        this.scheduleRecalcRows();
         return;
       }
 
@@ -688,6 +666,7 @@ export default {
       }
     },
 
+    // ===== room normalization + duration =====
     toBool(v) {
       if (v === true) return true;
       if (v === false) return false;
@@ -782,276 +761,413 @@ export default {
 </script>
 
 <style scoped>
-/* ===== KILL HORIZONTAL SCROLL (CRITICAL) ===== */
-:global(html),
-:global(body),
-:global(#__nuxt),
-:global(#__layout) {
-  overflow-x: hidden !important;
-  max-width: 100% !important;
-}
-
-.tv-page,
-.tvLayout {
-  overflow-x: hidden !important;
-  max-width: 100% !important;
-}
-
-/* ===== PAGE ===== */
+/* ===== PAGE BASE ===== */
 .tv-page {
   height: 100vh;
   overflow: hidden;
   padding: 10px 12px;
   box-sizing: border-box;
+  background:
+    radial-gradient(900px 500px at 20% 8%, rgba(59, 130, 246, 0.10), transparent 55%),
+    radial-gradient(900px 500px at 80% 10%, rgba(168, 85, 247, 0.10), transparent 55%),
+    linear-gradient(180deg, #070a14 0%, #0b1220 40%, #0b1220 100%);
 }
 
-.tvLayout {
-  height: 100%;
+/* ===== TOP BAR ===== */
+.tvTopBar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.78), rgba(17, 24, 39, 0.55));
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.tvTopLeft {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
 }
 
-.tvHeader {
-  flex: 0 0 auto;
-  margin-bottom: 6px;
+.tvAppIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(0, 0, 0, 0.25);
 }
 
-/* stats */
-.tvStatsRow {
-  flex: 0 0 auto;
-  margin: 0;
+.tvBrandTitle {
+  font-weight: 900;
+  color: #e5e7eb;
+  font-size: 14px;
+  line-height: 1.1;
 }
 
-.tvStatCol {
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
+.tvBrandSub {
+  margin-top: 2px;
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  font-weight: 800;
+  color: rgba(229, 231, 235, 0.6);
+}
+
+.tvTopCenter {
+  display: flex;
+  justify-content: center;
+}
+
+.tvStatusChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.tvStatusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+}
+
+.tvStatusText {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(229, 231, 235, 0.9);
+}
+
+.tvTopRight {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.tvWelcome {
+  font-size: 12px;
+  color: rgba(229, 231, 235, 0.7);
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 340px;
+}
+
+.tvWelcome strong {
+  color: #e5e7eb;
+  font-weight: 900;
+}
+
+.tvIconBtn {
+  border-radius: 10px !important;
+  border: 1px solid rgba(148, 163, 184, 0.18) !important;
+  background: rgba(0, 0, 0, 0.20) !important;
+}
+
+.tvLogoutBtn {
+  border-radius: 10px !important;
+  font-weight: 900 !important;
+}
+
+/* ===== STATS ===== */
+.tvStatsStrip {
+  margin-top: 10px;
+}
+
+.tvStatsGrid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .tvStatCard {
-  height: 86px;
+  height: 78px;
+  border-radius: 14px !important;
+  border: 1px solid rgba(148, 163, 184, 0.18) !important;
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.78), rgba(17, 24, 39, 0.55));
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
+}
+
+.tvStatInner {
+  height: 100%;
   display: flex;
   align-items: center;
-  overflow: hidden;
+  justify-content: space-between;
+  padding: 12px 12px;
+  gap: 10px;
 }
 
-/* toolbar */
-.tvToolbar {
-  flex: 0 0 auto;
+.tvStatTitle {
+  font-size: 11px;
+  letter-spacing: 0.9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: rgba(229, 231, 235, 0.75);
+  white-space: nowrap;
+}
+
+.tvStatValueRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
   margin-top: 6px;
-  margin-bottom: 8px;
 }
 
-/* rooms */
+.tvStatValue {
+  font-size: 26px;
+  font-weight: 900;
+  color: #e5e7eb;
+  line-height: 1;
+}
+
+.tvStatSub {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(229, 231, 235, 0.55);
+}
+
+.tvStatIcon {
+  font-size: 30px !important;
+  opacity: 0.95;
+}
+
+/* ===== TOOLBAR ===== */
+.tvToolbarBar {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.78), rgba(17, 24, 39, 0.55));
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
+}
+
+.tvToolbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tvToolbarRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.tvToolbarDivider {
+  width: 1px;
+  height: 26px;
+  background: rgba(148, 163, 184, 0.22);
+  border-radius: 999px;
+}
+
+.tvToolbarLabel {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: rgba(229, 231, 235, 0.65);
+  text-transform: uppercase;
+}
+
+.tvToggle {
+  border-radius: 12px !important;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.tvToggle .v-btn {
+  min-width: 74px;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+}
+
+.tvNavBtn {
+  border-radius: 10px !important;
+  font-weight: 900 !important;
+}
+
+.tvPageText {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(229, 231, 235, 0.65);
+}
+
+/* ===== ROOMS AREA ===== */
 .tvRoomsArea {
+  margin-top: 10px;
+  height: calc(100vh - 10px - 10px - 58px - 88px - 62px - 30px);
+  /* safe fallback */
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
 }
 
-/* GRID: prevent overflow */
+/* Grid uses CSS variables from roomsGridStyle */
 .roomsGrid {
   width: 100%;
-  max-width: 100%;
+  height: 100%;
   display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(var(--rooms-cols, 2), minmax(0, 1fr));
+  gap: var(--grid-gap, 16px);
+  grid-template-columns: repeat(var(--rooms-cols, 2), var(--card-w, 460px));
+  grid-auto-rows: var(--card-h, 150px);
   justify-content: center;
   align-content: start;
-}
-
-.tvRoomsGrid {
-  height: 100%;
   overflow: hidden;
-  grid-auto-rows: minmax(0, 1fr);
 }
 
+/* Cards fixed size */
 .roomCell {
-  display: flex;
-  justify-content: center;
-  align-items: stretch;
-  min-height: 0;
-  min-width: 0;
+  width: var(--card-w, 460px);
+  height: var(--card-h, 150px);
 }
 
-/* cards */
 .roomCard {
-  border-radius: 12px;
+  width: var(--card-w, 460px);
+  height: var(--card-h, 150px);
+  border-radius: 14px !important;
   overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(148, 163, 184, 0.18) !important;
+  background: rgba(17, 24, 39, 0.55) !important;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.25);
 }
 
-.roomCardIndividual {
+/* Top row */
+.cardTop {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.tvRoomCard {
-  width: 100%;
-  max-width: var(--card-max-w, 520px);
-  height: 100%;
-  max-height: var(--card-max-h, 210px);
-  overflow: hidden;
-  min-width: 0;
-}
-
-.clickableCard {
-  cursor: pointer;
-}
-
-/* ===== MODE 2 ===== */
-.roomLane {
-  display: grid;
-  gap: 10px;
   align-items: center;
-  width: 100%;
-  min-height: 40px;
+  gap: 10px;
+  padding: 10px 12px 6px 12px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.dotOn {
+  background: #ef4444;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
+.dotOff {
+  background: rgba(148, 163, 184, 0.6);
+}
+
+.roomName {
+  flex: 1;
   min-width: 0;
-  padding-top: 10px !important;
-}
-
-.roomLane2 {
-  grid-template-columns: 1fr auto auto auto auto;
-}
-
-.laneName {
   font-weight: 900;
-  font-size: clamp(13px, 1.4vh, 18px);
-  min-width: 0;
+  font-size: 13px;
+  color: #e5e7eb;
 }
 
-.laneIcon {
-  font-size: clamp(14px, 1.4vw, 22px) !important;
-  line-height: 1;
-}
-
-.laneChip {
-  height: 20px;
-  font-weight: 900;
-  padding: 0 8px;
-  max-width: 70px;
-}
-
-.laneAckBtn {
-  min-width: 52px !important;
-  height: 22px !important;
-  padding: 0 10px !important;
-  font-weight: 900;
-}
-
-.laneDurationWrap {
-  margin-top: 8px;
+.icons {
   display: flex;
-  justify-content: center;
-}
-
-.laneDuration {
-  font-size: clamp(14px, 1.9vh, 26px);
-  font-weight: 900;
-  line-height: 1.1;
-}
-
-.laneStartWrap {
-  margin-top: 4px;
-  display: flex;
-  justify-content: center;
-  min-width: 0;
-}
-
-.laneStartText {
-  font-size: 12px;
-  color: #fca5a5;
-  max-width: 100%;
-  min-width: 0;
-}
-
-.laneOkWrap {
-  margin-top: 8px;
-  display: flex;
-  justify-content: center;
   align-items: center;
   gap: 8px;
 }
 
-.okIcon {
-  font-size: clamp(14px, 1.4vw, 22px) !important;
-  line-height: 1;
+.pill {
+  height: 18px;
+  border-radius: 999px;
+  font-weight: 900;
+}
+
+.ackBtn {
+  min-width: 46px !important;
+  height: 20px !important;
+  padding: 0 10px !important;
+  border-radius: 999px !important;
+  font-weight: 900;
+}
+
+/* Center */
+.cardMid {
+  height: calc(var(--card-h, 150px) - 44px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px 10px 12px;
+}
+
+.timer {
+  font-size: 22px;
+  font-weight: 900;
+  color: #e5e7eb;
+}
+
+.startPill {
+  max-width: 100%;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  color: rgba(229, 231, 235, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* OK row */
+.okRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .okText {
   font-weight: 800;
-  font-size: clamp(11px, 1.2vh, 16px);
-}
-
-/* ===== MODE 6 ===== */
-.miniCard {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.miniTop {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.miniName {
-  font-weight: 900;
   font-size: 12px;
-  flex: 1;
-  min-width: 0;
+  color: rgba(229, 231, 235, 0.85);
 }
 
-.miniChip {
-  height: 18px;
-  font-weight: 900;
+/* ===== Alarm Border ONLY top + left ===== */
+.cardOn::before,
+.cardAck::before {
+  content: "";
+  position: absolute !important;
+  inset: 0 !important;
+  pointer-events: none !important;
+  border-top: 2px solid transparent !important;
+  border-left: 2px solid transparent !important;
+  border-top-left-radius: 14px !important;
 }
 
-.miniIcons {
-  display: flex;
-  justify-content: space-evenly;
-  align-items: center;
-  gap: 6px;
+.cardOn::before {
+  border-top-color: rgba(239, 68, 68, 0.95) !important;
+  border-left-color: rgba(239, 68, 68, 0.95);
+  box-shadow: -8px -8px 22px rgba(239, 68, 68, 0.14) !important;
 }
 
-.miniIcon {
-  font-size: clamp(18px, 2.2vw, 34px) !important;
+.cardAck::before {
+  border-top-color: rgba(249, 115, 22, 0.95);
+  border-left-color: rgba(249, 115, 22, 0.95);
+  box-shadow: -8px -8px 22px rgba(249, 115, 22, 0.12);
 }
 
-.miniHint {
-  text-align: center;
-}
+.cardOff {}
 
-/* utilities */
-.text-truncate {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-}
-
-/* borders */
-.cardOn {
-  border: 2px solid rgba(239, 68, 68, 0.95);
-  box-shadow: 0 0 18px rgba(239, 68, 68, 0.18);
-}
-
-.cardOff {
-  border: 1px solid rgba(148, 163, 184, 0.35);
-}
-
-.cardAck {
-  border: 2px solid #f97316;
-}
-
-/* blink */
+/* Blink */
 @keyframes blink {
   0% {
     opacity: 1;
@@ -1070,26 +1186,18 @@ export default {
   animation: blink 1s infinite;
 }
 
-/* stats icon */
-.stat-icon {
-  font-size: clamp(18px, 1.8vw, 34px);
-  line-height: 1;
-  opacity: 0.95;
-}
-
-/* resolution badge */
-.tvResolution {
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 6px;
-  background: #1a2632;
-  color: #e5e7eb;
-  font-weight: 700;
-  letter-spacing: 0.5px;
+/* Utilities */
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* snackbar center */
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+/* Snackbar center */
 .center-snackbar {
   position: fixed !important;
   left: 50%;
@@ -1099,13 +1207,15 @@ export default {
   z-index: 9999;
 }
 
-/* ===== POPUP BOX < 50% SCREEN ===== */
+.clickableCard {
+  cursor: pointer;
+}
+
+/* Popup size < 50% screen */
 :global(.tvDetailsDialog) {
   width: clamp(320px, 45vw, 720px) !important;
-  /* < 50% width */
   max-width: 45vw !important;
   height: clamp(260px, 45vh, 520px) !important;
-  /* < 50% height */
   max-height: 45vh !important;
   margin: 0 auto !important;
 }
@@ -1125,16 +1235,16 @@ export default {
 
 /* ===== MODE 2 ROOM ICONS ===== */
 .roomIconsRow {
-  margin-top: 6px;
+  margin-top: 4px;
   display: flex;
   align-items: center;
-  gap: 6px;
   justify-content: center;
+  gap: 8px;
 }
 
 /* main icon */
 .roomMainIcon {
-  font-size: clamp(22px, 3vw, 36px) !important;
+  font-size: 30px !important;
   line-height: 1;
 }
 
@@ -1142,42 +1252,88 @@ export default {
   color: #3b82f6;
 }
 
-/* blue */
 .roomMainIcon.is-toilet {
   color: #facc15;
 }
 
-/* yellow */
-
 /* PH overlay */
 .roomPhIcon {
-  font-size: clamp(14px, 2vw, 24px) !important;
+  font-size: 20px !important;
   color: #ef4444;
   line-height: 1;
 }
 
-/* ===== MODE 6 MINI ICONS ===== */
-.miniIcons {
+/* ===== POPUP ICONS ===== */
+.popupIconsRow {
+  margin-top: 14px;
+  margin-bottom: 10px;
   display: flex;
-  justify-content: space-evenly;
+  justify-content: center;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
 }
 
-.miniIcon {
-  font-size: clamp(18px, 2.6vw, 34px) !important;
+.popupMainIcon {
+  font-size: 54px !important;
   line-height: 1;
 }
 
-.miniIcon.is-bed {
+.popupMainIcon.is-bed {
   color: #3b82f6;
 }
 
-.miniIcon.is-toilet {
+.popupMainIcon.is-toilet {
   color: #facc15;
 }
 
-.miniIcon.is-ph {
+.popupPhIcon {
+  font-size: 34px !important;
   color: #ef4444;
+  line-height: 1;
+}
+
+/* Popup two-column layout */
+.popupGrid {
+  display: grid;
+  grid-template-columns: 1fr 140px;
+  gap: 16px;
+  align-items: center;
+}
+
+.popupInfo {
+  min-width: 0;
+}
+
+/* Right side icons */
+.popupIconsSide {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+/* icon styles */
+.popupMainIcon {
+  font-size: 64px !important;
+  line-height: 1;
+}
+
+.popupMainIcon.is-bed {
+  color: #3b82f6;
+}
+
+.popupMainIcon.is-toilet {
+  color: #facc15;
+}
+
+.popupPhIcon {
+  font-size: 34px !important;
+  color: #ef4444;
+  line-height: 1;
+}
+
+.popupDuration {
+  font-size: 28px;
 }
 </style>
