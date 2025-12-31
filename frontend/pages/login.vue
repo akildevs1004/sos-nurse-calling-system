@@ -569,6 +569,9 @@ export default {
 
           res = res.data;
 
+          console.log(res);
+
+
           if (!res || !res.status) {
             this.msg = res?.message || "Invalid Login Details";
             this.snackbar = true;
@@ -658,7 +661,7 @@ export default {
           err ? reject(err) : resolve(data);
         };
 
-        const timeout = setTimeout(() => finish(new Error("login timeout")), 6000);
+        const timeout = setTimeout(() => finish(new Error("MQTT login timeout")), 6000);
 
         try {
           client = mqtt.connect(host, { clientId, clean: true, connectTimeout: 4000 });
