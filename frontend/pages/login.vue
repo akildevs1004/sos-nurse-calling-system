@@ -399,7 +399,7 @@ export default {
     this.verifyToken();
 
     // TV: auto redirect
-    this.tvAutoRedirectIfSaved();
+    // this.tvAutoRedirectIfSaved();
   },
 
   beforeDestroy() {

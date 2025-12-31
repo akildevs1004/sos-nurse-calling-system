@@ -183,11 +183,14 @@
     <div class="tvRoomsArea" ref="roomsArea">
       <div class="roomsGrid tvRoomsGrid" ref="roomsGrid" :style="roomsGridStyle">
         <div v-for="d in pagedDevices" :key="d.id || d.room_id" class="roomCell">
-          <v-card outlined class="roomCard tvRoomCard  " @click="onRoomClick(d)" :class="cardClass(d)">
+          <!-- <v-card outlined class="roomCard tvRoomCard  " @click="onRoomClick(d)" :class="cardClass(d)"> -->
 
-            <!-- <v-card outlined class="roomCard tvRoomCard" :class="[cardClass(d), roomsPerRow === 6 ? 'clickableCard' : '']"
+          <!-- <v-card outlined class="roomCard tvRoomCard" :class="[cardClass(d), roomsPerRow === 6 ? 'clickableCard' : '']"
             @click="onRoomClick(d)"> -->
-            <!-- TOP ROW -->
+          <!-- TOP ROW -->
+          <v-card outlined class="roomCard tvRoomCard" :class="[cardClass(d), roomsPerRow === 6 ? 'clickableCard' : '']"
+            @click="onRoomClick(d)">
+
             <div class="cardTop">
               <div class="dot" :class="d.alarm_status ? 'dotOn' : 'dotOff'"></div>
               <div class="roomName text-truncate">{{ d.name }}</div>
@@ -1335,5 +1338,215 @@ export default {
 
 .popupDuration {
   font-size: 28px;
+}
+
+.clickableCard {
+  cursor: pointer;
+  user-select: none;
+}
+
+.clickableCard:hover {
+  transform: translateY(-1px);
+}
+
+.roomCard {
+  position: relative;
+  /* required for ::before */
+  overflow: hidden;
+}
+
+/* alarm border top+left */
+.cardOn::before,
+.cardAck::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  /* ensures it stays visible */
+  border-top: 2px solid transparent;
+  border-left: 2px solid transparent;
+  border-top-left-radius: 14px;
+}
+
+.cardOn::before {
+  border-top-color: rgba(239, 68, 68, 0.95);
+  border-left-color: rgba(239, 68, 68, 0.95);
+}
+
+.cardAck::before {
+  border-top-color: rgba(249, 115, 22, 0.95);
+  border-left-color: rgba(249, 115, 22, 0.95);
+}
+
+/* ===== FIX VUETIFY v-card--link BORDER ISSUE ===== */
+.roomCard.v-card--link {
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* prevent hover overlay from hiding alarm border */
+.roomCard.v-card--link::after {
+  display: none !important;
+}
+
+.roomCard {
+  position: relative;
+  overflow: hidden;
+}
+
+/* alarm border top + left */
+.cardOn::before,
+.cardAck::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  /* ABOVE v-card--link overlay */
+  border-top: 2px solid transparent;
+  border-left: 2px solid transparent;
+  border-top-left-radius: 14px;
+}
+
+.cardOn::before {
+  border-top-color: rgba(239, 68, 68, 0.95);
+  border-left-color: rgba(239, 68, 68, 0.95);
+}
+
+.cardAck::before {
+  border-top-color: rgba(249, 115, 22, 0.95);
+  border-left-color: rgba(249, 115, 22, 0.95);
+}
+
+/* ---------- IMPORTANT: Make sure roomCard is a stacking context ---------- */
+.roomCard {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* ---------- Vuetify clickable overlay/ripple can hide your border ---------- */
+/* Use :deep() so it actually applies under <style scoped> */
+:deep(.roomCard.v-card--link) {
+  box-shadow: none !important;
+  outline: none !important;
+  text-decoration: none !important;
+}
+
+/* Remove/neutralize Vuetify overlay + underlay + ripple layers */
+:deep(.roomCard .v-card__overlay),
+:deep(.roomCard .v-card__underlay),
+:deep(.roomCard .v-ripple__container) {
+  display: none !important;
+  /* simplest, strongest */
+}
+
+/* ---------- Your alarm border (TOP + LEFT only) ALWAYS visible ---------- */
+.roomCard.cardOn::before,
+.roomCard.cardAck::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  /* above anything */
+  border-top: 3px solid transparent;
+  border-left: 3px solid transparent;
+  border-top-left-radius: 14px;
+  /* match your card radius */
+}
+
+.roomCard.cardOn::before {
+  border-top-color: rgba(239, 68, 68, 0.95);
+  border-left-color: rgba(239, 68, 68, 0.95);
+}
+
+.roomCard.cardAck::before {
+  border-top-color: rgba(249, 115, 22, 0.95);
+  border-left-color: rgba(249, 115, 22, 0.95);
+}
+
+/* Optional: click cursor + hover without touching borders */
+.clickableCard,
+:deep(.roomCard.v-card--link) {
+  cursor: pointer;
+}
+
+:deep(.roomCard.v-card--link:hover) {
+  transform: translateY(-1px);
+}
+
+:deep(.roomCard.v-card--link) {
+  cursor: pointer;
+  text-decoration: none !important;
+}
+
+/* Remove overlay/ripple layers that can sit above visuals */
+:deep(.roomCard .v-card__overlay),
+:deep(.roomCard .v-card__underlay),
+:deep(.roomCard .v-ripple__container) {
+  display: none !important;
+}
+
+/* Base card */
+.roomCard {
+  position: relative !important;
+  overflow: hidden !important;
+  border-radius: 14px !important;
+  /* match your design */
+}
+
+/* ===== TOP + LEFT BORDER USING BACKGROUND (bulletproof) ===== */
+.roomCard.cardOn,
+.roomCard.cardAck {
+  /* Keep existing outline border from Vuetify if you want */
+  /* background border lines */
+  background-repeat: no-repeat;
+  background-position: left top, left top;
+  background-size: 100% 3px, 3px 100%;
+  /* top thickness, left thickness */
+}
+
+/* RED (SOS ON - pending) */
+.roomCard.cardOn {
+  background-image:
+    linear-gradient(rgba(239, 68, 68, 0.95), rgba(239, 68, 68, 0.95)),
+    linear-gradient(rgba(239, 68, 68, 0.95), rgba(239, 68, 68, 0.95));
+}
+
+/* ORANGE (ACK) */
+.roomCard.cardAck {
+  background-image:
+    linear-gradient(rgba(249, 115, 22, 0.95), rgba(249, 115, 22, 0.95)),
+    linear-gradient(rgba(249, 115, 22, 0.95), rgba(249, 115, 22, 0.95));
+}
+
+
+/* Ensure card is the visual container */
+.roomCard {
+  position: relative !important;
+  overflow: hidden !important;
+  border-radius: 14px !important;
+}
+
+/* TOP + LEFT "BORDER" using inset shadows (works with v-card--link) */
+.roomCard.cardOn {
+  box-shadow:
+    inset 0 3px 0 rgba(239, 68, 68, 0.95),
+    inset 2px 0 0 rgba(239, 68, 68, 0.95) !important;
+}
+
+.roomCard.cardAck {
+  box-shadow:
+    inset 0 3px 0 rgba(249, 115, 22, 0.95),
+    inset 2px 0 0 rgba(249, 115, 22, 0.95) !important;
+}
+
+/* Keep clickable behavior, but don’t let Vuetify add decoration */
+:deep(.roomCard.v-card--link) {
+  cursor: pointer;
+  text-decoration: none !important;
 }
 </style>
