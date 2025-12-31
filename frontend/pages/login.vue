@@ -1,208 +1,221 @@
 <template>
-  <div class="mobileBGColor111 bg-body">
-    <v-dialog persistent v-model="dialogWhatsapp" width="600px">
+  <div class="loginRoot" :class="[isTv ? 'tvRoot' : 'webRoot']">
+    <!-- ===== WhatsApp OTP Dialog ===== -->
+    <v-dialog persistent v-model="dialogWhatsapp" :width="isTv ? tvDialogWidth : 600">
       <v-card>
-        <v-card-title dense class="white--text" style="background-color: #6946dd; color: #fff !important">
+        <v-card-title dense class="otpTitle">
           Whatsapp Verification
           <v-spacer></v-spacer>
           <v-icon @click="dialogWhatsapp = false" outlined dark color="white">
             mdi mdi-close-circle
           </v-icon>
         </v-card-title>
-        <v-card-text>
-          <div class="row g-0">
-            <div class="col-lg-12">
-              <div class="card-body p-md-5 mx-md-4">
-                <v-row class="pb-5">
-                  <v-col md="12" cols="12" class="text-center">
-                    <h2>MyTime2Cloud</h2>
-                  </v-col>
-                </v-row>
 
-                <h5>
-                  Two Step Whatsapp OTP Verification
-                  <v-icon dark color="green" fill>mdi-whatsapp</v-icon>
-                </h5>
-                <p>
-                  We sent a verification code to your mobile number. Enter the
-                  Code from the mobile in the filed below
-                </p>
-                <h2 style="font-size: 30px">
-                  {{ maskMobileNumber }}
-                </h2>
-                <br />
-                <!-- <v-form ref="form" method="post" v-model="whatsappFormValid" lazy-validation> -->
-                <label for="" class="pb-5" style="font-weight: bold; font-size: 20px">Type your 6 Digit Security
-                  Code</label>
-                <div class="form-outline mb-4">
-                  <v-otp-input v-model="otp" length="6" :rules="requiredRules"></v-otp-input>
-                </div>
+        <v-card-text class="otpBody">
+          <v-row dense class="pb-2">
+            <v-col cols="12" class="text-center">
+              <h2 class="brandTitle">MyTime2Cloud</h2>
+            </v-col>
+          </v-row>
 
-                <div class="text-center pt-1 mb-5 pb-1">
-                  <span v-if="msg" class="error--text">
-                    {{ msg }}
-                  </span>
-                  <v-btn :loading="loading" @click="checkOTP(otp)" class="btn btn-block fa-lg mt-1 mb-3"
-                    style="background-color: #6946dd; color: #fff">
-                    Verify OTP
-                  </v-btn>
-                  <!-- <v-btn :loading="loading" @click="checkOTP(otp)"
-                      class="btn btn-primary btn-block text-white fa-lg primary mt-1 mb-3 btntext">
-                      Verify OTP
-                    </v-btn> -->
-                </div>
+          <h5 class="otpSubtitle">
+            Two Step Whatsapp OTP Verification
+            <v-icon color="green">mdi-whatsapp</v-icon>
+          </h5>
 
-                <div class="d-flex align-items-center justify-content-center pb-4"></div>
-                <!-- </v-form> -->
-              </div>
-            </div>
+          <p class="otpDesc">
+            We sent a verification code to your mobile number. Enter the code below.
+          </p>
+
+          <div class="maskedNumber">
+            {{ maskMobileNumber }}
+          </div>
+
+          <label class="otpLabel">Type your 6 Digit Security Code</label>
+
+          <div class="otpInputWrap">
+            <v-otp-input v-model="otp" length="6" :rules="requiredRules" :disabled="loading"></v-otp-input>
+          </div>
+
+          <div class="text-center pt-2">
+            <span v-if="msg" class="errorText">{{ msg }}</span>
+
+            <v-btn :loading="loading" :disabled="loading" @click="checkOTP(otp)" class="primaryBtn" block>
+              Verify OTP
+            </v-btn>
           </div>
         </v-card-text>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="dialogForgotPassword" width="400px" height="500px">
+
+    <!-- ===== Forgot Password Dialog ===== -->
+    <v-dialog v-model="dialogForgotPassword" :width="isTv ? 420 : 400">
       <v-card>
         <v-card-title dense class="popup_background">
           Forgot Password
           <v-spacer></v-spacer>
-          <v-icon @click="dialogForgotPassword = false" outlined dark>
+          <v-icon @click="dialogForgotPassword = false" outlined>
             mdi mdi-close-circle
           </v-icon>
         </v-card-title>
         <v-card-text>
-          <ForgotPassword></ForgotPassword>
+          <ForgotPassword />
         </v-card-text>
       </v-card>
     </v-dialog>
+
+    <!-- ===== Snackbar ===== -->
     <v-snackbar v-model="snackbar" top="top" color="error" elevation="24">
       {{ snackbarMessage }}
     </v-snackbar>
 
-    <v-row class="" style="height: 100%">
-      <v-col xs="12" sm="12" md="12" lg="5" style="padding: 0px">
-        <div class="card-body p-md-5 mx-md111111-4" style="
-            padding: 3rem !important;
-            max-width: 500px;
-            margin: auto;
-            text-align: center;
-          ">
-          <div style="min-height: 100px">
-            <div style="width: 100%" class="text-center">
-              <v-img class="text-center" style="
-                  width: 250px;
-                  padding: 0px;
-                  margin: auto;
-                  text-align: center;
-                " src="/logo22.png"></v-img>
+    <!-- ===== TV/Compact Layout ===== -->
+    <div v-if="isTv" class="tvStage">
+      <v-card class="tvCard" outlined :style="tvCardStyle">
+        <div class="tvGrid" :style="tvGridStyle">
+          <!-- LEFT: Logo / Title -->
+          <div class="tvLeft" :style="tvLeftStyle">
+            <v-img class="tvLogo" :style="tvLogoStyle" src="/logo22.png" contain />
+            <div class="tvWelcome" :style="tvWelcomeStyle">
+              Welcome To <span class="tvBrand">Xtreme Guard</span>
             </div>
-            <h3 class="pb-7 pt-15" style="color: black">
-              Welcome To
-              <span style="font-size: 20px"> Xtreme Guard </span>
-            </h3>
+
+            <div class="tvSupport" :style="tvSupportStyle">
+              <div class="tvSupportLine">
+                Support:
+                <a target="_blank" class="supportLink"
+                  href="https://wa.me/971529048025?text=Hello%20Xtreme%20Guard.%20I%20need%20your%20support.">
+                  <v-icon small>mdi-whatsapp</v-icon>
+                </a>
+                <a class="supportLink" href="tel:+971529048025">+971 52 904 8025</a>
+              </div>
+              <div class="tvSupportLine">
+                <a class="supportLink" href="mailto:support@xtremeguard.org">support@xtremeguard.org</a>
+              </div>
+            </div>
           </div>
-          <div>
-            <v-form ref="form" method="post" v-model="valid" lazy-validation autocomplete="off" class="loginpage">
-              <div class="form-outline">
-                <v-text-field role="presentation" label="Email" v-model="credentials.email" :hide-details="false"
-                  id="form2Example11" autofill="false" required dense outlined type="email"
-                  prepend-inner-icon="mdi-account" append-icon="mdi-at" autocomplete="off" aria-autocomplete="none"
-                  class="theme--light" style="color: black !important"></v-text-field>
+
+          <!-- RIGHT: Form -->
+          <div class="tvRight" :style="tvRightStyle">
+            <v-form ref="form" v-model="valid" lazy-validation autocomplete="off">
+              <v-text-field label="Email" v-model="credentials.email" dense outlined type="email"
+                prepend-inner-icon="mdi-account" append-icon="mdi-at" autocomplete="off" :disabled="loading"
+                class="tvField" :style="tvFieldStyle" />
+
+              <v-text-field label="Password" v-model="credentials.password" dense outlined prepend-inner-icon="mdi-lock"
+                :append-icon="show_password ? 'mdi-eye' : 'mdi-eye-off'" :type="show_password ? 'text' : 'password'"
+                autocomplete="off" :disabled="loading" class="tvField" :style="tvFieldStyle"
+                @click:append="show_password = !show_password" />
+
+              <div class="tvActionsRow" :style="tvActionsStyle">
+                <v-btn text small @click="openForgotPassword" :disabled="loading">
+                  Forgot password?
+                </v-btn>
               </div>
 
-              <div class="form-outline">
-                <v-text-field role="presentation" label="Password" dense outlined autocomplete="off"
-                  prepend-inner-icon="mdi-lock  " :append-icon="show_password ? 'mdi-eye' : 'mdi-eye-off'"
-                  :type="show_password ? 'text' : 'password'" v-model="credentials.password"
-                  class="input-group--focused theme--light" @click:append="show_password = !show_password"
-                  style="color: black !important"></v-text-field>
-              </div>
+              <div class="pt-1">
+                <span v-if="msg" class="errorText">{{ msg }}</span>
 
-              <v-row>
-                <v-col md="6">
-                  <!-- <v-checkbox value="red" disabled>
-                    <template v-slot:label>
-                      <label style="">Remember&nbsp;Password</label>
-                    </template>
-</v-checkbox> -->
-                </v-col>
-                <v-col md="6" class="text-right pt-6">
-                  <!-- <nuxt-link to="/reset-password"
-                                  >Forgot password?</nuxt-link
-                                > -->
-                  <v-btn text @click="openForgotPassword" style="font-weight: normal">Forgot password?</v-btn>
-                </v-col>
-              </v-row>
-
-              <div class="text-center pt-1 mb-5 pb-1">
-                <span v-if="msg" class="error--text111" style="color: #ff9f87">
-                  {{ msg }}
-                </span>
-                <v-btn :loading="loading" @click="login()" class="btn btn-block mt-1 mb-3 p-4 btntext loginbutton"
-                  style="
-                    width: 100%;
-                    height: 48px;
-                    background-color: #6c2ac2;
-                    color: #fff;
-                  ">
+                <v-btn :loading="loading" :disabled="loading" @click="login()" class="primaryBtn" block
+                  :style="tvButtonStyle">
                   Login
                 </v-btn>
               </div>
+
+              <div class="tvFooter" :style="tvFooterStyle">
+                Don't Have an Account? Contact Admin
+              </div>
             </v-form>
           </div>
-          <div class="text-center">Don't Have an Account? Contact Admin</div>
+        </div>
+      </v-card>
+    </div>
 
-          <v-row class="text-center" style="font-size: 13px">
-            <v-col class="pa-5">
-              For Technical Support :
-              <a target="_blank" href="https://wa.me/971529048025?text=Hello Xtreme Guard. I need your support."><v-icon
-                  color="black">mdi-whatsapp</v-icon></a>
-              <a style="text-decoration: none; color: black" href="tel:+971529048025">+971 52 904 8025</a></v-col>
-          </v-row>
-          <v-row class="text-center" style="font-size: 13px">
-            <v-col class="pa-5">
-              <a style="text-decoration: none; color: black"
-                href="mailto:support@xtremeguard.org">support@xtremeguard.org</a></v-col>
-          </v-row>
+    <!-- ===== Regular Website Layout ===== -->
+    <v-row v-else class="webStage" style="height: 100%">
+      <v-col cols="12" lg="5" class="webLeft">
+        <div class="webCardWrap">
+          <div class="logoWrap">
+            <v-img class="webLogo" src="/logo22.png" contain />
+            <h3 class="webWelcome">
+              Welcome To <span class="webBrand">Xtreme Guard</span>
+            </h3>
+          </div>
+
+          <v-form ref="form" v-model="valid" lazy-validation autocomplete="off">
+            <v-text-field label="Email" v-model="credentials.email" dense outlined type="email"
+              prepend-inner-icon="mdi-account" append-icon="mdi-at" autocomplete="off" :disabled="loading" />
+            <v-text-field label="Password" v-model="credentials.password" dense outlined prepend-inner-icon="mdi-lock"
+              :append-icon="show_password ? 'mdi-eye' : 'mdi-eye-off'" :type="show_password ? 'text' : 'password'"
+              autocomplete="off" :disabled="loading" @click:append="show_password = !show_password" />
+
+            <v-row>
+              <v-col cols="6" />
+              <v-col cols="6" class="text-right">
+                <v-btn text small @click="openForgotPassword" :disabled="loading">
+                  Forgot password?
+                </v-btn>
+              </v-col>
+            </v-row>
+
+            <div class="pt-2">
+              <span v-if="msg" class="errorText">{{ msg }}</span>
+              <v-btn :loading="loading" :disabled="loading" @click="login()" class="primaryBtn" block>
+                Login
+              </v-btn>
+            </div>
+          </v-form>
+
+          <div class="text-center pt-3">Don't Have an Account? Contact Admin</div>
+
+          <div class="supportBlock">
+            <div>
+              For Technical Support:
+              <a target="_blank" class="supportLink"
+                href="https://wa.me/971529048025?text=Hello%20Xtreme%20Guard.%20I%20need%20your%20support.">
+                <v-icon small>mdi-whatsapp</v-icon>
+              </a>
+              <a class="supportLink" href="tel:+971529048025">+971 52 904 8025</a>
+            </div>
+            <div>
+              <a class="supportLink" href="mailto:support@xtremeguard.org">support@xtremeguard.org</a>
+            </div>
+          </div>
         </div>
       </v-col>
-      <v-col xs="12" sm="12" md="12" lg="7" style="" class="hide-on-mobile d-none d-lg-flex">
+
+      <v-col cols="12" lg="7" class="webRight d-none d-lg-flex">
         <div class="about-content">
           <h3>About Xtreme Guard</h3>
-          <div style="font-weight: 300">
+          <div class="aboutText">
             Xtreme Guard is an innovative and comprehensive platform.
-            <br />In today's technology-driven era, Securing server rooms
-            requires a multifaceted approach, and incorporating advanced
-            security systems is essential for ensuring the safety and
-            reliability of critical infrastructure. This content will detail the
-            importance of humidity and temperature monitoring alongside fire
-            alarms, smoke alarms, water leakage alarms, power-off alarms, and
-            door open status monitors for comprehensive server room protection.
+            <br />
+            Monitoring humidity and temperature alongside fire alarms, smoke alarms, water leakage alarms, power-off
+            alarms, and door open status monitors ensures full protection.
           </div>
-          <h3 class="pt-10">Features</h3>
-          <ul style="font-weight: 300">
-            <li>Temparature Monitoring</li>
-            <li>Humidity Monitoring</li>
-            <li>Fire/Smoke Detective Alarm Systems</li>
 
+          <h3 class="pt-6">Features</h3>
+          <ul class="aboutList">
+            <li>Temperature Monitoring</li>
+            <li>Humidity Monitoring</li>
+            <li>Fire/Smoke Detection Alarm Systems</li>
             <li>Water Leakage Alarm Systems</li>
             <li>Power-Off Alarm Systems</li>
             <li>Door Open Status Monitoring</li>
           </ul>
-          <v-row class="text-left pt-10">
-            <v-col class="pa-5">
-              <h3>Technical Support</h3>
 
-              <a style="font-weight: 300" target="_blank"
-                href="https://wa.me/971529048025?text=Hello XtremeGuard. I need your support."><v-icon
-                  color="white">mdi-whatsapp</v-icon></a>
-
-              <a style="color: #fff; text-decoration: none; font-weight: 300" href="tel:+971529048025">+971 52 904
-                8025</a>
+          <div class="pt-8">
+            <h3>Technical Support</h3>
+            <div class="aboutSupport">
+              <a target="_blank" class="supportLink whiteLink"
+                href="https://wa.me/971529048025?text=Hello%20XtremeGuard.%20I%20need%20your%20support.">
+                <v-icon color="white" small>mdi-whatsapp</v-icon>
+              </a>
+              <a class="supportLink whiteLink" href="tel:+971529048025">+971 52 904 8025</a>
               <br />
-              <a style="text-decoration: none; color: #fff; font-weight: 300"
-                href="mailto:support@xtremeguard.org">support@xtremeguard.org</a>
-            </v-col>
-          </v-row>
+              <a class="supportLink whiteLink" href="mailto:support@xtremeguard.org">support@xtremeguard.org</a>
+            </div>
+          </div>
         </div>
       </v-col>
     </v-row>
@@ -211,286 +224,420 @@
 
 <script>
 import mqtt from "mqtt";
-
-
 import ForgotPassword from "../components/ForgotPassword.vue";
+
 export default {
   layout: "login",
   components: { ForgotPassword },
+
   data: () => ({
+    autoRedirecting: false,
+
+    // responsive detection
+    screenW: 0,
+    screenH: 0,
+
+    // dialogs
     dialogForgotPassword: false,
+    dialogWhatsapp: false,
+
+    // otp
+    otp: "",
+    userId: "",
     maskMobileNumber: "",
-    whatsappFormValid: true,
-    logo: "/ideaHRMS-final-blue.svg",
+
+    // ui
     valid: true,
     loading: false,
     snackbar: false,
     snackbarMessage: "",
-
     show_password: false,
     msg: "",
+
     requiredRules: [(v) => !!v || "Required"],
-    emailRules: [
-      (v) => !!v || "E-mail is required",
-      (v) => /.+@.+\..+/.test(v) || "E-mail must be valid",
-    ],
 
-    passwordRules: [(v) => !!v || "Password is required"],
-
-    dialogWhatsapp: false,
-    otp: "",
-    userId: "",
     credentials: {
       email: "",
       password: "",
       source: "admin",
     },
   }),
-  created() {
+
+  computed: {
+    // TV mode detection:
+    // width 900..1100 OR height < 700
+    isTv() {
+      const w = this.screenW || 0;
+      const h = this.screenH || 0;
+      return (w >= 900 && w <= 1100) || (h > 0 && h < 700);
+    },
+
+    // Are saved credentials present?
+    hasSavedLogin() {
+      const email =
+        this.$store?.state?.email || (process.client ? localStorage.getItem("saved_email") : "");
+      const password =
+        this.$store?.state?.password || (process.client ? localStorage.getItem("saved_password") : "");
+      return !!(email && password);
+    },
+
+    // scale factor based on height, clamped
+    s() {
+      const h = this.screenH || 540;
+      const raw = h / 540; // 960x540 baseline
+      return Math.max(0.85, Math.min(1.25, raw));
+    },
+
+    tvDialogWidth() {
+      return Math.round(520 * this.s);
+    },
+
+    // Dynamic styles for TV layout
+    tvCardStyle() {
+      const maxW = Math.min(this.screenW - 40, 1000);
+      const maxH = Math.min(this.screenH - 40, 620);
+      return {
+        width: `${Math.max(820, Math.min(980, maxW))}px`,
+        height: `${Math.max(440, Math.min(560, maxH))}px`,
+        borderRadius: `${Math.round(12 * this.s)}px`,
+        padding: `${Math.round(16 * this.s)}px`,
+      };
+    },
+
+    tvGridStyle() {
+      return {
+        height: "100%",
+        display: "grid",
+        gridTemplateColumns: "1fr 1.2fr",
+        gap: `${Math.round(16 * this.s)}px`,
+        alignItems: "center",
+      };
+    },
+
+    tvLeftStyle() {
+      return {
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        padding: `${Math.round(10 * this.s)}px`,
+      };
+    },
+
+    tvRightStyle() {
+      return {
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        padding: `${Math.round(10 * this.s)}px`,
+      };
+    },
+
+    tvLogoStyle() {
+      const w = Math.round(260 * this.s);
+      const h = Math.round(90 * this.s);
+      return {
+        width: `${Math.max(190, Math.min(300, w))}px`,
+        height: `${Math.max(60, Math.min(110, h))}px`,
+      };
+    },
+
+    tvWelcomeStyle() {
+      return {
+        marginTop: `${Math.round(10 * this.s)}px`,
+        fontSize: `${Math.round(20 * this.s)}px`,
+        fontWeight: 700,
+        color: "#111",
+      };
+    },
+
+    tvSupportStyle() {
+      return {
+        marginTop: `${Math.round(18 * this.s)}px`,
+        fontSize: `${Math.round(12 * this.s)}px`,
+        color: "#333",
+      };
+    },
+
+    tvFieldStyle() {
+      const font = Math.round(16 * this.s);
+      return { fontSize: `${font}px` };
+    },
+
+    tvActionsStyle() {
+      return { marginTop: `${Math.round(4 * this.s)}px`, textAlign: "right" };
+    },
+
+    tvButtonStyle() {
+      return { height: `${Math.round(48 * this.s)}px`, fontSize: `${Math.round(16 * this.s)}px` };
+    },
+
+    tvFooterStyle() {
+      return {
+        marginTop: `${Math.round(10 * this.s)}px`,
+        fontSize: `${Math.round(12 * this.s)}px`,
+        textAlign: "center",
+        color: "#444",
+      };
+    },
+  },
+
+  mounted() {
     this.$vuetify.theme.dark = false;
-    // !this.$vuetify.theme.dark;
-    this.$auth.logout();
-    // this.$store.commit("dashboard/resetState", null);
-    this.$store.dispatch("dashboard/resetState");
-    this.$store.dispatch("resetState");
+
+    this.updateViewport();
+    window.addEventListener("resize", this.updateViewport, { passive: true });
+
+    // Logout only for website (do NOT logout for TV, else auto-redirect will never work)
+    if (!this.isTv) {
+      try {
+        this.$auth.logout();
+      } catch (e) { }
+    }
 
     this.verifyToken();
-  },
-  mounted() {
-    // setTimeout(() => {
-    //   window.location.reload();
-    // }, 1000 * 60 * 15); //15 minutes
 
-    this.$store.dispatch("dashboard/resetState");
-    this.$store.dispatch("resetState");
-
-    this.$vuetify.theme.dark = false;
+    // TV: auto redirect
+    this.tvAutoRedirectIfSaved();
   },
+
+  beforeDestroy() {
+    window.removeEventListener("resize", this.updateViewport);
+  },
+
   methods: {
+    updateViewport() {
+      this.screenW = window.innerWidth || 0;
+      this.screenH = window.innerHeight || 0;
+
+      // Re-check after resize (TV shells can resize after load)
+      this.$nextTick(() => this.tvAutoRedirectIfSaved());
+    },
+
     openForgotPassword() {
       this.dialogForgotPassword = true;
     },
+
     verifyToken() {
       if (this.$route.query.email && this.$route.query.password) {
-        this.email = this.$route.query.email;
-        this.password = this.$route.query.password;
-
+        this.credentials.email = this.$route.query.email;
+        this.credentials.password = this.$route.query.password;
         this.loginWithOTP();
       }
     },
+
     hideMobileNumber(inputString) {
-      // Check if the input is a valid string
-      if (typeof inputString !== "string" || inputString.length < 4) {
-        return inputString; // Return input as is if it's not a valid string
-      }
-
-      // Use a regular expression to match all but the last 3 digits
-      var regex = /^(.*)(\d{5})$/;
-      var matches = inputString.match(regex);
-
-      if (matches) {
-        var prefix = matches[1]; // Text before the last 3 digits
-        var lastDigits = matches[2]; // Last 3 digits
-        var maskedPrefix = "*".repeat(prefix.length); // Create a string of asterisks of the same length as the prefix
-        return maskedPrefix + lastDigits;
-      } else {
-        return inputString; // Return input as is if there are fewer than 3 digits
-      }
+      if (typeof inputString !== "string" || inputString.length < 4) return inputString;
+      const regex = /^(.*)(\d{5})$/;
+      const matches = inputString.match(regex);
+      if (!matches) return inputString;
+      return "*".repeat(matches[1].length) + matches[2];
     },
 
-    handleInputChange() { },
-    // mxVerify(res) {
-    //   this.reCaptcha = res;
-    //   this.showGRC = this.reCaptcha ? false : true;
-    // },
-    checkOTP(otp) {
-      if (otp == "") {
-        alert("Enter OTP");
+    async tvAutoRedirectIfSaved() {
+      if (!this.isTv || this.autoRedirecting) return;
+
+      // Consider token existence as logged-in
+      const hasToken =
+        !!this.$auth?.strategy?.token?.get() ||
+        !!this.$auth?.$storage?.getUniversal?.("auth._token.local");
+
+      if (this.$auth?.loggedIn || hasToken) {
+        this.autoRedirecting = true;
+        this.$router.replace("/alarm/tvmonitor1");
         return;
       }
-      let payload = {
-        userId: this.userId,
-      };
-      this.$axios
-        .post(`check_otp/${otp}`, payload)
-        .then(({ data }) => {
-          if (!data.status) {
-            alert("Invalid OTP. Please try again");
-          } else {
-            this.login();
-          }
-        })
-        .catch((err) => console.log(err));
-    },
 
-    loginWithOTP() {
-      if (this.$refs.form.validate()) {
-        this.loading = true;
-        this.$store.commit("email", this.credentials.email);
-        this.$store.commit("password", this.credentials.password);
+      if (!this.hasSavedLogin) return;
 
-        this.$axios
-          .post("loginwith_otp", this.credentials)
-          .then(({ data }) => {
-            if (!data.status) {
-              //alert("OTP Verification: " + data.message);
-              alert("Invalid Login Deails");
-            } else if (data.user_id) {
-              if (data.enable_whatsapp_otp == 1) {
-                this.dialogWhatsapp = true;
-                this.userId = data.user_id;
-                if (data.mobile_number) {
-                  this.maskMobileNumber = this.hideMobileNumber(
-                    data.mobile_number
-                  );
-                }
+      this.autoRedirecting = true;
 
-                this.loading = false;
-              } else {
-                this.login();
-              }
-            } else {
-              this.snackbar = true;
-              this.snackbarMessage = "Invalid Login Details";
-              //alert("Invalid Login Deails");
-            }
-          })
-          .catch((err) => console.log(err));
-      } else {
-        this.snackbar = true;
-        this.snackbarMessage = "Invalid Emaild and Password";
+      // Load saved credentials
+      const email =
+        this.$store?.state?.email || (process.client ? localStorage.getItem("saved_email") : "");
+      const password =
+        this.$store?.state?.password || (process.client ? localStorage.getItem("saved_password") : "");
+
+      this.credentials.email = email || "";
+      this.credentials.password = password || "";
+
+      if (!this.credentials.email || !this.credentials.password) {
+        this.autoRedirecting = false;
+        return;
       }
-      this.loading = false;
-    },
-    async isBackendUp() {
-      const base = process.env.BACKEND_URL; // if exists
-      const url = base ? `${base}/test` : "health";
 
       try {
-        await this.$axios.get(url, { timeout: 2000, params: { _t: Date.now() } });
+        const ok = await this.login();
+        if (ok) {
+          this.$router.replace("/alarm/tvmonitor1");
+          return;
+        }
+        this.autoRedirecting = false;
+      } catch (e) {
+        this.autoRedirecting = false;
+      }
+    },
+
+    async isBackendUp() {
+      try {
+        // Adjust if your backend health endpoint differs
+        await this.$axios.get("/test", { timeout: 2000, params: { _t: Date.now() } });
         return true;
       } catch (e) {
         return false;
       }
     },
-    async login() {
 
-      //check MQTT
+    checkOTP(otp) {
+      if (!otp) {
+        alert("Enter OTP");
+        return;
+      }
 
-      const backendOk = await this.isBackendUp();
+      const payload = { userId: this.userId };
+      this.loading = true;
 
-      // alert(backendOk);
+      this.$axios
+        .post(`check_otp/${otp}`, payload)
+        .then(({ data }) => {
+          if (!data.status) {
+            alert("Invalid OTP. Please try again");
+            return;
+          }
+          this.dialogWhatsapp = false;
+          this.login();
+        })
+        .catch(() => alert("OTP check failed"))
+        .finally(() => (this.loading = false));
+    },
 
-      if (backendOk == false) {
+    loginWithOTP() {
+      if (!this.$refs.form || !this.$refs.form.validate()) {
+        this.snackbar = true;
+        this.snackbarMessage = "Invalid Email and Password";
+        return;
+      }
 
-        // ===== 2) MQTT LOGIN (backend not reachable) =====
-        try {
-          const res = await this.mqttLoginVerify(this.credentials);
+      this.loading = true;
+      this.msg = "";
 
-
-
-          if (!res || !res.data.status) {
-            this.msg = res?.message || "Invalid Login Details";
+      this.$axios
+        .post("loginwith_otp", this.credentials)
+        .then(({ data }) => {
+          if (!data.status) {
             this.snackbar = true;
-            this.snackbarMessage = this.msg;
-            this.loading = false;
+            this.snackbarMessage = "Invalid Login Details";
+            this.msg = "Invalid Login Details";
             return;
           }
 
-          // Set token + user (Nuxt Auth)
-          // if (res.data.token) this.$auth.token = res.data.token;
-          // if (res.data.user) this.$auth.user = res.data.user;
-          this.$auth.strategy.token.set("Bearer " + res.data.token);
-
-
-          if (res.data.user.user_type == "security") {
-
-            // alert( this.$auth.user.security.first_nam)
-            this.$auth.setUser(res.data.user);
-
-            this.$router.push("alarm/tvmonitor1");
-          }
-          else {
-            this.$router.push("logout");
-
+          if (data.user_id) {
+            if (data.enable_whatsapp_otp == 1) {
+              this.dialogWhatsapp = true;
+              this.userId = data.user_id;
+              if (data.mobile_number) this.maskMobileNumber = this.hideMobileNumber(data.mobile_number);
+              return;
+            }
+            this.login();
+            return;
           }
 
-
-
-
-          this.loading = false;
-          return false;
-
-        } catch (e) {
-          this.msg = e?.message || "MQTT Login failed";
           this.snackbar = true;
-          this.snackbarMessage = this.msg;
-          this.loading = false;
+          this.snackbarMessage = "Invalid Login Details";
+          this.msg = "Invalid Login Details";
+        })
+        .catch(() => {
+          this.snackbar = true;
+          this.snackbarMessage = "Login OTP request failed";
+        })
+        .finally(() => (this.loading = false));
+    },
 
+    async login() {
+      this.msg = "";
+      this.snackbar = false;
+      this.snackbarMessage = "";
+      this.loading = true;
+
+      try {
+        const backendOk = await this.isBackendUp();
+
+        // If backend is down OR TV => MQTT
+        if (!backendOk || this.isTv) {
+          let res = await this.mqttLoginVerify(this.credentials);
+
+          res = res.data;
+
+          if (!res || !res.status) {
+            this.msg = res?.message || "Invalid Login Details";
+            this.snackbar = true;
+            this.snackbarMessage = this.msg;
+            return false;
+          }
+
+          if (res.token) {
+            this.$auth.strategy.token.set(`Bearer ${res.token}`);
+            if (this.$auth.strategy?.token?.sync) this.$auth.strategy.token.sync();
+          }
+          if (res.user) this.$auth.setUser(res.user);
+
+          // Save credentials for TV auto-login
+          if (process.client) {
+            localStorage.setItem("saved_email", this.credentials.email);
+            localStorage.setItem("saved_password", this.credentials.password);
+          }
+
+          // Treat security user as success
+          return res.user?.user_type === "security";
+        }
+
+        // Backend UP => normal Nuxt Auth
+        if (!this.$refs.form || !this.$refs.form.validate()) {
+          this.snackbar = true;
+          this.snackbarMessage = "Invalid Email and Password";
           return false;
         }
 
-      }
-      else {
+        const { data } = await this.$auth.loginWith("local", { data: this.credentials });
+        const user = data?.user || this.$auth.user;
 
-
-
-        if (this.$refs.form.validate()) {
-          this.$store.commit("email", this.credentials.email);
-          this.$store.commit("password", this.credentials.password);
-
-          this.msg = "";
-          this.loading = true;
-          this.$auth
-            .loginWith("local", { data: this.credentials })
-            .then(({ data }) => {
-              // console.log("$auth.user", data, this.$auth.user);
-
-              if (data.user.branch_id == 0 && data.user.is_master == false) {
-                this.snackbar = true;
-                this.snackbarMessage =
-                  "You do not have Permission to access this page";
-                this.msg = "You do not have Permission to access this page";
-
-                // window.location.href = process.env.EMPLOYEE_APP_URL;
-                // this.$router.push("/login");
-                return false;
-              }
-
-              if (
-                this.$auth.user.role_id == 0 &&
-                this.$auth.user.user_type == "employee"
-              ) {
-                window.location.href = process.env.EMPLOYEE_APP_URL;
-                return "";
-              }
-
-              setTimeout(() => (this.loading = false), 2000);
-            })
-            .catch(({ response }) => {
-              if (!response) {
-                return false;
-              }
-              let { status, data, statusText } = response;
-              this.msg = status == 422 ? data.message : statusText;
-              setTimeout(() => (this.loading = false), 2000);
-            });
-        } else {
+        if (user?.branch_id == 0 && user?.is_master == false) {
           this.snackbar = true;
-          this.snackbarMessage = "Invalid Emaild and Password";
+          this.snackbarMessage = "You do not have Permission to access this page";
+          this.msg = this.snackbarMessage;
+          return false;
         }
+
+        if (user?.role_id == 0 && user?.user_type == "employee") {
+          window.location.href = process.env.EMPLOYEE_APP_URL;
+          return true;
+        }
+
+        // Save credentials for TV auto-login
+        if (process.client) {
+          localStorage.setItem("saved_email", this.credentials.email);
+          localStorage.setItem("saved_password", this.credentials.password);
+        }
+
+        return true;
+      } catch (e) {
+        this.msg = e?.message || "Login failed";
+        this.snackbar = true;
+        this.snackbarMessage = this.msg;
+        return false;
+      } finally {
+        this.loading = false;
       }
     },
+
     async mqttLoginVerify(credentials) {
       const host = process.env.MQTT_SOCKET_HOST;
-      const clientId =
-        "vue-client-" + Math.random().toString(16).substr(2, 8);
+      const clientId = "vue-client-" + Math.random().toString(16).substr(2, 8);
 
       const reqTopic = "tv/auth/req";
       const respBase = "tv/auth/resp/";
-
-      const correlationId =
-        Date.now().toString(36) + Math.random().toString(36).slice(2);
+      const correlationId = Date.now().toString(36) + Math.random().toString(36).slice(2);
       const respTopic = respBase + correlationId;
 
       return new Promise((resolve, reject) => {
@@ -511,21 +658,11 @@ export default {
           err ? reject(err) : resolve(data);
         };
 
-        // safety timeout
-        const timeout = setTimeout(() => {
-          finish(new Error("MQTT login timeout"));
-        }, 6000);
+        const timeout = setTimeout(() => finish(new Error("login timeout")), 6000);
 
         try {
-          client = mqtt.connect(host, {
-            clientId,
-            clean: true,
-            connectTimeout: 4000,
-          });
+          client = mqtt.connect(host, { clientId, clean: true, connectTimeout: 4000 });
         } catch (e) {
-
-          console.log("e", e);
-
           clearTimeout(timeout);
           finish(new Error("MQTT connect failed"));
           return;
@@ -533,7 +670,7 @@ export default {
 
         client.once("error", (err) => {
           clearTimeout(timeout);
-          finish(new Error("MQTT error"));
+          finish(new Error(err?.message || "MQTT error"));
         });
 
         client.once("connect", () => {
@@ -546,7 +683,6 @@ export default {
 
             client.on("message", (topic, payload) => {
               if (topic !== respTopic) return;
-
               clearTimeout(timeout);
 
               let res;
@@ -556,7 +692,6 @@ export default {
                 finish(new Error("Invalid MQTT response"));
                 return;
               }
-
               finish(null, res);
             });
 
@@ -577,114 +712,149 @@ export default {
         });
       });
     },
-
-
-  }
-}
-
-  ;
+  },
+};
 </script>
-<style>
-body,
-html {
-  height: 100%;
+
+<style scoped>
+.loginRoot {
+  min-height: 100vh;
 }
 
-.bg-body {
+/* Website background */
+.webRoot {
   padding-top: 5%;
-
-  height: 100%;
-
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
 }
-</style>
 
-<style scoped>
+@media (min-width: 1300px) {
+  .webRoot {
+    background-image: url("../static/login/bgimage3.png") !important;
+  }
+}
+
+/* TV root */
+.tvRoot {
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.tvStage {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* TV card + layout */
+.tvCard {
+  box-sizing: border-box;
+}
+
+.tvGrid {
+  width: 100%;
+}
+
+.tvLogo {
+  max-width: 100%;
+}
+
+/* Web layout */
+.webLeft {
+  padding: 0;
+}
+
+.webCardWrap {
+  padding: 3rem !important;
+  max-width: 500px;
+  margin: auto;
+  text-align: center;
+}
+
+.webLogo {
+  width: 250px;
+  margin: auto;
+}
+
+.webWelcome {
+  padding-top: 18px;
+  padding-bottom: 18px;
+  color: #111;
+}
+
+.webBrand {
+  font-size: 20px;
+}
+
+/* About panel */
+.webRight {
+  align-items: stretch;
+}
+
 .about-content {
   padding-left: 30%;
   padding-top: 1%;
-  color: #fff;
-
   padding-right: 15%;
+  color: #fff;
 }
 
-.btntext {
-  color: #6946dd;
-  font-weight: bold;
-  font-size: 22px;
+.aboutText,
+.aboutList {
+  font-weight: 300;
 }
 
-@media (max-width: 1200px) {
-  .hide-on-mobile {
-    display: none;
-  }
+/* Buttons */
+.primaryBtn {
+  background-color: #6c2ac2 !important;
+  color: #fff !important;
+  font-weight: 700;
+  height: 48px;
 }
 
-@media (min-width: 1300px) {
-  .bg-body {
-    background-image: url("../static/login/bgimage3.png") !important;
-  }
-
-  .gradient-form {
-    height: 100vh !important;
-  }
-
-  .bgimage2 {
-    background-color: #fff;
-    background-image: url("../static/login/bgimage.png");
-    background-size: cover;
-  }
-
-  .loginForm {
-    width: 100%;
-    position: absolute;
-    top: 10%;
-    left: 5%;
-  }
+/* Errors */
+.errorText {
+  display: inline-block;
+  color: #ff6b6b;
+  margin-bottom: 8px;
 }
 
-@media (max-width: 700px) {
-  .hide-on-mobile {
-    display: none;
-  }
-
-  .loginForm {
-    width: 100%;
-    position: absolute;
-    top: 10%;
-    left: 0%;
-  }
-
-  body {
-    width: 100%;
-    max-width: 100%;
-    background-color: #6946dd;
-  }
-}
-</style>
-<style scoped>
-label {
-  color: black !important;
+/* Support links */
+.supportLink {
+  text-decoration: none;
+  color: #111;
+  margin-left: 6px;
 }
 
-.v-label {
-  color: black !important;
+.whiteLink {
+  color: #fff !important;
 }
 
-.theme--light.v-label {
-  color: black !important;
+/* OTP styles */
+.otpTitle {
+  background-color: #6946dd;
+  color: #fff !important;
 }
 
-.theme--light.v-label {
-  color: black !important;
+.otpBody {
+  padding-top: 18px;
 }
 
-/* .theme--light {
-  color: black !important ;
-} */
-.loginbutton {
-  background-color: #6946dd !important;
+.maskedNumber {
+  font-size: 26px;
+  font-weight: 700;
+  margin: 8px 0 14px;
+}
+
+.otpLabel {
+  font-weight: 700;
+  font-size: 16px;
+  display: block;
+  margin-bottom: 10px;
 }
 </style>
