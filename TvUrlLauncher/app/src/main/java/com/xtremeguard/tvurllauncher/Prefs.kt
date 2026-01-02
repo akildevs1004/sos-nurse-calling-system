@@ -13,7 +13,7 @@ object Prefs {
     private const val KEY_ADMIN_PIN = "admin_pin"
 
     // Defaults (used only on first run)
-    private const val DEFAULT_IP = "192.168.2.28"
+    private const val DEFAULT_IP = "192.168.2.33"
     private const val DEFAULT_PORT = "3000" // port optional
     private const val DEFAULT_PATH = "/alarm/tvmonitor1"
     private const val DEFAULT_PROTOCOL = "http"
