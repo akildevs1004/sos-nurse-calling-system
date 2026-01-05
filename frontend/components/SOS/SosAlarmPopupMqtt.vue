@@ -176,7 +176,7 @@ export default {
 
     onMqttMessage(topic, payload) {
 
-      console.log("payload", payload);
+      // console.log("payload", payload);
       let msg;
       try {
         msg = JSON.parse(payload.toString());

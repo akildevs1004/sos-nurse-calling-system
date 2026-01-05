@@ -69,8 +69,10 @@ class SOSRoomsControllers extends Controller
         // total responded calls
         $totalSOSActive = DeviceSosRoomLogs::with('room')
             ->where('company_id', $companyId)
-            ->where("alarm_end_datetime", null)
-
+            // ->where("alarm_end_datetime", null)
+            ->when(!$request->filled('date_to'), function ($q) use ($request) {
+                $q->whereDate('alarm_end_datetime', '=', date("Y-m-d"));
+            })
             ->when($filterRoomIds->isNotEmpty(), function ($q) use ($filterRoomIds) {
                 $q->whereIn('device_sos_room_table_id', $filterRoomIds);
             })
