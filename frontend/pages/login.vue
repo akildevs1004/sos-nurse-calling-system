@@ -1,7 +1,7 @@
 <template>
-  <div class="loginRoot">
+  <div class="loginRoot" :class="[isTv ? 'tvRoot' : 'webRoot']">
     <!-- ===== WhatsApp OTP Dialog ===== -->
-    <v-dialog persistent v-model="dialogWhatsapp" :width="isTv ? 520 : 600">
+    <v-dialog persistent v-model="dialogWhatsapp" :width="isTv ? tvDialogWidth : 600">
       <v-card>
         <v-card-title dense class="otpTitle">
           Whatsapp Verification
@@ -69,19 +69,104 @@
       {{ snackbarMessage }}
     </v-snackbar>
 
-    <!-- ===== SINGLE LAYOUT (default TV mode) ===== -->
-    <v-row class="loginLayout" no-gutters>
-      <!-- LEFT: Logo/Support (TV only) -->
-      <v-col v-if="isTv" cols="12" md="5" class="stageCol">
-        <div class="panel">
+    <!-- ===== TV/Compact Layout ===== -->
+    <div v-if="isTv" class="tvStage">
+      <v-card class="tvCard" outlined :style="tvCardStyle">
+        <div class="tvGrid" :style="tvGridStyle">
+          <!-- LEFT: Logo / Title -->
+          <div class="tvLeft" :style="tvLeftStyle">
+            <v-img class="tvLogo" :style="tvLogoStyle" src="/logo22.png" contain />
+            <div class="tvWelcome" :style="tvWelcomeStyle">
+              Welcome To <span class="tvBrand">Xtreme Guard</span>
+            </div>
+
+            <div class="tvSupport" :style="tvSupportStyle">
+              <div class="tvSupportLine">
+                Support:
+                <a target="_blank" class="supportLink"
+                  href="https://wa.me/971529048025?text=Hello%20Xtreme%20Guard.%20I%20need%20your%20support.">
+                  <v-icon small>mdi-whatsapp</v-icon>
+                </a>
+                <a class="supportLink" href="tel:+971529048025">+971 52 904 8025</a>
+              </div>
+              <div class="tvSupportLine">
+                <a class="supportLink" href="mailto:support@xtremeguard.org">support@xtremeguard.org</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: Form -->
+          <div class="tvRight" :style="tvRightStyle">
+            <v-form ref="form" v-model="valid" lazy-validation autocomplete="off">
+              <v-text-field label="Email" v-model="credentials.email" dense outlined type="email"
+                prepend-inner-icon="mdi-account" append-icon="mdi-at" autocomplete="off" :disabled="loading"
+                class="tvField" :style="tvFieldStyle" />
+
+              <v-text-field label="Password" v-model="credentials.password" dense outlined prepend-inner-icon="mdi-lock"
+                :append-icon="show_password ? 'mdi-eye' : 'mdi-eye-off'" :type="show_password ? 'text' : 'password'"
+                autocomplete="off" :disabled="loading" class="tvField" :style="tvFieldStyle"
+                @click:append="show_password = !show_password" />
+
+              <div class="tvActionsRow" :style="tvActionsStyle">
+                <v-btn text small @click="openForgotPassword" :disabled="loading">
+                  Forgot password?
+                </v-btn>
+              </div>
+
+              <div class="pt-1">
+                <span v-if="msg" class="errorText">{{ msg }}</span>
+
+                <v-btn :loading="loading" :disabled="loading" @click="login()" class="primaryBtn" block
+                  :style="tvButtonStyle">
+                  Login
+                </v-btn>
+              </div>
+
+              <div class="tvFooter" :style="tvFooterStyle">
+                Don't Have an Account? Contact Admin
+              </div>
+            </v-form>
+          </div>
+        </div>
+      </v-card>
+    </div>
+
+    <!-- ===== Regular Website Layout ===== -->
+    <v-row v-else class="webStage" style="height: 100%">
+      <v-col cols="12" lg="5" class="webLeft">
+        <div class="webCardWrap">
           <div class="logoWrap">
-            <v-img src="/logo22.png" style="width:250px;height:50px;" contain />
-
-
-            <h3 class="welcomeText">
-              Welcome To <span class="brand">Xtreme Guard TV</span>
+            <v-img class="webLogo" src="/logo22.png" contain />
+            <h3 class="webWelcome">
+              Welcome To <span class="webBrand">Xtreme Guard</span>
             </h3>
           </div>
+
+          <v-form ref="form" v-model="valid" lazy-validation autocomplete="off">
+            <v-text-field label="Email" v-model="credentials.email" dense outlined type="email"
+              prepend-inner-icon="mdi-account" append-icon="mdi-at" autocomplete="off" :disabled="loading" />
+            <v-text-field label="Password" v-model="credentials.password" dense outlined prepend-inner-icon="mdi-lock"
+              :append-icon="show_password ? 'mdi-eye' : 'mdi-eye-off'" :type="show_password ? 'text' : 'password'"
+              autocomplete="off" :disabled="loading" @click:append="show_password = !show_password" />
+
+            <v-row>
+              <v-col cols="6" />
+              <v-col cols="6" class="text-right">
+                <v-btn text small @click="openForgotPassword" :disabled="loading">
+                  Forgot password?
+                </v-btn>
+              </v-col>
+            </v-row>
+
+            <div class="pt-2">
+              <span v-if="msg" class="errorText">{{ msg }}</span>
+              <v-btn :loading="loading" :disabled="loading" @click="login()" class="primaryBtn" block>
+                Login
+              </v-btn>
+            </div>
+          </v-form>
+
+          <div class="text-center pt-3">Don't Have an Account? Contact Admin</div>
 
           <div class="supportBlock">
             <div>
@@ -99,54 +184,36 @@
         </div>
       </v-col>
 
-      <!-- RIGHT: Form (always) -->
-      <!-- {{ isTv }} -->
-      <v-col :cols="12" :md="isTv ? 7 : 12" class="stageCol">
-        <div class="panel">
-          <!-- Logo on top for NON-TV -->
-          <div v-if="!isTv" class="logoWrap">
-            <v-img class="appLogo" src="/logo22.png" contain />
-            <h3 class="welcomeText">
-              Welcome To <span class="brand">Xtreme Guard NOTV</span>
-            </h3>
+      <v-col cols="12" lg="7" class="webRight d-none d-lg-flex">
+        <div class="about-content">
+          <h3>About Xtreme Guard</h3>
+          <div class="aboutText">
+            Xtreme Guard is an innovative and comprehensive platform.
+            <br />
+            Monitoring humidity and temperature alongside fire alarms, smoke alarms, water leakage alarms, power-off
+            alarms, and door open status monitors ensures full protection.
           </div>
 
-          <v-form ref="form" v-model="valid" lazy-validation autocomplete="off">
-            <v-text-field label="Email" v-model="credentials.email" dense outlined type="email"
-              prepend-inner-icon="mdi-account" append-icon="mdi-at" autocomplete="off" :disabled="loading" />
+          <h3 class="pt-6">Features</h3>
+          <ul class="aboutList">
+            <li>Temperature Monitoring</li>
+            <li>Humidity Monitoring</li>
+            <li>Fire/Smoke Detection Alarm Systems</li>
+            <li>Water Leakage Alarm Systems</li>
+            <li>Power-Off Alarm Systems</li>
+            <li>Door Open Status Monitoring</li>
+          </ul>
 
-            <v-text-field label="Password" v-model="credentials.password" dense outlined prepend-inner-icon="mdi-lock"
-              :append-icon="show_password ? 'mdi-eye' : 'mdi-eye-off'" :type="show_password ? 'text' : 'password'"
-              autocomplete="off" :disabled="loading" @click:append="show_password = !show_password" />
-
-            <div class="actionsRow">
-              <v-btn text small @click="openForgotPassword" :disabled="loading">
-                Forgot password?
-              </v-btn>
-            </div>
-
-            <div class="pt-2">
-              <span v-if="msg" class="errorText">{{ msg }}</span>
-              <v-btn :loading="loading" :disabled="loading" @click="login()" class="primaryBtn" block>
-                Login
-              </v-btn>
-            </div>
-          </v-form>
-
-          <div class="text-center pt-3">Don't Have an Account? Contact Admin</div>
-
-          <!-- Support block for NON-TV (optional, same classes) -->
-          <div v-if="!isTv" class="supportBlock">
-            <div>
-              For Technical Support:
-              <a target="_blank" class="supportLink"
-                href="https://wa.me/971529048025?text=Hello%20Xtreme%20Guard.%20I%20need%20your%20support.">
-                <v-icon small>mdi-whatsapp</v-icon>
+          <div class="pt-8">
+            <h3>Technical Support</h3>
+            <div class="aboutSupport">
+              <a target="_blank" class="supportLink whiteLink"
+                href="https://wa.me/971529048025?text=Hello%20XtremeGuard.%20I%20need%20your%20support.">
+                <v-icon color="white" small>mdi-whatsapp</v-icon>
               </a>
-              <a class="supportLink" href="tel:+971529048025">+971 52 904 8025</a>
-            </div>
-            <div>
-              <a class="supportLink" href="mailto:support@xtremeguard.org">support@xtremeguard.org</a>
+              <a class="supportLink whiteLink" href="tel:+971529048025">+971 52 904 8025</a>
+              <br />
+              <a class="supportLink whiteLink" href="mailto:support@xtremeguard.org">support@xtremeguard.org</a>
             </div>
           </div>
         </div>
@@ -164,8 +231,9 @@ export default {
   components: { ForgotPassword },
 
   data: () => ({
-    // ✅ DEFAULTS: light + TV
-    isTvMode: true,
+    autoRedirecting: false,
+
+    // responsive detection
     screenW: 0,
     screenH: 0,
 
@@ -196,89 +264,155 @@ export default {
   }),
 
   computed: {
-    // ✅ pure getter
+    // TV mode detection:
+    // width 900..1100 OR height < 700
     isTv() {
-      return this.isTvMode;
+      const w = this.screenW || 0;
+      const h = this.screenH || 0;
+      return (w >= 900 && w <= 1100) || (h > 0 && h < 700);
     },
-  },
 
-  created() {
-    this.$vuetify.theme.dark = false;
-    // ✅ DEFAULT LIGHT THEME (no flash)
-    this.forceLightTheme();
+    // Are saved credentials present?
+    hasSavedLogin() {
+      const email =
+        this.$store?.state?.email || (process.client ? localStorage.getItem("saved_email") : "");
+      const password =
+        this.$store?.state?.password || (process.client ? localStorage.getItem("saved_password") : "");
+      return !!(email && password);
+    },
 
-    this.verifyToken();
+    // scale factor based on height, clamped
+    s() {
+      const h = this.screenH || 540;
+      const raw = h / 540; // 960x540 baseline
+      return Math.max(0.85, Math.min(1.25, raw));
+    },
+
+    tvDialogWidth() {
+      return Math.round(520 * this.s);
+    },
+
+    // Dynamic styles for TV layout
+    tvCardStyle() {
+      const maxW = Math.min(this.screenW - 40, 1000);
+      const maxH = Math.min(this.screenH - 40, 620);
+      return {
+        width: `${Math.max(820, Math.min(980, maxW))}px`,
+        height: `${Math.max(440, Math.min(560, maxH))}px`,
+        borderRadius: `${Math.round(12 * this.s)}px`,
+        padding: `${Math.round(16 * this.s)}px`,
+      };
+    },
+
+    tvGridStyle() {
+      return {
+        height: "100%",
+        display: "grid",
+        gridTemplateColumns: "1fr 1.2fr",
+        gap: `${Math.round(16 * this.s)}px`,
+        alignItems: "center",
+      };
+    },
+
+    tvLeftStyle() {
+      return {
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        padding: `${Math.round(10 * this.s)}px`,
+      };
+    },
+
+    tvRightStyle() {
+      return {
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        padding: `${Math.round(10 * this.s)}px`,
+      };
+    },
+
+    tvLogoStyle() {
+      const w = Math.round(260 * this.s);
+      const h = Math.round(90 * this.s);
+      return {
+        width: `${Math.max(190, Math.min(300, w))}px`,
+        height: `${Math.max(60, Math.min(110, h))}px`,
+      };
+    },
+
+    tvWelcomeStyle() {
+      return {
+        marginTop: `${Math.round(10 * this.s)}px`,
+        fontSize: `${Math.round(20 * this.s)}px`,
+        fontWeight: 700,
+        color: "#111",
+      };
+    },
+
+    tvSupportStyle() {
+      return {
+        marginTop: `${Math.round(18 * this.s)}px`,
+        fontSize: `${Math.round(12 * this.s)}px`,
+        color: "#333",
+      };
+    },
+
+    tvFieldStyle() {
+      const font = Math.round(16 * this.s);
+      return { fontSize: `${font}px` };
+    },
+
+    tvActionsStyle() {
+      return { marginTop: `${Math.round(4 * this.s)}px`, textAlign: "right" };
+    },
+
+    tvButtonStyle() {
+      return { height: `${Math.round(48 * this.s)}px`, fontSize: `${Math.round(16 * this.s)}px` };
+    },
+
+    tvFooterStyle() {
+      return {
+        marginTop: `${Math.round(10 * this.s)}px`,
+        fontSize: `${Math.round(12 * this.s)}px`,
+        textAlign: "center",
+        color: "#444",
+      };
+    },
   },
 
   mounted() {
     this.$vuetify.theme.dark = false;
-    // ✅ keep light always
-    this.forceLightTheme();
 
-    // Measure viewport (optional). We keep default TV unless clearly desktop.
-    this.$nextTick(() => {
-      this.updateViewport();
-      setTimeout(this.updateViewport, 200);
-      setTimeout(this.updateViewport, 500);
-    });
+    this.updateViewport();
+    window.addEventListener("resize", this.updateViewport, { passive: true });
 
-    try {
-      window.addEventListener("resize", this.updateViewport, { passive: true });
-    } catch (e) { }
-
-    // Logout only for website (do NOT logout for TV)
-    if (!this.isTvMode) {
+    // Logout only for website (do NOT logout for TV, else auto-redirect will never work)
+    if (!this.isTv) {
       try {
         this.$auth.logout();
       } catch (e) { }
     }
+
+    this.verifyToken();
+
+    // TV: auto redirect
+    this.tvAutoRedirectIfSaved();
   },
 
   beforeDestroy() {
-    try {
-      window.removeEventListener("resize", this.updateViewport);
-    } catch (e) { }
+    window.removeEventListener("resize", this.updateViewport);
   },
 
   methods: {
-    forceLightTheme() {
-      try {
-        if (this.$vuetify?.theme) this.$vuetify.theme.dark = false;
-      } catch (e) { }
-    },
-
-    // Optional hard override by query: ?tv=1 or ?tv=0
-    applyTvQueryOverride() {
-      try {
-        const q = this.$route?.query?.tv;
-        if (q === "1" || q === 1) return true;
-        if (q === "0" || q === 0) return false;
-      } catch (e) { }
-      return null;
-    },
-
     updateViewport() {
-      if (!process.client) return;
+      this.screenW = window.innerWidth || 0;
+      this.screenH = window.innerHeight || 0;
 
-      const w = window.innerWidth || document.documentElement.clientWidth || 0;
-      const h = window.innerHeight || document.documentElement.clientHeight || 0;
-
-      this.screenW = w;
-      this.screenH = h;
-
-      // 1) query override if present
-      const override = this.applyTvQueryOverride();
-      if (override !== null) {
-        this.isTvMode = override;
-      } else {
-        // ✅ DEFAULT TV MODE
-        // only switch to NON-TV if clearly desktop
-        const looksLikeDesktop = w > 1200 && h > 800;
-        this.isTvMode = w == 0 || !looksLikeDesktop;
-      }
-
-      // Always light
-      this.forceLightTheme();
+      // Re-check after resize (TV shells can resize after load)
+      this.$nextTick(() => this.tvAutoRedirectIfSaved());
     },
 
     openForgotPassword() {
@@ -301,8 +435,53 @@ export default {
       return "*".repeat(matches[1].length) + matches[2];
     },
 
+    async tvAutoRedirectIfSaved() {
+      if (!this.isTv || this.autoRedirecting) return;
+
+      // Consider token existence as logged-in
+      const hasToken =
+        !!this.$auth?.strategy?.token?.get() ||
+        !!this.$auth?.$storage?.getUniversal?.("auth._token.local");
+
+      if (this.$auth?.loggedIn || hasToken) {
+        this.autoRedirecting = true;
+        this.$router.replace("/alarm/tvmonitor1");
+        return;
+      }
+
+      if (!this.hasSavedLogin) return;
+
+      this.autoRedirecting = true;
+
+      // Load saved credentials
+      const email =
+        this.$store?.state?.email || (process.client ? localStorage.getItem("saved_email") : "");
+      const password =
+        this.$store?.state?.password || (process.client ? localStorage.getItem("saved_password") : "");
+
+      this.credentials.email = email || "";
+      this.credentials.password = password || "";
+
+      if (!this.credentials.email || !this.credentials.password) {
+        this.autoRedirecting = false;
+        return;
+      }
+
+      try {
+        const ok = await this.login();
+        if (ok) {
+          this.$router.replace("/alarm/tvmonitor1");
+          return;
+        }
+        this.autoRedirecting = false;
+      } catch (e) {
+        this.autoRedirecting = false;
+      }
+    },
+
     async isBackendUp() {
       try {
+        // Adjust if your backend health endpoint differs
         await this.$axios.get("/test", { timeout: 2000, params: { _t: Date.now() } });
         return true;
       } catch (e) {
@@ -385,8 +564,9 @@ export default {
         const backendOk = await this.isBackendUp();
 
         // If backend is down OR TV => MQTT
-        if (!backendOk || this.isTvMode) {
+        if (!backendOk || this.isTv) {
           let res = await this.mqttLoginVerify(this.credentials);
+
           res = res.data;
 
           if (!res || !res.status) {
@@ -408,6 +588,7 @@ export default {
             localStorage.setItem("saved_password", this.credentials.password);
           }
 
+          // Treat security user as success
           return res.user?.user_type === "security";
         }
 
@@ -429,10 +610,8 @@ export default {
         }
 
         if (user?.role_id == 0 && user?.user_type == "employee") {
-          try {
-            window.location.href = process.env.EMPLOYEE_APP_URL;
-            return true;
-          } catch (error) { }
+          window.location.href = process.env.EMPLOYEE_APP_URL;
+          return true;
         }
 
         // Save credentials for TV auto-login
@@ -443,7 +622,6 @@ export default {
 
         return true;
       } catch (e) {
-        alert(e?.message || "Login failed");
         this.msg = e?.message || "Login failed";
         this.snackbar = true;
         this.snackbarMessage = this.msg;
@@ -480,7 +658,7 @@ export default {
           err ? reject(err) : resolve(data);
         };
 
-        const timeout = setTimeout(() => finish(new Error("MQTT login timeout")), 6000);
+        const timeout = setTimeout(() => finish(new Error("login timeout")), 6000);
 
         try {
           client = mqtt.connect(host, { clientId, clean: true, connectTimeout: 4000 });
@@ -539,55 +717,96 @@ export default {
 </script>
 
 <style scoped>
-/* Root */
 .loginRoot {
   min-height: 100vh;
 }
 
-/* One layout for all */
-.loginLayout {
-  min-height: 100vh;
+/* Website background */
+.webRoot {
+  padding-top: 5%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
-/* Both columns share same class (no TV-specific classes) */
-.stageCol {
+@media (min-width: 1300px) {
+  .webRoot {
+    background-image: url("../static/login/bgimage3.png") !important;
+  }
+}
+
+/* TV root */
+.tvRoot {
+  background: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 0;
 }
 
-/* Panel uses the same styling for TV + Web */
-.panel {
+.tvStage {
   width: 100%;
-  max-width: 520px;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* TV card + layout */
+.tvCard {
+  box-sizing: border-box;
+}
+
+.tvGrid {
+  width: 100%;
+}
+
+.tvLogo {
+  max-width: 100%;
+}
+
+/* Web layout */
+.webLeft {
+  padding: 0;
+}
+
+.webCardWrap {
+  padding: 3rem !important;
+  max-width: 500px;
+  margin: auto;
   text-align: center;
 }
 
-/* Same logo class everywhere */
-.appLogo {
-  width: 260px;
-  margin: 0 auto;
+.webLogo {
+  width: 250px;
+  margin: auto;
 }
 
-/* Same headings */
-.welcomeText {
+.webWelcome {
   padding-top: 18px;
   padding-bottom: 18px;
   color: #111;
-  font-weight: 600;
 }
 
-.brand {
+.webBrand {
   font-size: 20px;
-  font-weight: 700;
 }
 
-/* Actions row */
-.actionsRow {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
+/* About panel */
+.webRight {
+  align-items: stretch;
+}
+
+.about-content {
+  padding-left: 30%;
+  padding-top: 1%;
+  padding-right: 15%;
+  color: #fff;
+}
+
+.aboutText,
+.aboutList {
+  font-weight: 300;
 }
 
 /* Buttons */
@@ -606,14 +825,14 @@ export default {
 }
 
 /* Support links */
-.supportBlock {
-  margin-top: 16px;
-}
-
 .supportLink {
   text-decoration: none;
   color: #111;
   margin-left: 6px;
+}
+
+.whiteLink {
+  color: #fff !important;
 }
 
 /* OTP styles */

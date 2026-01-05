@@ -1,7 +1,7 @@
 const data = async ({ $auth, redirect }) => {
   const { user_type, role } = $auth.user;
 
-  console.log("user_type", $auth.user);
+  // console.log("user_type", $auth.user);
 
   if (user_type.branch_id == 0 && user_type.is_master == false) {
     //this.$router.push("/login");
