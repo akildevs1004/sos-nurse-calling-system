@@ -25,25 +25,6 @@ class Kernel extends ConsoleKernel
         $monthYear = date("d-m-Y");
 
 
-
-        // try {
-        //     $schedule
-        //         ->command('task:alarm_update_company_ids')
-        //         // ->everyThirtyMinutes()
-        //         ->everyMinute()
-        //         //->withoutOverlapping()
-        //         ->appendOutputTo(storage_path("logs/alarm_update_company_ids-$monthYear-logs.log")); //->emailOutputOnFailure(env("ADMIN_MAIL_RECEIVERS"));
-        // } catch (\Exception $e) {
-        // }
-        // try {
-        //     $schedule
-        //         ->command('task:device_sample_data') //dummy data
-        //         // ->everyThirtyMinutes()
-        //         ->everyMinute();
-        //     //->withoutOverlapping()
-        //     // ->appendOutputTo(storage_path("logs/sampledata-$monthYear-logs.log")); //->emailOutputOnFailure(env("ADMIN_MAIL_RECEIVERS"));
-        // } catch (\Exception $e) {
-        // }
         try {
             $schedule
                 ->command('task:delete_old_logs')
@@ -64,30 +45,13 @@ class Kernel extends ConsoleKernel
 
         } catch (\Exception $e) {
         }
-        // try {
-        //     $schedule
-        //         ->command('task:db_backup')
-        //         ->dailyAt('6:00')
-        //         ->appendOutputTo(storage_path("logs/db_backup.log"))
-        //         ->emailOutputOnFailure(env("ADMIN_MAIL_RECEIVERS"));
-        // } catch (\Exception $e) {
-        // }
-
-        // $schedule
-        //     ->command("task:files-delete-old-log-files")
-        //     ->dailyAt('10:30');
-        //     //->withoutOverlapping()
-        //     //->appendOutputTo(storage_path("kernal_logs/$monthYear-delete-old-logs.log"))
-
-        // ;;
-
-        // $schedule->command('mqtt:subscribe')
-        //     // ->hourly() // Runs once per hour instead of every minute
-        //     // ->dailyAt('10:30')
-        //     ->everyMinute()
-        //     ->runInBackground()
-        //     ->withoutOverlapping()
-        //     ->appendOutputTo(storage_path("logs/mqtt-kernal-$monthYear-logs.log"));
+        try {
+            $schedule
+                ->command('task:db_backup')
+                ->dailyAt('6:00')
+                ->appendOutputTo(storage_path("logs/db_backup.log"));
+        } catch (\Exception $e) {
+        }
     }
 
     /**
