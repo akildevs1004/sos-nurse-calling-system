@@ -10,38 +10,47 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 <!-- Reload button (top-right, left of settings) -->
-<ImageButton
-    android:id="@+id/btnReload"
-    android:layout_width="56dp"
-    android:layout_height="56dp"
+<!-- Top-right action buttons -->
+<LinearLayout
+    android:id="@+id/topActions"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
     android:layout_gravity="top|end"
     android:layout_marginTop="10dp"
-    android:layout_marginEnd="72dp"
-    android:padding="10dp"
-    android:background="#66000000"
-    android:tint="@android:color/white"
-    android:src="@android:drawable/ic_popup_sync"
-    android:scaleType="centerInside"
-    android:focusable="true"
-    android:focusableInTouchMode="true"
-    android:contentDescription="Reload" />
+    android:layout_marginEnd="10dp"
+    android:orientation="horizontal"
+    android:background="@android:color/transparent">
+
+    <!-- Reload -->
     <ImageButton
-        android:id="@+id/btnSettings"
-        android:layout_width="35dp"
-        android:layout_height="35dp"
-        android:layout_gravity="top|end"
-        android:layout_marginTop="2dp"
-        android:layout_marginEnd="0dp"
-        android:background="@drawable/focus_icon"
-        android:backgroundTint="@color/ic_launcher_background"
-        android:contentDescription="Settings"
+        android:id="@+id/btnReload"
+        android:layout_width="wrap_content"
+        android:layout_height="20dp"
+        android:layout_marginEnd="8dp"
+        android:background="#332196F3"
+        android:contentDescription="Reload"
         android:focusable="true"
         android:focusableInTouchMode="true"
-        android:padding="10dp"
+        android:padding="2dp"
+        android:scaleType="centerInside"
+        android:src="@android:drawable/ic_popup_sync"
+        android:tint="@android:color/white" />
+
+    <!-- Sign out / Settings -->
+    <ImageButton
+        android:id="@+id/btnSettings"
+        android:layout_width="wrap_content"
+        android:layout_height="20dp"
+        android:background="#33D32F2F"
+        android:contentDescription="Sign out"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:padding="2dp"
         android:scaleType="centerInside"
         android:src="@android:drawable/ic_lock_power_off"
-        android:visibility="visible"
-        tools:visibility="visible" />
+        android:tint="@android:color/white" />
+
+</LinearLayout>
 
     <View
         android:id="@+id/adminHotZone"

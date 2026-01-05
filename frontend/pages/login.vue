@@ -70,7 +70,7 @@
     </v-snackbar>
 
     <!-- ===== TV/Compact Layout ===== -->
-    <div v-if="isTv" class="tvStage">
+    <div v-if="isTv && this.screenW > 600" class="tvStage">
       <v-card class="tvCard" outlined :style="tvCardStyle">
         <div class="tvGrid" :style="tvGridStyle">
           <!-- LEFT: Logo / Title -->
@@ -269,7 +269,10 @@ export default {
     isTv() {
       const w = this.screenW || 0;
       const h = this.screenH || 0;
-      return (w >= 900 && w <= 1100) || (h > 0 && h < 700);
+
+      console.log(w, h);
+
+      return (w < 700) || (w >= 900 && w <= 1100) || (h > 0 && h < 700) || (w === 0 && h === 0); // treat 0x0 as TV for server-side rendering
     },
 
     // Are saved credentials present?
@@ -297,10 +300,12 @@ export default {
       const maxW = Math.min(this.screenW - 40, 1000);
       const maxH = Math.min(this.screenH - 40, 620);
       return {
-        width: `${Math.max(820, Math.min(980, maxW))}px`,
+        width: `95%`,
         height: `${Math.max(440, Math.min(560, maxH))}px`,
         borderRadius: `${Math.round(12 * this.s)}px`,
         padding: `${Math.round(16 * this.s)}px`,
+
+
       };
     },
 
@@ -383,12 +388,17 @@ export default {
     },
   },
 
+  created() {
+
+  },
+
   mounted() {
     this.$vuetify.theme.dark = false;
 
     this.updateViewport();
-    window.addEventListener("resize", this.updateViewport, { passive: true });
-
+    try {
+      window.addEventListener("resize", this.updateViewport, { passive: true });
+    } catch (e) { }
     // Logout only for website (do NOT logout for TV, else auto-redirect will never work)
     if (!this.isTv) {
       try {
@@ -403,14 +413,20 @@ export default {
   },
 
   beforeDestroy() {
-    window.removeEventListener("resize", this.updateViewport);
+    try {
+      window.removeEventListener("resize", this.updateViewport);
+    } catch (e) { }
   },
 
   methods: {
     updateViewport() {
-      this.screenW = window.innerWidth || 0;
-      this.screenH = window.innerHeight || 0;
-
+      try {
+        this.screenW = window.innerWidth || 0;
+        this.screenH = window.innerHeight || 0;
+      } catch (e) {
+        this.screenW = 0;
+        this.screenH = 0;
+      }
       // Re-check after resize (TV shells can resize after load)
       this.$nextTick(() => this.tvAutoRedirectIfSaved());
     },
@@ -563,11 +579,16 @@ export default {
       try {
         const backendOk = await this.isBackendUp();
 
+        // alert(this.isTv ? "TV/MQTT Login" : "Website/Backend Login");
+
         // If backend is down OR TV => MQTT
-        if (!backendOk || this.isTv) {
+        if (this.isTv) {
           let res = await this.mqttLoginVerify(this.credentials);
 
           res = res.data;
+
+          console.log("res", res);
+
 
           if (!res || !res.status) {
             this.msg = res?.message || "Invalid Login Details";
@@ -610,7 +631,9 @@ export default {
         }
 
         if (user?.role_id == 0 && user?.user_type == "employee") {
-          window.location.href = process.env.EMPLOYEE_APP_URL;
+          try {
+            window.location.href = process.env.EMPLOYEE_APP_URL;
+          } catch (e) { }
           return true;
         }
 
@@ -658,7 +681,7 @@ export default {
           err ? reject(err) : resolve(data);
         };
 
-        const timeout = setTimeout(() => finish(new Error("login timeout")), 6000);
+        const timeout = setTimeout(() => finish(new Error("login timeout")), 1000 * 10);
 
         try {
           client = mqtt.connect(host, { clientId, clean: true, connectTimeout: 4000 });
@@ -745,7 +768,7 @@ export default {
 }
 
 .tvStage {
-  width: 100%;
+  width: 95%;
   height: 100vh;
   display: flex;
   align-items: center;

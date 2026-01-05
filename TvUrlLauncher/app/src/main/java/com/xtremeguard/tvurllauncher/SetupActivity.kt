@@ -11,7 +11,7 @@ class SetupActivity : AppCompatActivity() {
 
     private lateinit var ipInput: EditText
     private lateinit var portInput: EditText
-    private lateinit var pathInput: EditText
+ 
     private lateinit var saveOpenBtn: Button
 
     private lateinit var loadingOverlay: View
@@ -44,12 +44,12 @@ class SetupActivity : AppCompatActivity() {
 
         ipInput = findViewById(R.id.ipInput)
         portInput = findViewById(R.id.portInput)
-        pathInput = findViewById(R.id.pathInput)
+       
         saveOpenBtn = findViewById(R.id.saveOpenBtn)
 
         ipInput.setText(Prefs.getIp(this))
         portInput.setText(Prefs.getPort(this))
-        pathInput.setText(Prefs.getPath(this))
+ 
 
         val savedProtocol = Prefs.getProtocol(this)
         if (savedProtocol.equals("https", true)) rbHttps.isChecked = true else rbHttp.isChecked = true
@@ -60,7 +60,7 @@ class SetupActivity : AppCompatActivity() {
         saveOpenBtn.setOnClickListener {
             val ip = ipInput.text.toString().trim()
             val portRaw = portInput.text.toString().trim()
-            val pathRaw = pathInput.text.toString().trim()
+            val pathRaw = "";//pathInput.text.toString().trim()
 
             if (ip.isEmpty()) {
                 toast("IP address is required")
@@ -81,10 +81,10 @@ class SetupActivity : AppCompatActivity() {
             val path = normalizePath(pathRaw)
 
             val url = if (portRaw.isNotEmpty()) {
-                "$protocol://$ip:$portRaw$path"
-            } else {
-                "$protocol://$ip$path"
-            }
+    "$protocol://$ip:$portRaw"
+} else {
+    "$protocol://$ip"
+}
 
             Prefs.setNetworkFields(this, ip, portRaw, path, protocol)
             Prefs.setUrl(this, url)
@@ -103,7 +103,7 @@ class SetupActivity : AppCompatActivity() {
         contentLayout.isEnabled = !show
         ipInput.isEnabled = !show
         portInput.isEnabled = !show
-        pathInput.isEnabled = !show
+//        pathInput.isEnabled = !show
         saveOpenBtn.isEnabled = !show
     }
 

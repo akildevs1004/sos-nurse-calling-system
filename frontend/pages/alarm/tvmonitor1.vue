@@ -113,9 +113,9 @@
           </strong>
         </div>
 
-        <v-btn icon class="tvIconBtn" @click="reload" aria-label="Reload">
+        <!-- <v-btn icon class="tvIconBtn" @click="reload" aria-label="Reload">
           <v-icon>mdi-refresh</v-icon>
-        </v-btn>
+        </v-btn> -->
 
         <v-btn small outlined color="error" class="tvLogoutBtn" @click="logout">
           <v-icon left small>mdi-logout</v-icon>
@@ -141,6 +141,7 @@
             </div>
           </v-card>
         </div>
+
       </div>
     </div>
 
@@ -243,6 +244,13 @@
             </div>
           </v-card>
         </div>
+        <div v-if="loading">
+          Please wait...
+        </div>
+
+        <div v-else-if="pagedDevices.length === 0">
+          Data is not available
+        </div>
       </div>
 
       <v-progress-linear v-if="loading" indeterminate height="3" class="my-2" />
@@ -263,6 +271,7 @@ export default {
 
   data() {
     return {
+      dashboardInterval: null,
       detailsDialog: false,
       selectedRoom: null,
       // UI
@@ -445,6 +454,11 @@ export default {
 
     // initial compute rows that fit
     this.scheduleRecalcRows();
+
+    this.startDashboardPolling();
+
+
+
   },
 
   beforeDestroy() {
@@ -455,9 +469,27 @@ export default {
     } catch (e) { }
 
     if (this.recalcTimer) clearTimeout(this.recalcTimer);
+
+
+    this.stopDashboardPolling();
+
   },
 
   methods: {
+    startDashboardPolling() {
+      if (this.dashboardInterval) return; // prevent duplicates
+
+      this.dashboardInterval = setInterval(() => {
+        this.requestDashboardSnapshot();
+      }, 60 * 1000); // 10 seconds
+    },
+
+    stopDashboardPolling() {
+      if (this.dashboardInterval) {
+        clearInterval(this.dashboardInterval);
+        this.dashboardInterval = null;
+      }
+    },
     isToilet(d) {
       return d?.room_type === "toilet" || d?.room_type === "toilet-ph";
     },
@@ -566,6 +598,8 @@ export default {
       this.topics.rooms = `tv/${companyId}/dashboard/rooms`;
       this.topics.stats = `tv/${companyId}/dashboard/stats`;
       this.topics.reload = `tv/reload`;
+      this.topics.reloadconfig = `${process.env.MQTT_DEVICE_CLIENTID}/${companyId}/message`;
+
 
       this.client = mqtt.connect(this.mqttUrl, {
         reconnectPeriod: 3000,
@@ -575,7 +609,7 @@ export default {
 
       this.client.on("connect", () => {
         this.isConnected = true;
-        this.client.subscribe([this.topics.rooms, this.topics.stats, this.topics.reload], { qos: 0 }, (err) => {
+        this.client.subscribe([this.topics.rooms, this.topics.stats, this.topics.reload, this.topics.reloadconfig], { qos: 0 }, (err) => {
           if (err) return;
           this.requestDashboardSnapshot();
         });
@@ -594,6 +628,10 @@ export default {
         if (this.topics.rooms) this.client.unsubscribe(this.topics.rooms);
         if (this.topics.stats) this.client.unsubscribe(this.topics.stats);
         if (this.topics.reload) this.client.unsubscribe(this.topics.reload);
+        if (this.topics.reloadconfig) this.client.unsubscribe(this.topics.reloadconfig);
+
+
+
         this.client.end(true);
         this.client = null;
         this.isConnected = false;
@@ -602,6 +640,9 @@ export default {
 
     requestDashboardSnapshot() {
       if (!this.client || !this.isConnected) return;
+
+      this.loading = true;
+
 
       this.reqId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
       const companyId = this.$auth?.user ? this.$auth?.user?.company_id : Number(process.env.TV_COMPANY_ID || 0);
@@ -620,10 +661,14 @@ export default {
       };
 
       this.client.publish(this.topics.req, JSON.stringify(payload), { qos: 0, retain: false });
+
+      this.loading = false;
+
     },
 
     onMqttMessage(topic, payload) {
-      if (topic !== this.topics.rooms && topic !== this.topics.stats && topic !== this.topics.reload) return;
+
+      if (topic !== this.topics.rooms && topic !== this.topics.stats && topic !== this.topics.reload && topic !== this.topics.reloadconfig) return;
 
       let msg;
       try {
@@ -633,6 +678,7 @@ export default {
       }
 
       if (topic === this.topics.rooms) {
+        this.loading = true;
         const data = msg?.data;
         const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
         this.devices = this.normalizeRooms(list);
@@ -640,11 +686,17 @@ export default {
 
         // ✅ recalc rows/pages after DOM updates
         this.scheduleRecalcRows();
+
+        this.loading = false;
         return;
       }
 
       if (topic === this.topics.reload) {
         try { window.location.reload(); } catch (e) { }
+        return;
+      }
+      if (topic === this.topics.reloadconfig) {
+        try { this.requestDashboardSnapshot() } catch (e) { }
         return;
       }
 

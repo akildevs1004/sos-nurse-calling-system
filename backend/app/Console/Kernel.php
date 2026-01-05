@@ -57,7 +57,7 @@ class Kernel extends ConsoleKernel
             $schedule
                 ->command('task:check_device_health')
                 // ->everyThirtyMinutes()
-                ->everyThirtyMinutes()
+                ->everyMinute()
 
                 ->appendOutputTo(storage_path("logs/device-offline-$monthYear-logs.log")); //->emailOutputOnFailure(env("ADMIN_MAIL_RECEIVERS"));
 
