@@ -180,6 +180,9 @@
       </div>
     </div>
 
+
+    <AudioSoundPlay :key="totalSOSCount" v-if="stats?.activeSos > 0" :notificationsMenuItemsCount="stats?.activeSos" />
+
     <!-- ===== ROOMS AREA ===== -->
     <div class="tvRoomsArea" ref="roomsArea">
       <div class="roomsGrid tvRoomsGrid" ref="roomsGrid" :style="roomsGridStyle">
@@ -261,13 +264,14 @@
 <script>
 import mqtt from "mqtt";
 import SosAlarmPopupMqtt from "@/components/SOS/SosAlarmPopupMqtt.vue";
+import AudioSoundPlay from "../../components/Alarm/AudioSoundPlay.vue";
 
 const ROOMS_PER_ROW_KEY = "tv_rooms_per_row";
 
 export default {
   layout: "tvmonitorlayout",
   name: "TvSosFloor",
-  components: { SosAlarmPopupMqtt },
+  components: { SosAlarmPopupMqtt, AudioSoundPlay },
 
   data() {
     return {

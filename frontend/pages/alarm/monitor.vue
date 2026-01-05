@@ -8,6 +8,8 @@
     <SosAlarmPopupMqtt @triggerUpdateDashboard="RefreshDashboard()" />
 
 
+    <AudioSoundPlay :key="totalSOSCount" v-if="stats?.activeSos > 0"
+      :notificationsMenuItemsCount="stats?.activeSos || 0" />
 
     <!-- ================= TOP STATISTICS ================= -->
     <v-row dense>
@@ -130,7 +132,6 @@
 
 
 
-
     <!-- ================= FILTER ROW ================= -->
     <div class="d-flex flex-wrap align-center mt-2 mb-3">
       <v-btn-toggle v-model="filterMode" mandatory class="mr-4">
@@ -168,6 +169,8 @@
     <!-- ================= CARDS GRID ================= -->
     <v-card outlined class="pa-4 roomCard">
       <div class="gridWrap" :style="gridStyle">
+
+
         <div v-for="d in filteredDevices" :key="d.id" class="gridItem">
           <v-card outlined class="pa-4 roomCard roomCardIndividual" :class="cardClass(d)">
             <div class="d-flex align-start">
@@ -241,6 +244,7 @@
 
 <script>
 import CustomFilter from '../../components/CustomFilter.vue';
+import AudioSoundPlay from '../../components/Alarm/AudioSoundPlay.vue';
 
 // import { VTabItem } from 'vuetify/lib';
 
@@ -251,7 +255,7 @@ import CustomFilter from '../../components/CustomFilter.vue';
 
 export default {
   name: "SosFloorView",
-  components: { CustomFilter },
+  components: { CustomFilter, AudioSoundPlay },
 
   data() {
     return {
