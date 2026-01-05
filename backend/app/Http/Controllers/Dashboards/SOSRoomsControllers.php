@@ -71,7 +71,7 @@ class SOSRoomsControllers extends Controller
             ->where('company_id', $companyId)
             // ->where("alarm_end_datetime", null)
             ->when(!$request->filled('date_to'), function ($q) use ($request) {
-                $q->whereDate('alarm_end_datetime', '=', date("Y-m-d"));
+                $q->whereDate('alarm_end_datetime', '>=', date("Y-m-d"));
             })
             ->when($filterRoomIds->isNotEmpty(), function ($q) use ($filterRoomIds) {
                 $q->whereIn('device_sos_room_table_id', $filterRoomIds);
@@ -138,6 +138,8 @@ class SOSRoomsControllers extends Controller
             ->whereNotNull('response_in_minutes')
 
             ->avg('response_in_minutes');
+
+
 
         // responded within SLA
         $withinSla = DeviceSosRoomLogs::where('company_id', $companyId)

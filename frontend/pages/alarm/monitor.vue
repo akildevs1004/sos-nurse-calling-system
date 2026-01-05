@@ -199,7 +199,11 @@
             </div>
 
             <div style="width:100%; text-align:right;margin-top:-50px;height:50px">
-              <v-chip small class="mt-2"
+              <!-- <v-chip small class="mt-2"
+                :color="d.alarm_status === true ? d.alarm?.responded_datetime ? '#f97316' : 'red' : 'grey'">
+                {{ d.alarm_status === true ? d.alarm?.responded_datetime ? 'ACKNOWLEDGED' : 'PENDING' : 'RESOLVED' }}
+              </v-chip> -->
+              <v-chip small class="mt-2" v-if="d.alarm_status === true"
                 :color="d.alarm_status === true ? d.alarm?.responded_datetime ? '#f97316' : 'red' : 'grey'">
                 {{ d.alarm_status === true ? d.alarm?.responded_datetime ? 'ACKNOWLEDGED' : 'PENDING' : 'RESOLVED' }}
               </v-chip>
@@ -251,6 +255,7 @@ export default {
 
   data() {
     return {
+      dashboardInterval: null,
       // filters
       range: "7",            // "7" | "30" | "all"
       room: null,            // {id,name} | null
@@ -348,14 +353,29 @@ export default {
     this.timer = setInterval(() => {
       this.updateDurationAll();
     }, this.TIMER_MS);
+    this.startDashboardPolling();
   },
 
   beforeDestroy() {
     if (this.timer) clearInterval(this.timer);
+    this.stopDashboardPolling();
   },
 
   methods: {
+    startDashboardPolling() {
+      if (this.dashboardInterval) return; // prevent duplicates
 
+      this.dashboardInterval = setInterval(() => {
+        this.loadData();
+      }, 60 * 1000); // 10 seconds
+    },
+
+    stopDashboardPolling() {
+      if (this.dashboardInterval) {
+        clearInterval(this.dashboardInterval);
+        this.dashboardInterval = null;
+      }
+    },
     async loadData() {
 
       console.log("this.room", this.room);
