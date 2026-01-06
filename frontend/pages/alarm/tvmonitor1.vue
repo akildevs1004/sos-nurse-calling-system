@@ -181,7 +181,7 @@
     </div>
 
 
-    <AudioSoundPlay :key="totalSOSCount" v-if="stats?.activeSos > 0" :notificationsMenuItemsCount="stats?.activeSos" />
+    <!-- <AudioSoundPlay :key="totalSOSCount" v-if="stats?.activeSos > 0" :notificationsMenuItemsCount="stats?.activeSos" /> -->
 
     <!-- ===== ROOMS AREA ===== -->
     <div class="tvRoomsArea" ref="roomsArea">
@@ -461,6 +461,15 @@ export default {
 
     this.startDashboardPolling();
 
+    // AndroidBridge.startAlarm();
+
+    // setTimeout(() => {
+    //   AndroidBridge.stopAlarm();
+
+    // }, 5000);
+
+
+
 
 
   },
@@ -722,6 +731,22 @@ export default {
 
         const pct = Number(s.sla_percentage ?? 100);
         this.avgResponsePct = Math.max(0, Math.min(100, Number.isFinite(pct) ? pct : 100));
+
+        if (this.activeSosCount > 0) {
+          // SOS ON
+          try {
+            AndroidBridge.startAlarm()
+          } catch (error) {
+
+          }
+
+        } else {
+          try {
+            AndroidBridge.stopAlarm()
+          } catch (error) {
+
+          }
+        }
       }
     },
 
