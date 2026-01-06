@@ -263,10 +263,10 @@ class WebViewActivity : AppCompatActivity() {
 
         try {
             // Optional volume bump (remove if not wanted)
-            val audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
-            val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-            val target = (max * 0.8).toInt().coerceAtLeast(1)
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, target, 0)
+            //val audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
+           // val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+           // val target = (max * 0.5).toInt().coerceAtLeast(1)
+           // audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, target, 0)
 
             // Restart from beginning on every start
             try { p.seekTo(0) } catch (_: Exception) {}
