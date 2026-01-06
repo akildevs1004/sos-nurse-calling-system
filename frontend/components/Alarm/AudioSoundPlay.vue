@@ -1,111 +1,148 @@
 <template>
   <div>
-    <audio ref="audioPlayer" :src="audioFile"></audio>
-
-
-    <!-- Controls -->
-
-    <!-- {{ notificationsMenuItemsCount }} {{ AudioSoundPlayCount }} -->
-    <!-- <button @click="playAudio" :disabled="isPlaying">Play</button>
-    <button @click="pauseAudio" :disabled="!isPlaying">Pause</button>
-    <button @click="stopAudio" :disabled="!isPlaying">Stop</button>222 -->
+    <!-- Local audio from /public/alarm_sounds/alarm-sound1.mp3 -->
+    <audio ref="audioPlayer" :src="audioFile" preload="auto"></audio>
   </div>
 </template>
 
 <script>
 export default {
-  props: ["notificationsMenuItemsCount"],
+  name: "AlarmAudioPlayer",
+
+  props: {
+    notificationsMenuItemsCount: {
+      type: [Number, String],
+      default: 0,
+    },
+  },
+
   data() {
     return {
-      audio: null,
+      // Put file here: public/alarm_sounds/alarm-sound1.mp3
+      audioFile: "/alarm_sounds/alarm-sound1.mp3",
+
       isPlaying: false,
-      audioFile: "https://alarmbackend.xtremeguard.org/alarm_sounds/alarm-sound1.mp3", // Replace with your audio file path
+      playDelayTimer: null,
+
+      // Helps with autoplay restrictions (Chrome/WebView)
+      userGestureArmed: false,
     };
   },
+
   watch: {
-    notificationsMenuItemsCount() { },
+    notificationsMenuItemsCount: {
+      immediate: true,
+      handler(newVal) {
+        const count = this.toCount(newVal);
+
+        if (count > 0) {
+          this.playAudio();
+        } else {
+          this.stopAudio();
+        }
+      },
+    },
   },
+
   mounted() {
-    // Initialize audio object after a delay
-    //setTimeout(() => {
-    if (process.env.BACKEND_URL2) {
-      this.audioFile =
-        "https://alarmbackend.xtremeguard.org/alarm_sounds/alarm-sound1.mp3";
+    // Arm after first user interaction (click/tap/remote key)
+    const arm = () => {
+      this.userGestureArmed = true;
+
+      window.removeEventListener("click", arm);
+      window.removeEventListener("touchstart", arm);
+      window.removeEventListener("keydown", arm);
+
+      // If notifications already exist, play immediately once armed
+      if (this.toCount(this.notificationsMenuItemsCount) > 0) {
+        this.playAudio(true); // force immediate try
+      }
+    };
+
+    window.addEventListener("click", arm);
+    window.addEventListener("touchstart", arm);
+    window.addEventListener("keydown", arm);
+
+    // Safety: if audio ends (when loop is off), keep state correct
+    const audio = this.$refs.audioPlayer;
+    if (audio) {
+      audio.addEventListener("ended", () => {
+        this.isPlaying = false;
+      });
     }
 
-    console.log(
-      "this.notificationsMenuItemsCount ",
-      this.notificationsMenuItemsCount
-    );
-    if (parseInt(this.notificationsMenuItemsCount) > 0) {
-      this.playAudio();
-    }
-    if (parseInt(this.notificationsMenuItemsCount) == 0) {
-      this.stopAudio();
-    }
-    //   }, 1000 * 5);
-    // Ensure user interaction before playing sound
-    // window.addEventListener("click", this.playAudioOnUserInteraction, {
-    //   once: true,
-    // });
+
+    // this.playAudio();
   },
 
   beforeUnmount() {
-    // Cleanup
-    // window.removeEventListener("click", this.playAudioOnUserInteraction);
+    clearTimeout(this.playDelayTimer);
   },
 
-  created() {
-    this.audioFile =
-      process.env.BACKEND_URL2 + "/alarm_sounds/alarm-sound1.mp3";
-  },
   methods: {
-    // playAudioOnUserInteraction() {
-    //   if (this.audio) {
-    //     this.audio.play().catch((e) => console.warn("Audio play blocked", e));
-    //   }
-    // },
-    // playAudio1() {
-    //   console.log("playAudio");
-    //   this.$refs.audioPlayer.play();
-    //   this.isPlaying = true;
-    //   if (this.$refs.audioPlayer) {
-    //     this.$refs.audioPlayer.play();
-    //     this.isPlaying = true;
-    //   }
-    // },
+    toCount(val) {
+      const n = parseInt(val, 10);
+      return Number.isFinite(n) ? n : 0;
+    },
 
-    playAudio() {
+    async tryPlay(audio) {
+      try {
+        await audio.play();
+        this.isPlaying = true;
+      } catch (err) {
+        this.isPlaying = false;
+        console.error("Audio playback blocked or failed:", err);
+      }
+    },
+
+    playAudio(forceImmediate = false) {
       const audio = this.$refs.audioPlayer;
+      if (!audio) return;
 
-      setTimeout(() => {
-        audio
-          .play()
-          .then(() => {
-            this.isPlaying = true;
-          })
-          .catch((error) => {
-            console.error("Error playing audio:", error);
-            // alert(
-            //   "Please Stay on Dashboard page. Then only Alarm sound will be work."
-            // ); // Notify the user
-          });
-      }, 1000 * 5);
+      clearTimeout(this.playDelayTimer);
+
+      // Keep alarming continuously while notifications > 0
+      audio.loop = true;
+
+      // Optional: restart from beginning on each play trigger
+      audio.currentTime = 0;
+
+      // If your environment blocks autoplay, you can require userGestureArmed
+      // If you want it to attempt anyway (TV WebView often allows), keep as-is.
+      const delayMs = forceImmediate ? 0 : 5000;
+
+      this.playDelayTimer = setTimeout(() => {
+        // If you want strict gesture gating, uncomment:
+        // if (!this.userGestureArmed) return;
+
+        this.tryPlay(audio);
+      }, delayMs);
     },
+
     pauseAudio() {
-      if (this.$refs.audioPlayer) {
-        this.$refs.audioPlayer.pause();
-        this.isPlaying = false;
-      }
+      const audio = this.$refs.audioPlayer;
+      if (!audio) return;
+
+      audio.pause();
+      this.isPlaying = false;
     },
+
     stopAudio() {
-      console.log("stopAudio");
-      if (this.$refs.audioPlayer) {
-        this.$refs.audioPlayer.pause();
-        this.$refs.audioPlayer.currentTime = 0; // Reset audio to the beginning
-        this.isPlaying = false;
-      }
+      const audio = this.$refs.audioPlayer;
+      if (!audio) return;
+
+      clearTimeout(this.playDelayTimer);
+
+      audio.pause();
+      audio.currentTime = 0;
+      audio.loop = false;
+
+      this.isPlaying = false;
     },
   },
 };
 </script>
+
+<style scoped>
+/* No UI controls needed */
+</style>
