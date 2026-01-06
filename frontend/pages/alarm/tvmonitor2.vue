@@ -8,7 +8,7 @@
     <SosAlarmPopupMqtt @triggerUpdateDashboard="requestDashboardSnapshot()" />
 
     <!-- Audio (kept) -->
-    <AudioSoundPlay :key="totalSOSCount" v-if="stats?.activeSos > 0" :notificationsMenuItemsCount="stats?.activeSos" />
+    <!-- <AudioSoundPlay :key="totalSOSCount" v-if="stats?.activeSos > 0" :notificationsMenuItemsCount="stats?.activeSos" /> -->
 
     <!-- DETAILS POPUP (optional) -->
     <v-dialog v-model="detailsDialog" content-class="tvDetailsDialog" persistent>
@@ -93,11 +93,12 @@
     <aside class="overlayMenu" :class="{ open: menuOpen }" @click.stop>
       <div class="menuHeader">
         <div class="menuHeaderLeft">
-          <div class="menuLogo">SOS</div>
-          <div class="menuTitleBlock">
-            <div class="menuTitle">Emergency Response</div>
-            <div class="menuSub">Controls</div>
-          </div>
+          <v-icon>mdi mdi-view-grid-outline</v-icon>
+          <!-- <v-img class="company_logo" :src="getLogo"></v-img> -->
+          <!-- <div class="menuTitleBlock">
+            {{ $auth?.user?.company?.name || "Company" }}
+          </div> -->
+          Views
         </div>
 
         <v-btn icon class="menuCloseBtn" @click="menuOpen = false" aria-label="Close menu">
@@ -106,22 +107,22 @@
       </div>
 
       <div class="menuBody">
-        <div class="menuSectionTitle">Split (cards per page)</div>
+        <!-- <div class="menuSectionTitle">Split (cards per page)</div> -->
         <div class="menuGrid">
           <button class="menuItem" :class="{ active: splitMode === 4 }" @click="setSplit(4)">
-            <v-icon small class="mr-2">mdi-view-grid</v-icon> 4
+            <v-icon small class="mr-2">mdi-view-grid</v-icon> 4-way Split
           </button>
           <button class="menuItem" :class="{ active: splitMode === 8 }" @click="setSplit(8)">
-            <v-icon small class="mr-2">mdi-view-grid-plus</v-icon> 8
+            <v-icon small class="mr-2">mdi-view-grid-plus</v-icon> 8-way Split
           </button>
           <button class="menuItem" :class="{ active: splitMode === 16 }" @click="setSplit(16)">
-            <v-icon small class="mr-2">mdi-view-module</v-icon> 16
+            <v-icon small class="mr-2">mdi-view-module</v-icon> 16-way Split
           </button>
           <button class="menuItem" :class="{ active: splitMode === 32 }" @click="setSplit(32)">
-            <v-icon small class="mr-2">mdi-view-comfy</v-icon> 32
+            <v-icon small class="mr-2">mdi-view-comfy</v-icon> 32-way Split
           </button>
           <button class="menuItem" :class="{ active: splitMode === 64 }" @click="setSplit(64)">
-            <v-icon small class="mr-2">mdi-view-dashboard</v-icon> 64
+            <v-icon small class="mr-2">mdi-view-dashboard</v-icon> 64-way Split
           </button>
         </div>
 
@@ -138,16 +139,16 @@
           </button>
         </div>
 
-        <div class="menuSectionTitle mt-4">Auto rotate</div>
+        <!--<div class="menuSectionTitle mt-4">Auto rotate</div>
         <div class="menuRow">
           <div class="menuRowLabel">Interval</div>
           <div class="menuRowValue">{{ autoRotateMs / 1000 }}s</div>
         </div>
 
-        <v-slider class="menuSlider" v-model="autoRotateMs" :min="5 * 1000" :max="60 * 1000" :step="5 * 1000"
-          thumb-label hide-details @change="restartAutoRotate" />
+       <v-slider class="menuSlider" v-model="autoRotateMs" :min="5 * 1000" :max="60 * 1000" :step="5 * 1000"
+          thumb-label hide-details @change="restartAutoRotate" /> -->
 
-        <div class="menuFooter">
+        <!-- <div class="menuFooter">
           <div class="menuFooterRow">
             <span class="menuFooterLabel">MQTT</span>
             <span class="menuFooterValue" :class="isConnected ? 'ok' : 'bad'">
@@ -158,7 +159,7 @@
             <span class="menuFooterLabel">Active SOS</span>
             <span class="menuFooterValue">{{ activeSosCount }}</span>
           </div>
-        </div>
+        </div> -->
       </div>
     </aside>
 
@@ -169,7 +170,7 @@
     <aside class="notifDrawer" :class="{ open: notificationsOpen }" @click.stop>
       <div class="notifHeader">
         <div class="notifHeaderTitle">
-          NOTIFICATION QUEUE FOR ALERTS ({{ notifications.length }})
+          NOTIFICATION ALERTS ({{ notifications.length }})
         </div>
         <v-btn icon class="notifCloseBtn" @click="notificationsOpen = false" aria-label="Close notifications">
           <v-icon>mdi-close</v-icon>
@@ -187,30 +188,35 @@
               {{ n.roomName }} - {{ n.title }}
             </div>
 
+            <!-- <v-icon @click="dismissNotification(n.id)" class="fill dark danger">mdi-close-circle</v-icon> -->
+
             <div class="notifPill" :class="n.pillClass">
               {{ n.pillText }}
             </div>
           </div>
 
-          <div class="notifSub">{{ n.message }}</div>
-          <div class="notifSub2">Active Time: {{ n.activeTime || "--:--" }}</div>
+          <!-- <div class="notifSub">{{ n.message }}</div> -->
+          <!-- <div class="notifSub2">Active Time: {{ n.activeTime || "--:--" }}</div> -->
 
           <div class="notifActions">
-            <v-btn x-small class="notifBtn" @click="openFromNotification(n)">
+            <!-- <v-btn x-small class="notifBtn" @click="openFromNotification(n)">
               View Details
+            </v-btn> -->
+            <v-btn x-small class="notifBtn success" v-if="!n.action">
+              SOS Closed
             </v-btn>
 
             <v-btn x-small class="notifBtn warn" v-if="n.action === 'ack'" @click="ackFromNotification(n)">
-              Acknowledge
+              Click to Acknowledge
             </v-btn>
 
-            <v-btn x-small class="notifBtn ok" v-if="n.action === 'resolve'" @click="dismissNotification(n.id)">
-              Resolve
-            </v-btn>
-
-            <v-btn x-small class="notifBtn ghost" @click="dismissNotification(n.id)">
+            <v-btn x-small class="notifBtn ok" @click="dismissNotification(n.id)" style="margin-left:auto">
               Dismiss
             </v-btn>
+            <!-- <v-btn x-small class="notifBtn notifPill" :class="n.pillClass">
+              {{ n.pillText }}
+            </v-btn> -->
+
           </div>
         </div>
       </div>
@@ -225,19 +231,21 @@
             <v-icon>mdi-menu</v-icon>
           </v-btn>
 
-          <div class="hdLogo">SOS</div>
+          <div class="hdLogo"> <v-avatar size="35" style="border: 1px solid #fff">
+              <v-img class="company_logo" :src="getLogo"></v-img>
+            </v-avatar></div>
 
           <div class="hdTitleBlock">
-            <div class="hdTitle">Monitoring Dashboard</div>
+            <!-- <div class="hdTitle">Monitoring Dashboard</div> -->
             <div class="hdSub">
               {{ $auth?.user?.company?.name || "Company" }}
-              <span class="hdSep">•</span>
-              {{ $auth?.user?.branch?.name || "Location" }}
+              <!-- <span class="hdSep">•</span>
+              {{ $auth?.user?.branch?.name || "Location" }} -->
             </div>
           </div>
         </div>
 
-        <div class="hdRight">
+        <div class="hdRight" style="font-size:13px;font-weight: normal;">
           <!-- Bell -->
           <!-- <v-btn icon class="hdBellBtn" @click="toggleNotifications" aria-label="Notifications">
             <v-badge :content="unreadCount" :value="unreadCount > 0" overlap>
@@ -245,27 +253,27 @@
             </v-badge>
           </v-btn> -->
 
-          <div class="hdMeta">
+          <div class="hdMeta" style="font-size:13px">
             <v-icon small class="mr-1">mdi-clock-outline</v-icon> {{ headerTime }}
           </div>
 
-          <div class="hdMeta">
+          <div class="hdMeta" style="font-size:13px">
             <v-icon small class="mr-1">mdi-calendar-month-outline</v-icon> {{ headerDate }}
           </div>
 
           <div class="hdMeta">
             <span class="hdStatusDot" :class="isConnected ? 'ok' : 'bad'"></span>
-            <span class="hdStatusText">{{ isConnected ? "System Online" : "System Offline" }}</span>
+            <span class="hdStatusText">{{ isConnected ? "Online" : "Offline" }}</span>
           </div>
 
-          <v-btn small outlined class="hdBtn" @click="prevPage" :disabled="totalPages <= 1">
-            <v-icon left small>mdi-chevron-left</v-icon> Prev
+          <v-btn x-small outlined class="hdBtn" @click="prevPage" :disabled="totalPages <= 1">
+            <v-icon left small>mdi-chevron-left</v-icon>
           </v-btn>
 
           <div class="hdPageText">{{ pageIndex + 1 }} / {{ totalPages }}</div>
 
-          <v-btn small outlined class="hdBtn" @click="nextPage" :disabled="totalPages <= 1">
-            Next <v-icon right small>mdi-chevron-right</v-icon>
+          <v-btn x-small outlined class="hdBtn" @click="nextPage" :disabled="totalPages <= 1">
+            <v-icon right small>mdi-chevron-right</v-icon>
           </v-btn>
 
           <v-btn small outlined color="error" class="hdBtn" v-if="$auth?.user" @click="logout">
@@ -299,31 +307,46 @@
               </div>
 
               <div class="cardMid">
-                <div class="statusCircle">
+                <div class="statusCircle" :class="d.alarm_status ? 'isAlarm danger fill dark' : 'isOk'">
                   <v-icon class="statusIcon" :class="d.alarm_status ? 'isAlarm' : 'isOk'">
-                    {{ d.alarm_status ? "mdi-close" : "mdi-check" }}
+                    {{ d.alarm_status ? "mdi-close-circle" : "mdi-check-circle-outline" }}
                   </v-icon>
                 </div>
               </div>
 
-              <div class="cardBottom" :class="d.alarm_status ? 'bottomAlarm' : 'bottomOk'">
+              <div class="cardBottom" :class="{
+                bottomAlarm: d.alarm_status && !d.alarm?.responded_datetime,
+                bottomAck: d.alarm_status && d.alarm?.responded_datetime,
+                bottomOk: !d.alarm_status
+              }">
                 <v-icon x-small class="mr-1">
-                  {{ d.alarm_status ? "mdi-bell" : "mdi-bell-outline" }}
+                  {{
+                    d.alarm_status
+                      ? (d.alarm?.responded_datetime ? "mdi-bell-check" : "mdi-bell-ring")
+                      : "mdi-bell-off"
+                  }}
                 </v-icon>
 
                 <span class="bottomText">
                   <template v-if="d.alarm_status">
-                    Active: {{ (d.duration || "00:00:00").slice(3) }}
+                    <template v-if="d.alarm?.responded_datetime">
+                      Acknowledged
+                    </template>
+                    <template v-else>
+                      Active: {{ (d.duration || "00:00:00").slice(3) }}
+                    </template>
                   </template>
+
                   <template v-else>
                     No Active Alarm
                   </template>
                 </span>
 
-                <v-btn x-small class="ackBtn" v-if="d.alarm_status === true && !d.alarm?.responded_datetime"
+
+                <!-- <v-btn x-small class="ackBtn" v-if="d.alarm_status === true && !d.alarm?.responded_datetime"
                   @click.stop="udpateResponse(d.alarm?.id)">
                   ACK
-                </v-btn>
+                </v-btn> -->
               </div>
             </v-card>
           </div>
@@ -332,6 +355,11 @@
         <v-progress-linear v-if="loading" indeterminate height="3" class="mt-3" />
         <div v-else-if="pagedDevices.length === 0" class="emptyState">Data is not available</div>
       </section>
+      <footer class="dashFooter">
+
+        <span>© 2026 Akil Security Alarm Systems (XtremeGuard)</span> <img src="/logo.png" alt="XtremeGuard Logo"
+          class="footerLogo" />
+      </footer>
     </main>
   </div>
 </template>
@@ -377,7 +405,7 @@ export default {
       splitMode: 16, // 4 / 8 / 16 / 32 / 64
 
       // Auto rotate
-      autoRotateMs: 10000,
+      autoRotateMs: 1000 * 5,
       autoRotateTimer: null,
 
       // Duration timer
@@ -418,6 +446,23 @@ export default {
   },
 
   computed: {
+
+    getLogo() {
+      let logosrc = "/no-image.PNG";
+
+      // console.log("this.$auth.user ", this.$auth.user);
+
+
+      if (
+        this.$auth.user &&
+
+        this.$auth.user.company.logo
+      ) {
+        logosrc = this.$auth.user.company.logo;
+      }
+
+      return logosrc;
+    },
     filteredDevices() {
       if (this.filterMode === "on") return this.devices.filter((d) => d.alarm_status === true);
       if (this.filterMode === "off") return this.devices.filter((d) => d.alarm_status === false);
@@ -597,7 +642,7 @@ export default {
         roomName: payload.roomName || "Room",
         title: payload.title || "Notification",
         message: payload.message || "",
-        pillText: payload.pillText || "NEW",
+        pillText: payload.pillText || "New SOS",
         pillClass: payload.pillClass || "pillNew",
         action: payload.action || null,
         alarmId: payload.alarmId || null,
@@ -646,7 +691,7 @@ export default {
             roomId: rid,
             roomName,
             title: "SOS Triggered",
-            message: `${roomName} SOS triggered at ${this.formatNowTime()}`,
+            message: `${roomName} SOS   at ${this.formatNowTime()}`,
             pillText: "NEW",
             pillClass: "pillNew",
             action: "ack",
@@ -663,7 +708,7 @@ export default {
             roomId: rid,
             roomName,
             title: "Acknowledged",
-            message: `${roomName} SOS is acknowledged at ${at}`,
+            message: `${roomName} SOS is   at ${at}`,
             pillText: "ACK",
             pillClass: "pillAck",
             action: "resolve",
@@ -679,7 +724,7 @@ export default {
             roomId: rid,
             roomName,
             title: "Stopped",
-            message: `${roomName} stopped at ${this.formatNowTime()}`,
+            message: `${roomName}   at ${this.formatNowTime()}`,
             pillText: "STOP",
             pillClass: "pillStop",
             action: null,
@@ -694,7 +739,9 @@ export default {
 
     updateHeaderClock() {
       const d = new Date();
-      this.headerTime = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      // this.headerTime = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      this.headerTime = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
       this.headerDate = d.toISOString().slice(0, 10);
     },
 
@@ -937,6 +984,22 @@ export default {
 
         const pct = Number(s.sla_percentage ?? 100);
         this.avgResponsePct = Math.max(0, Math.min(100, Number.isFinite(pct) ? pct : 100));
+
+        if (this.activeSosCount > 0) {
+          // SOS ON
+          try {
+            AndroidBridge.startAlarm()
+          } catch (error) {
+
+          }
+
+        } else {
+          try {
+            AndroidBridge.stopAlarm()
+          } catch (error) {
+
+          }
+        }
       }
     },
 
@@ -1109,7 +1172,7 @@ export default {
 }
 
 .hdMeta {
-  font-weight: 800;
+  /* font-weight: 800; */
   opacity: 0.9;
   display: flex;
   align-items: center;
@@ -1120,7 +1183,7 @@ export default {
 }
 
 .hdPageText {
-  min-width: 90px;
+  min-width: 30px;
   text-align: center;
   font-weight: 900;
   opacity: 0.85;
@@ -1228,16 +1291,19 @@ export default {
   padding: 10px;
 }
 
+/*
 .statusCircle {
-  width: 68px;
-  height: 68px;
+  width: 50px;
+  height: 50px;
   border-radius: 999px;
   display: grid;
   place-items: center;
   background: rgba(0, 0, 0, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-}
+  border: 4px solid #22c55e;
+} */
 
+
+/*
 .statusIcon {
   font-size: 42px !important;
 }
@@ -1248,7 +1314,7 @@ export default {
 
 .statusIcon.isAlarm {
   color: #ef4444;
-}
+} */
 
 .cardBottom {
   display: flex;
@@ -1262,7 +1328,10 @@ export default {
 
 .bottomOk {
   background: rgba(34, 197, 94, 0.9);
-  color: rgba(0, 0, 0, 0.85);
+  /* color: rgba(0, 0, 0, 0.85); */
+  color: rgba(255, 255, 255, 0.92);
+
+  font-weight: normal;
 }
 
 .bottomAlarm {
@@ -1270,10 +1339,18 @@ export default {
   color: rgba(255, 255, 255, 0.92);
 }
 
+/* ✅ NEW: acknowledged (brown / amber) */
+.bottomAck {
+  background: rgba(161, 98, 7, 0.9);
+  /* amber/brown */
+  color: #fff;
+}
+
 .bottomText {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 14px;
 }
 
 .ackBtn {
@@ -1308,7 +1385,7 @@ export default {
   top: 0;
   left: 0;
   height: 100vh;
-  width: 320px;
+  width: 300px;
   max-width: 86vw;
   transform: translateX(-110%);
   transition: transform 180ms ease;
@@ -1400,11 +1477,11 @@ export default {
   border: 1px solid rgba(255, 255, 255, 0.06);
   cursor: pointer;
   color: inherit;
-  font-weight: 900;
+  /* font-weight: 900; */
 }
 
 .menuItem.active {
-  background: rgba(99, 102, 241, 0.22);
+  background: #5046e5;
   border-color: rgba(99, 102, 241, 0.35);
 }
 
@@ -1475,7 +1552,7 @@ export default {
   top: 0;
   right: 0;
   height: 100vh;
-  width: 360px;
+  width: 300px;
   max-width: 92vw;
   transform: translateX(110%);
   transition: transform 180ms ease;
@@ -1593,6 +1670,7 @@ export default {
   font-size: 11px;
   opacity: 0.75;
   font-weight: 700;
+  color: #897575
 }
 
 .notifActions {
@@ -1640,5 +1718,99 @@ export default {
 .hdBtn.v-btn--disabled {
   opacity: 0.45 !important;
   cursor: not-allowed !important;
+}
+
+/* Make main layout include footer row */
+.dashMain {
+  height: 100%;
+  width: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  /* header, content, footer */
+  min-width: 0;
+}
+
+.footerLogo {
+  height: 18px;
+  width: auto;
+  margin-right: 10px;
+  vertical-align: middle;
+  opacity: 0.95;
+}
+
+.dashFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  /* ✅ move content to right */
+
+  gap: 8px;
+  padding: 10px 16px;
+
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  opacity: 0.8;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.14);
+}
+
+/* Base circle */
+.statusCircle {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  /* border: 2px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.18); */
+  transition: all 0.25s ease;
+}
+
+/* OK state */
+/* .statusCircle.isOk {
+  background: rgba(34, 197, 94, 0.18);
+  border-color: rgba(34, 197, 94, 0.45);
+} */
+
+.statusIcon.isOk {
+  color: #22c55e;
+  font-size: 42px !important;
+}
+
+/* ALARM state */
+.statusCircle.isAlarm {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: rgba(239, 68, 68, 0.65);
+  animation: alarmPulse 1.2s infinite;
+}
+
+.statusIcon.isAlarm {
+  color: #ef4444;
+  font-size: 42px !important;
+}
+
+/* Optional stronger alarm */
+.statusCircle.danger {
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.55);
+}
+
+/* Alarm pulse */
+@keyframes alarmPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(239, 68, 68, 0.0);
+  }
+
+  50% {
+    transform: scale(1.08);
+    box-shadow: 0 0 22px rgba(239, 68, 68, 0.6);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(239, 68, 68, 0.0);
+  }
 }
 </style>
