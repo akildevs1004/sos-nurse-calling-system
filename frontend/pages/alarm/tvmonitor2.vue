@@ -7,8 +7,9 @@
 
     <SosAlarmPopupMqtt @triggerUpdateDashboard="requestDashboardSnapshot()" />
 
-    <!-- Audio (kept) -->
-    <!-- <AudioSoundPlay :key="totalSOSCount" v-if="stats?.activeSos > 0" :notificationsMenuItemsCount="stats?.activeSos" /> -->
+    <!-- WEB sound only (NOT TV). TV uses AndroidBridge -->
+    <AudioSoundPlay v-if="useWebSound && !isMuted && stats?.activeSos > 0" :key="totalSOSCount"
+      :notificationsMenuItemsCount="stats?.activeSos" />
 
     <!-- DETAILS POPUP (optional) -->
     <v-dialog v-model="detailsDialog" content-class="tvDetailsDialog" persistent>
@@ -86,178 +87,156 @@
       </v-card>
     </v-dialog>
 
-    <!-- Overlay MENU Backdrop -->
-    <div v-if="menuOpen" class="menuBackdrop" @click="menuOpen = false"></div>
-
-    <!-- Overlay MENU -->
-    <aside class="overlayMenu" :class="{ open: menuOpen }" @click.stop>
-      <div class="menuHeader">
-        <div class="menuHeaderLeft">
-          <v-icon>mdi mdi-view-grid-outline</v-icon>
-          <!-- <v-img class="company_logo" :src="getLogo"></v-img> -->
-          <!-- <div class="menuTitleBlock">
-            {{ $auth?.user?.company?.name || "Company" }}
-          </div> -->
-          Views
+    <!-- LEFT FIXED NAV (icon-only, expands on hover) -->
+    <aside class="leftNav" :class="{ expanded: navExpanded }" @mouseenter="navExpanded = true"
+      @mouseleave="navExpanded = false">
+      <div class="navTop">
+        <div class="navLogo">
+          <img src="/logo.png" alt="XtremeGuard" />
         </div>
-
-        <v-btn icon class="menuCloseBtn" @click="menuOpen = false" aria-label="Close menu">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
       </div>
 
-      <div class="menuBody">
-        <!-- <div class="menuSectionTitle">Split (cards per page)</div> -->
-        <div class="menuGrid">
-          <button class="menuItem" :class="{ active: splitMode === 4 }" @click="setSplit(4)">
-            <v-icon small class="mr-2">mdi-view-grid</v-icon> 4-way Split
-          </button>
-          <button class="menuItem" :class="{ active: splitMode === 8 }" @click="setSplit(8)">
-            <v-icon small class="mr-2">mdi-view-grid-plus</v-icon> 8-way Split
-          </button>
-          <button class="menuItem" :class="{ active: splitMode === 16 }" @click="setSplit(16)">
-            <v-icon small class="mr-2">mdi-view-module</v-icon> 16-way Split
-          </button>
-          <button class="menuItem" :class="{ active: splitMode === 32 }" @click="setSplit(32)">
-            <v-icon small class="mr-2">mdi-view-comfy</v-icon> 32-way Split
-          </button>
-          <button class="menuItem" :class="{ active: splitMode === 64 }" @click="setSplit(64)">
-            <v-icon small class="mr-2">mdi-view-dashboard</v-icon> 64-way Split
-          </button>
+      <div class="navList">
+        <!-- Split -->
+        <div class="navItem" :class="{ active: splitMode === 4 }" @click="setSplit(4)">
+          <v-icon>mdi-view-grid</v-icon>
+          <span class="navLabel">4-way</span>
+        </div>
+        <div class="navItem" :class="{ active: splitMode === 8 }" @click="setSplit(8)">
+          <v-icon>mdi-view-grid-plus</v-icon>
+          <span class="navLabel">8-way</span>
+        </div>
+        <div class="navItem" :class="{ active: splitMode === 16 }" @click="setSplit(16)">
+          <v-icon>mdi-view-module</v-icon>
+          <span class="navLabel">16-way</span>
+        </div>
+        <div class="navItem" :class="{ active: splitMode === 32 }" @click="setSplit(32)">
+          <v-icon>mdi-view-comfy</v-icon>
+          <span class="navLabel">32-way</span>
+        </div>
+        <div class="navItem" :class="{ active: splitMode === 64 }" @click="setSplit(64)">
+          <v-icon>mdi-view-dashboard</v-icon>
+          <span class="navLabel">64-way</span>
         </div>
 
-        <div class="menuSectionTitle mt-4">Filter</div>
-        <div class="menuGrid">
-          <button class="menuItem" :class="{ active: filterMode === 'all' }" @click="setFilter('all')">
-            <v-icon small class="mr-2">mdi-format-list-bulleted</v-icon> All
-          </button>
-          <button class="menuItem" :class="{ active: filterMode === 'on' }" @click="setFilter('on')">
-            <v-icon small class="mr-2">mdi-bell</v-icon> SOS ON
-          </button>
-          <button class="menuItem" :class="{ active: filterMode === 'off' }" @click="setFilter('off')">
-            <v-icon small class="mr-2">mdi-bell-off</v-icon> SOS OFF
-          </button>
+        <div class="navDivider"></div>
+
+        <!-- Filter -->
+        <div class="navItem" :class="{ active: filterMode === 'all' }" @click="setFilter('all')">
+          <v-icon>mdi-format-list-bulleted</v-icon>
+          <span class="navLabel">All</span>
+        </div>
+        <div class="navItem" :class="{ active: filterMode === 'on' }" @click="setFilter('on')">
+          <v-icon>mdi-bell</v-icon>
+          <span class="navLabel">SOS ON</span>
+        </div>
+        <div class="navItem" :class="{ active: filterMode === 'off' }" @click="setFilter('off')">
+          <v-icon>mdi-bell-off</v-icon>
+          <span class="navLabel">SOS OFF</span>
         </div>
 
-        <!--<div class="menuSectionTitle mt-4">Auto rotate</div>
-        <div class="menuRow">
-          <div class="menuRowLabel">Interval</div>
-          <div class="menuRowValue">{{ autoRotateMs / 1000 }}s</div>
-        </div>
+        <div class="navDivider"></div>
 
-       <v-slider class="menuSlider" v-model="autoRotateMs" :min="5 * 1000" :max="60 * 1000" :step="5 * 1000"
-          thumb-label hide-details @change="restartAutoRotate" /> -->
-
-        <!-- <div class="menuFooter">
-          <div class="menuFooterRow">
-            <span class="menuFooterLabel">MQTT</span>
-            <span class="menuFooterValue" :class="isConnected ? 'ok' : 'bad'">
-              {{ isConnected ? "Online" : "Offline" }}
-            </span>
+        <!-- TV-only controls -->
+        <template v-if="isTV">
+          <div class="navItem" :class="{ disabled: totalPages <= 1 }" @click="totalPages > 1 && prevPage()">
+            <v-icon>mdi-chevron-left</v-icon>
+            <span class="navLabel">Prev Page</span>
           </div>
-          <div class="menuFooterRow">
-            <span class="menuFooterLabel">Active SOS</span>
-            <span class="menuFooterValue">{{ activeSosCount }}</span>
+
+          <div class="navItem" :class="{ disabled: totalPages <= 1 }" @click="totalPages > 1 && nextPage()">
+            <v-icon>mdi-chevron-right</v-icon>
+            <span class="navLabel">Next Page</span>
           </div>
-        </div> -->
+
+          <div class="navDivider"></div>
+
+          <div class="navItem danger" @click="logout" v-if="$auth?.user">
+            <v-icon>mdi-logout</v-icon>
+            <span class="navLabel">Logout</span>
+          </div>
+        </template>
       </div>
     </aside>
 
-    <!-- Notifications Backdrop -->
-    <div v-if="notificationsOpen" class="notifBackdrop" @click="notificationsOpen = false"></div>
-
-    <!-- Notifications Drawer (Right side overlay) -->
-    <aside class="notifDrawer" :class="{ open: notificationsOpen }" @click.stop>
+    <!-- Notifications Drawer: fixed on right ONLY when alarms > 0 -->
+    <aside class="notifDrawer" v-if="drawerVisible" @click.stop>
       <div class="notifHeader">
         <div class="notifHeaderTitle">
-          NOTIFICATION ALERTS ({{ notifications.length }})
+          NOTIFICATION QUEUE FOR ALERTS ({{ activeAlarmCount }})
         </div>
-        <v-btn icon class="notifCloseBtn" @click="notificationsOpen = false" aria-label="Close notifications">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
+
+        <div class="notifHeaderActions">
+          <v-btn x-small outlined class="notifMuteBtn" @click="toggleMute">
+            <v-icon left small>
+              {{ isMuted ? 'mdi-volume-off' : 'mdi-volume-high' }}
+            </v-icon>
+            {{ isMuted ? 'Muted' : 'Sound On' }}
+          </v-btn>
+        </div>
       </div>
 
       <div class="notifBody">
-        <div v-if="notifications.length === 0" class="notifEmpty">
-          No notifications
+        <div v-if="activeAlarmRooms.length === 0" class="notifEmpty">
+          No active alarms
         </div>
 
-        <div v-for="n in notifications" :key="n.id" class="notifCard" :class="n.kind">
+        <div v-for="d in activeAlarmRooms" :key="d.id || d.room_id" class="notifCard" :class="notifKind(d)">
           <div class="notifTopRow">
             <div class="notifTitle">
-              {{ n.roomName }} - {{ n.title }}
+              {{ d.name }} - {{ d.alarm?.responded_datetime ? 'ACKNOWLEDGED' : 'PENDING' }}
             </div>
 
-            <!-- <v-icon @click="dismissNotification(n.id)" class="fill dark danger">mdi-close-circle</v-icon> -->
-
-            <div class="notifPill" :class="n.pillClass">
-              {{ n.pillText }}
+            <div class="notifPill" :class="d.alarm?.responded_datetime ? 'pillAck' : 'pillNew'">
+              {{ d.alarm?.responded_datetime ? 'ACK' : 'ALARM' }}
             </div>
           </div>
 
-          <!-- <div class="notifSub">{{ n.message }}</div> -->
-          <!-- <div class="notifSub2">Active Time: {{ n.activeTime || "--:--" }}</div> -->
+          <div class="notifSub2">
+            Active Time: {{ getRoomActiveTime(d) }}
+          </div>
 
-          <div class="notifActions">
-            <!-- <v-btn x-small class="notifBtn" @click="openFromNotification(n)">
-              View Details
-            </v-btn> -->
-            <v-btn x-small class="notifBtn success" v-if="!n.action">
-              SOS Closed
+          <div class="notifSub2">
+            Start: {{ d.alarm?.alarm_start_datetime || d.alarm_start_datetime || '-' }}
+          </div>
+
+          <div class="notifSub2" v-if="d.alarm?.responded_datetime">
+            Ack At: {{ d.alarm?.responded_datetime }}
+          </div>
+
+          <div class="notifActions" v-if="!d.alarm?.responded_datetime">
+            <v-btn x-small class="notifBtn warn" @click="udpateResponse(d.alarm?.id)">
+              Submit Acknowledgement
             </v-btn>
-
-            <v-btn x-small class="notifBtn warn" v-if="n.action === 'ack'" @click="ackFromNotification(n)">
-              Click to Acknowledge
-            </v-btn>
-
-            <v-btn x-small class="notifBtn ok" @click="dismissNotification(n.id)" style="margin-left:auto">
-              Dismiss
-            </v-btn>
-            <!-- <v-btn x-small class="notifBtn notifPill" :class="n.pillClass">
-              {{ n.pillText }}
-            </v-btn> -->
-
           </div>
         </div>
       </div>
     </aside>
 
-    <!-- ===== MAIN ===== -->
+    <!-- MAIN -->
     <main class="dashMain">
-      <!-- HEADER -->
-      <header class="dashHeader">
+      <!-- HEADER (hide if width < 1000) -->
+      <header class="dashHeader" v-if="showHeader">
         <div class="hdLeft">
-          <v-btn icon class="hdMenuBtn" @click="menuOpen = true" aria-label="Open menu">
-            <v-icon>mdi-menu</v-icon>
-          </v-btn>
-
-          <div class="hdLogo"> <v-avatar size="35" style="border: 1px solid #fff">
+          <div class="hdLogo">
+            <v-avatar size="35" style="border: 1px solid rgba(255,255,255,0.25)">
               <v-img class="company_logo" :src="getLogo"></v-img>
-            </v-avatar></div>
+            </v-avatar>
+          </div>
 
           <div class="hdTitleBlock">
-            <!-- <div class="hdTitle">Monitoring Dashboard</div> -->
             <div class="hdSub">
               {{ $auth?.user?.company?.name || "Company" }}
-              <!-- <span class="hdSep">•</span>
-              {{ $auth?.user?.branch?.name || "Location" }} -->
             </div>
           </div>
         </div>
 
         <div class="hdRight" style="font-size:13px;font-weight: normal;">
-          <!-- Bell -->
-          <!-- <v-btn icon class="hdBellBtn" @click="toggleNotifications" aria-label="Notifications">
-            <v-badge :content="unreadCount" :value="unreadCount > 0" overlap>
-              <v-icon>mdi-bell-outline</v-icon>
-            </v-badge>
-          </v-btn> -->
-
-          <div class="hdMeta" style="font-size:13px">
+          <div class="hdMeta">
             <v-icon small class="mr-1">mdi-clock-outline</v-icon> {{ headerTime }}
           </div>
 
-          <div class="hdMeta" style="font-size:13px">
+          <div class="hdMeta">
             <v-icon small class="mr-1">mdi-calendar-month-outline</v-icon> {{ headerDate }}
           </div>
 
@@ -266,21 +245,24 @@
             <span class="hdStatusText">{{ isConnected ? "Online" : "Offline" }}</span>
           </div>
 
-          <v-btn x-small outlined class="hdBtn" @click="prevPage" :disabled="totalPages <= 1">
-            <v-icon left small>mdi-chevron-left</v-icon>
-          </v-btn>
+          <!-- WEB pagination only -->
+          <template v-if="!isTV">
+            <v-btn x-small outlined class="hdBtn" @click="prevPage" :disabled="totalPages <= 1">
+              <v-icon left small>mdi-chevron-left</v-icon>
+            </v-btn>
 
-          <div class="hdPageText">{{ pageIndex + 1 }} / {{ totalPages }}</div>
+            <div class="hdPageText">{{ pageIndex + 1 }} / {{ totalPages }}</div>
 
-          <v-btn x-small outlined class="hdBtn" @click="nextPage" :disabled="totalPages <= 1">
-            <v-icon right small>mdi-chevron-right</v-icon>
-          </v-btn>
+            <v-btn x-small outlined class="hdBtn" @click="nextPage" :disabled="totalPages <= 1">
+              <v-icon right small>mdi-chevron-right</v-icon>
+            </v-btn>
 
-          <v-btn small outlined color="error" class="hdBtn" v-if="$auth?.user" @click="logout">
-            <v-icon left small>mdi-logout</v-icon> Logout
-          </v-btn>
-          <!-- Bell (AFTER logout) -->
-          <v-btn icon class="hdBellBtn" @click="toggleNotifications" aria-label="Notifications">
+            <v-btn small outlined color="error" class="hdBtn" v-if="$auth?.user" @click="logout">
+              <v-icon left small>mdi-logout</v-icon> Logout
+            </v-btn>
+          </template>
+
+          <v-btn icon class="hdBellBtn" :class="{ blinkBell: unreadCount > 0 }" @click="toggleNotifications">
             <v-badge :content="unreadCount" :value="unreadCount > 0" overlap>
               <v-icon>mdi-bell-outline</v-icon>
             </v-badge>
@@ -288,8 +270,8 @@
         </div>
       </header>
 
-      <!-- CARDS -->
-      <section class="dashCards">
+      <!-- CARDS (FULL SCREEN HEIGHT FIT BY ROW COUNT) -->
+      <section class="dashCards" ref="dashCards" :style="contentPadStyle">
         <div class="cardsGrid" :style="roomsGridStyle">
           <div v-for="d in pagedDevices" :key="d.id || d.room_id" class="cardCell">
             <v-card outlined class="roomCard" :class="cardClass(d)" @click="onRoomClick(d)">
@@ -341,12 +323,6 @@
                     No Active Alarm
                   </template>
                 </span>
-
-
-                <!-- <v-btn x-small class="ackBtn" v-if="d.alarm_status === true && !d.alarm?.responded_datetime"
-                  @click.stop="udpateResponse(d.alarm?.id)">
-                  ACK
-                </v-btn> -->
               </div>
             </v-card>
           </div>
@@ -355,11 +331,6 @@
         <v-progress-linear v-if="loading" indeterminate height="3" class="mt-3" />
         <div v-else-if="pagedDevices.length === 0" class="emptyState">Data is not available</div>
       </section>
-      <footer class="dashFooter">
-
-        <span>© 2026 Akil Security Alarm Systems (XtremeGuard)</span> <img src="/logo.png" alt="XtremeGuard Logo"
-          class="footerLogo" />
-      </footer>
     </main>
   </div>
 </template>
@@ -379,12 +350,9 @@ export default {
 
   data() {
     return {
-      dashboardInterval: null,
-
       detailsDialog: false,
       selectedRoom: null,
 
-      // UI
       filterMode: "all",
       devices: [],
       loading: false,
@@ -392,34 +360,22 @@ export default {
       snackbar: false,
       snackbarResponse: "",
 
-      // Overlay menu
-      menuOpen: false,
+      navExpanded: false,
+      isMuted: false,
 
-      // Notifications
-      notificationsOpen: false,
-      notifications: [],
-      notifMax: 50,
-      prevRoomsMap: {},
-
-      // Split mode = cards per page
-      splitMode: 16, // 4 / 8 / 16 / 32 / 64
-
-      // Auto rotate
+      splitMode: 16,
       autoRotateMs: 1000 * 5,
       autoRotateTimer: null,
 
-      // Duration timer
       timer: null,
       TIMER_MS: 1000,
 
-      // MQTT
       mqttUrl: "",
       client: null,
       isConnected: false,
       reqId: "",
       topics: { req: "", rooms: "", stats: "", reload: "", reloadconfig: "" },
 
-      // Stats (kept for AudioSoundPlay)
       avgResponseText: "00:00",
       avgResponsePct: 100,
       repeated: 0,
@@ -427,42 +383,57 @@ export default {
       totalSOSCount: 0,
       activeDisabledSos: 0,
 
-      // Pagination
       pageIndex: 0,
 
-      // params
       room: null,
       status: null,
       date_from: "",
       date_to: "",
 
-      filterRoomTableIds: [],
-
-      // Header clock
       headerTime: "",
       headerDate: "",
-      _clock: null
+      _clock: null,
+
+      windowW: 0,
+      dashboardInterval: null,
+
+      _cardHpx: 160,
+      _bellClicked: false
     };
   },
 
   computed: {
+    isTV() {
+      const w = typeof window !== "undefined" ? (this.windowW || window.innerWidth || 0) : 0;
+      return w === 0 || (w >= 500 && w < 1000);
+    },
+
+    showHeader() {
+      const w = typeof window !== "undefined" ? (this.windowW || window.innerWidth || 0) : 0;
+      return w >= 1000;
+    },
+
+    isAndroidTV() {
+      return this.isTV;
+    },
+
+    useWebSound() {
+      return !this.isTV;
+    },
+
+    contentPadStyle() {
+      return {
+        paddingLeft: "76px",
+        paddingRight: this.drawerVisible ? "200px" : "12px"
+      };
+    },
 
     getLogo() {
       let logosrc = "/no-image.PNG";
-
-      // console.log("this.$auth.user ", this.$auth.user);
-
-
-      if (
-        this.$auth.user &&
-
-        this.$auth.user.company.logo
-      ) {
-        logosrc = this.$auth.user.company.logo;
-      }
-
+      if (this.$auth?.user?.company?.logo) logosrc = this.$auth.user.company.logo;
       return logosrc;
     },
+
     filteredDevices() {
       if (this.filterMode === "on") return this.devices.filter((d) => d.alarm_status === true);
       if (this.filterMode === "off") return this.devices.filter((d) => d.alarm_status === false);
@@ -494,29 +465,54 @@ export default {
       return 4;
     },
 
+    splitRows() {
+      const s = Number(this.splitMode);
+      if (s === 4) return 2;
+      if (s === 8) return 2;
+      if (s === 16) return 4;
+      if (s === 32) return 4;
+      if (s === 64) return 8;
+      return 4;
+    },
+
     roomsGridStyle() {
       return {
-        gridTemplateColumns: `repeat(${this.splitCols}, minmax(0, 1fr))`
+        gridTemplateColumns: `repeat(${this.splitCols}, minmax(0, 1fr))`,
+        gridTemplateRows: `repeat(${this.splitRows}, minmax(0, 1fr))`
       };
     },
 
-    activeSosCount() {
-      return this.devices.filter((d) => d.alarm_status === true).length;
+    activeAlarmCount() {
+      return (this.devices || []).filter(d => d && d.alarm_status === true).length;
+    },
+
+    drawerVisible() {
+      return this.activeAlarmCount > 0;
+    },
+
+    activeAlarmRooms() {
+      return (this.devices || []).filter(d => d && d.alarm_status === true);
+    },
+
+    unreadCount() {
+      // blink until click
+      if (!this.drawerVisible) return 0;
+      return this._bellClicked ? 0 : this.activeAlarmCount;
+    },
+
+    cardHpx() {
+      return this._cardHpx || 160;
     },
 
     stats() {
       return {
         totalPoints: this.devices.length,
-        activeSos: this.activeSosCount,
+        activeSos: this.activeAlarmCount,
         repeated: this.repeated,
         ackCount: this.ackCount,
         totalSOSCount: this.totalSOSCount,
         activeDisabledSos: this.activeDisabledSos
       };
-    },
-
-    unreadCount() {
-      return (this.notifications || []).filter(n => !n.read).length;
     }
   },
 
@@ -529,19 +525,18 @@ export default {
       this.pageIndex = 0;
       this.safeLsSet(SPLIT_MODE_KEY, String(this.splitMode));
       this.restartAutoRotate();
-    },
-
-    autoRotateMs() {
-      this.safeLsSet(AUTO_ROTATE_KEY, String(this.autoRotateMs));
-      this.restartAutoRotate();
+      this.$nextTick(() => this.recalcCardHeightFull());
     },
 
     filterMode() {
       this.pageIndex = 0;
+      this.$nextTick(() => this.recalcCardHeightFull());
     },
 
-    filteredDevices() {
-      if (this.pageIndex > this.totalPages - 1) this.pageIndex = 0;
+    drawerVisible() {
+      this.$nextTick(() => this.recalcCardHeightFull());
+      this.applySoundPolicy();
+      if (!this.drawerVisible) this._bellClicked = false;
     }
   },
 
@@ -553,13 +548,11 @@ export default {
 
     const savedRotate = Number(this.safeLsGet(AUTO_ROTATE_KEY));
     if (Number.isFinite(savedRotate) && savedRotate >= 5000) this.autoRotateMs = savedRotate;
-
-    const sosRooms = this.$auth?.user?.security?.sos_rooms ?? [];
-    this.filterRoomTableIds = Array.isArray(sosRooms) ? sosRooms.map(r => r.id) : [];
   },
 
   mounted() {
-    window.addEventListener("keydown", this.onKeyDown);
+    this.windowW = typeof window !== "undefined" ? (window.innerWidth || 0) : 0;
+    window.addEventListener("resize", this.onResizeAll);
 
     this.timer = setInterval(() => this.updateDurationAll(), this.TIMER_MS);
 
@@ -571,10 +564,12 @@ export default {
 
     this.startDashboardPolling();
     this.startAutoRotate();
+
+    this.$nextTick(() => this.recalcCardHeightFull());
   },
 
   beforeDestroy() {
-    window.removeEventListener("keydown", this.onKeyDown);
+    window.removeEventListener("resize", this.onResizeAll);
 
     try {
       if (this.timer) clearInterval(this.timer);
@@ -587,181 +582,42 @@ export default {
   },
 
   methods: {
-    onKeyDown(e) {
-      if (e.key === "Escape") {
-        if (this.menuOpen) this.menuOpen = false;
-        if (this.notificationsOpen) this.notificationsOpen = false;
-      }
+    onResizeAll() {
+      this.windowW = typeof window !== "undefined" ? (window.innerWidth || 0) : 0;
+      try { AndroidBridge.stopAlarm(); } catch (e) { }
+      this.$nextTick(() => this.recalcCardHeightFull());
+    },
+
+    // FULL SCREEN CARD HEIGHT according to COUNT (split rows):
+    // Uses dashCards container height; since footer removed, it truly fills remaining viewport.
+    recalcCardHeightFull() {
+      this.$nextTick(() => {
+        const area = this.$refs.dashCards;
+        if (!area) return;
+
+        const availableH = area.getBoundingClientRect().height || 0;
+        if (availableH <= 0) return;
+
+        const rows = Math.max(1, Number(this.splitRows) || 1);
+        const gap = 12; // must match .cardsGrid gap
+        const totalGaps = (rows - 1) * gap;
+
+        // No extra padding: make it "CCTV full window"
+        const h = Math.floor((availableH - totalGaps) / rows);
+        this._cardHpx = Math.max(90, h);
+      });
+    },
+
+    toggleNotifications() {
+      this._bellClicked = true;
     },
 
     setSplit(n) {
       this.splitMode = n;
-      this.menuOpen = false;
     },
 
     setFilter(v) {
       this.filterMode = v;
-      this.menuOpen = false;
-    },
-
-    toggleNotifications() {
-      this.notificationsOpen = !this.notificationsOpen;
-      if (this.notificationsOpen) this.markAllRead();
-    },
-
-    markAllRead() {
-      this.notifications = (this.notifications || []).map(n => ({ ...n, read: true }));
-    },
-
-    dismissNotification(id) {
-      this.notifications = (this.notifications || []).filter(n => n.id !== id);
-    },
-
-    openFromNotification(n) {
-      if (n?.roomId) {
-        const room = (this.devices || []).find(d => (d.id || d.room_id) === n.roomId);
-        if (room) {
-          this.selectedRoom = room;
-          this.detailsDialog = true;
-        }
-      }
-    },
-
-    ackFromNotification(n) {
-      if (n?.alarmId) this.udpateResponse(n.alarmId);
-    },
-
-    pushNotification(payload) {
-      const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-      const notif = {
-        id,
-        read: false,
-        createdAt: new Date().toISOString(),
-        kind: payload.kind || "info",
-        roomId: payload.roomId || null,
-        roomName: payload.roomName || "Room",
-        title: payload.title || "Notification",
-        message: payload.message || "",
-        pillText: payload.pillText || "New SOS",
-        pillClass: payload.pillClass || "pillNew",
-        action: payload.action || null,
-        alarmId: payload.alarmId || null,
-        activeTime: payload.activeTime || null
-      };
-
-      this.notifications = [notif, ...(this.notifications || [])].slice(0, this.notifMax);
-    },
-
-    buildRoomsMap(list) {
-      const map = {};
-      (list || []).forEach(d => {
-        const rid = d.id || d.room_id;
-        map[rid] = d;
-      });
-      return map;
-    },
-
-    formatNowTime() {
-      const d = new Date();
-      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-    },
-
-    processRoomTransitions(newList) {
-      const prev = this.prevRoomsMap || {};
-      const next = this.buildRoomsMap(newList);
-
-      Object.keys(next).forEach((rid) => {
-        const oldR = prev[rid];
-        const newR = next[rid];
-        if (!newR) return;
-
-        const roomName = newR.name || "Room";
-        const alarmId = newR?.alarm?.id || null;
-
-        const oldOn = oldR ? oldR.alarm_status === true : false;
-        const newOn = newR.alarm_status === true;
-
-        const oldAck = oldR ? !!oldR?.alarm?.responded_datetime : false;
-        const newAck = !!newR?.alarm?.responded_datetime;
-
-        // Triggered: OFF -> ON
-        if (!oldOn && newOn) {
-          this.pushNotification({
-            kind: "new",
-            roomId: rid,
-            roomName,
-            title: "SOS Triggered",
-            message: `${roomName} SOS   at ${this.formatNowTime()}`,
-            pillText: "NEW",
-            pillClass: "pillNew",
-            action: "ack",
-            alarmId,
-            activeTime: (newR.duration || "00:00:00").slice(3)
-          });
-        }
-
-        // Acknowledged: (on) ACK becomes true
-        if (newOn && !oldAck && newAck) {
-          const at = newR?.alarm?.responded_datetime || this.formatNowTime();
-          this.pushNotification({
-            kind: "ack",
-            roomId: rid,
-            roomName,
-            title: "Acknowledged",
-            message: `${roomName} SOS is   at ${at}`,
-            pillText: "ACK",
-            pillClass: "pillAck",
-            action: "resolve",
-            alarmId,
-            activeTime: (newR.duration || "00:00:00").slice(3)
-          });
-        }
-
-        // Stopped: ON -> OFF
-        if (oldOn && !newOn) {
-          this.pushNotification({
-            kind: "stop",
-            roomId: rid,
-            roomName,
-            title: "Stopped",
-            message: `${roomName}   at ${this.formatNowTime()}`,
-            pillText: "STOP",
-            pillClass: "pillStop",
-            action: null,
-            alarmId: null,
-            activeTime: null
-          });
-        }
-      });
-
-      this.prevRoomsMap = next;
-    },
-
-    updateHeaderClock() {
-      const d = new Date();
-      // this.headerTime = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-      this.headerTime = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-
-      this.headerDate = d.toISOString().slice(0, 10);
-    },
-
-    // ===== Auto rotate =====
-    startAutoRotate() {
-      this.stopAutoRotate();
-      this.autoRotateTimer = setInterval(() => {
-        this.nextPageLoop();
-      }, this.autoRotateMs);
-    },
-
-    stopAutoRotate() {
-      if (this.autoRotateTimer) {
-        clearInterval(this.autoRotateTimer);
-        this.autoRotateTimer = null;
-      }
-    },
-
-    restartAutoRotate() {
-      this.startAutoRotate();
     },
 
     nextPageLoop() {
@@ -781,7 +637,44 @@ export default {
       this.restartAutoRotate();
     },
 
-    // ===== helpers =====
+    startAutoRotate() {
+      this.stopAutoRotate();
+      this.autoRotateTimer = setInterval(() => {
+        this.nextPageLoop();
+      }, this.autoRotateMs);
+    },
+
+    stopAutoRotate() {
+      if (this.autoRotateTimer) {
+        clearInterval(this.autoRotateTimer);
+        this.autoRotateTimer = null;
+      }
+    },
+
+    restartAutoRotate() {
+      this.startAutoRotate();
+    },
+
+    toggleMute() {
+      this.isMuted = !this.isMuted;
+      this.applySoundPolicy(true);
+    },
+
+    applySoundPolicy(forceStop = false) {
+      const active = (this.stats?.activeSos || 0) > 0;
+
+      if (forceStop || this.isMuted || !active) {
+        if (this.isAndroidTV) {
+          try { AndroidBridge.stopAlarm(); } catch (e) { }
+        }
+        return;
+      }
+
+      if (this.isAndroidTV) {
+        try { AndroidBridge.startAlarm(); } catch (e) { }
+      }
+    },
+
     isToilet(d) {
       return d?.room_type === "toilet" || d?.room_type === "toilet-ph";
     },
@@ -800,6 +693,31 @@ export default {
       if (d.alarm_status === true && !d.alarm?.responded_datetime) return "cardOn";
       if (d.alarm_status === true && d.alarm?.responded_datetime) return "cardAck";
       return "cardOff";
+    },
+
+    notifKind(d) {
+      if (!d || d.alarm_status !== true) return "stop";
+      if (d.alarm?.responded_datetime) return "ack";
+      return "new";
+    },
+
+    getRoomActiveTime(room) {
+      if (!room) return "--:--";
+      if (room.alarm_status !== true) return "--:--";
+      if (room.duration) return room.duration.slice(3);
+      if (room.startMs) {
+        const diffSec = Math.max(0, Math.floor((Date.now() - room.startMs) / 1000));
+        return this.formatMMSSorHHMMSS(diffSec);
+      }
+      return "--:--";
+    },
+
+    formatMMSSorHHMMSS(totalSeconds) {
+      const hh = Math.floor(totalSeconds / 3600);
+      const mm = Math.floor((totalSeconds % 3600) / 60);
+      const ss = totalSeconds % 60;
+      if (hh > 0) return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
+      return `${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
     },
 
     safeLsGet(key) {
@@ -823,7 +741,6 @@ export default {
       this.$router.push("/logout");
     },
 
-    // ===== polling =====
     startDashboardPolling() {
       if (this.dashboardInterval) return;
       this.dashboardInterval = setInterval(() => {
@@ -838,7 +755,12 @@ export default {
       }
     },
 
-    // ===== MQTT =====
+    updateHeaderClock() {
+      const d = new Date();
+      this.headerTime = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      this.headerDate = d.toISOString().slice(0, 10);
+    },
+
     connectMqtt() {
       if (this.client) return;
 
@@ -922,7 +844,6 @@ export default {
       };
 
       this.client.publish(this.topics.req, JSON.stringify(payload), { qos: 0, retain: false });
-
       this.loading = false;
     },
 
@@ -943,16 +864,17 @@ export default {
 
       if (topic === this.topics.rooms) {
         this.loading = true;
+
         const data = msg?.data;
         const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
 
-        // Build notifications based on transitions
-        this.processRoomTransitions(list);
-
         this.devices = this.normalizeRooms(list);
         this.updateDurationAll();
+
         if (this.pageIndex > this.totalPages - 1) this.pageIndex = 0;
+
         this.loading = false;
+        this.$nextTick(() => this.recalcCardHeightFull());
         return;
       }
 
@@ -973,37 +895,10 @@ export default {
         this.totalSOSCount = s.totalSOSCount || 0;
         this.activeDisabledSos = s.activeDisabledSos || 0;
 
-        const m = Number(s.averageMinutes || 0);
-        if (this.$dateFormat?.minutesToHHMM) {
-          this.avgResponseText = this.$dateFormat.minutesToHHMM(m);
-        } else {
-          const hh = String(Math.floor(m / 60)).padStart(2, "0");
-          const mm = String(m % 60).padStart(2, "0");
-          this.avgResponseText = `${hh}:${mm}`;
-        }
-
-        const pct = Number(s.sla_percentage ?? 100);
-        this.avgResponsePct = Math.max(0, Math.min(100, Number.isFinite(pct) ? pct : 100));
-
-        if (this.activeSosCount > 0) {
-          // SOS ON
-          try {
-            AndroidBridge.startAlarm()
-          } catch (error) {
-
-          }
-
-        } else {
-          try {
-            AndroidBridge.stopAlarm()
-          } catch (error) {
-
-          }
-        }
+        this.applySoundPolicy(false);
       }
     },
 
-    // ===== room normalization + duration =====
     toBool(v) {
       if (v === true) return true;
       if (v === false) return false;
@@ -1091,7 +986,8 @@ export default {
 
       this.loading = false;
       this.requestDashboardSnapshot();
-      alert("Acknowledgement is Received..");
+
+      try { alert("Acknowledgement is Received.."); } catch (e) { }
     }
   }
 };
@@ -1103,8 +999,121 @@ export default {
   width: 100%;
   height: 100vh;
   overflow: hidden;
-  background: linear-gradient(180deg, #0a0e16, #0e1420);
-  color: rgba(255, 255, 255, 0.92);
+}
+
+/* Use flex instead of grid here (Android TV WebView behaves better) */
+.dashMain {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* ===== left nav ===== */
+.leftNav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 64px;
+  z-index: 90;
+  background: rgba(12, 16, 25, 0.96);
+  border-right: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  transition: width 160ms ease;
+}
+
+.leftNav.expanded {
+  width: 220px;
+}
+
+.navTop {
+  padding: 12px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: center;
+}
+
+.leftNav.expanded .navTop {
+  justify-content: flex-start;
+}
+
+.navLogo {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.navLogo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 6px;
+}
+
+.navList {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: auto;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  opacity: 0.92;
+}
+
+.navItem:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.navItem.active {
+  background: rgba(99, 102, 241, 0.25);
+  border-color: rgba(99, 102, 241, 0.35);
+}
+
+.navItem.danger {
+  color: #ef4444;
+}
+
+.navItem.disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.navLabel {
+  white-space: nowrap;
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+  transition: opacity 160ms ease, width 160ms ease;
+}
+
+.leftNav.expanded .navLabel {
+  opacity: 1;
+  width: auto;
+}
+
+.navDivider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 6px 2px;
 }
 
 /* ===== header ===== */
@@ -1125,12 +1134,6 @@ export default {
   min-width: 0;
 }
 
-.hdMenuBtn {
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
 .hdLogo {
   width: 42px;
   height: 42px;
@@ -1146,21 +1149,10 @@ export default {
   min-width: 0;
 }
 
-.hdTitle {
-  font-weight: 900;
-  font-size: 16px;
-  letter-spacing: 0.6px;
-}
-
 .hdSub {
   margin-top: 2px;
   font-size: 12px;
   opacity: 0.75;
-}
-
-.hdSep {
-  margin: 0 8px;
-  opacity: 0.6;
 }
 
 .hdRight {
@@ -1172,14 +1164,27 @@ export default {
 }
 
 .hdMeta {
-  /* font-weight: 800; */
   opacity: 0.9;
   display: flex;
   align-items: center;
 }
 
+.hdMeta .v-icon {
+  color: rgba(99, 102, 241, 0.95) !important;
+  opacity: 0.95;
+}
+
+.hdRight .hdMeta:nth-child(2) .v-icon {
+  color: rgba(34, 197, 94, 0.95) !important;
+}
+
 .hdBtn {
   border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.hdBtn.v-btn--disabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
 }
 
 .hdPageText {
@@ -1209,44 +1214,63 @@ export default {
   font-weight: 900;
 }
 
-/* Bell */
 .hdBellBtn {
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* ===== main ===== */
-.dashMain {
-  height: 100%;
-  width: 100%;
-  display: grid;
-  grid-template-rows: auto 1fr;
-  min-width: 0;
+.blinkBell {
+  animation: bellBlink 1s infinite;
 }
 
-/* ===== cards ===== */
+@keyframes bellBlink {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+/* ===== cards: FULL SCREEN ===== */
+/* IMPORTANT: remove vertical padding so grid can consume full height */
+/* Content takes ALL remaining height */
 .dashCards {
-  padding: 14px 16px;
-  overflow: auto;
-  min-width: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  /* critical for 1fr grid rows */
+  height: auto;
+  overflow: hidden;
+  padding: 0;
+  /* no padding so cards can fill */
 }
 
+/* Grid fills the entire content area */
 .cardsGrid {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  /* critical */
   display: grid;
   gap: 12px;
-  width: 100%;
+  align-content: stretch;
 }
 
+/* Grid items must be shrinkable */
+.cardCell {
+  min-height: 0;
+}
+
+/* Card fills the grid cell */
 .roomCard {
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: linear-gradient(180deg, rgba(24, 33, 48, 0.85), rgba(24, 33, 48, 0.72));
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  min-height: 140px;
 }
 
 .cardOn {
@@ -1291,495 +1315,20 @@ export default {
   padding: 10px;
 }
 
-/*
-.statusCircle {
-  width: 50px;
-  height: 50px;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  background: rgba(0, 0, 0, 0.18);
-  border: 4px solid #22c55e;
-} */
-
-
-/*
-.statusIcon {
-  font-size: 42px !important;
-}
-
-.statusIcon.isOk {
-  color: #22c55e;
-}
-
-.statusIcon.isAlarm {
-  color: #ef4444;
-} */
-
-.cardBottom {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 10px;
-  font-weight: 900;
-  position: relative;
-}
-
-.bottomOk {
-  background: rgba(34, 197, 94, 0.9);
-  /* color: rgba(0, 0, 0, 0.85); */
-  color: rgba(255, 255, 255, 0.92);
-
-  font-weight: normal;
-}
-
-.bottomAlarm {
-  background: rgba(239, 68, 68, 0.85);
-  color: rgba(255, 255, 255, 0.92);
-}
-
-/* ✅ NEW: acknowledged (brown / amber) */
-.bottomAck {
-  background: rgba(161, 98, 7, 0.9);
-  /* amber/brown */
-  color: #fff;
-}
-
-.bottomText {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 14px;
-}
-
-.ackBtn {
-  position: absolute;
-  right: 8px;
-  bottom: 8px;
-  min-width: 44px !important;
-  height: 20px !important;
-  padding: 0 10px !important;
-  border-radius: 999px !important;
-  background: rgba(255, 255, 255, 0.18) !important;
-  color: rgba(255, 255, 255, 0.95) !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
-}
-
-.emptyState {
-  margin-top: 14px;
-  opacity: 0.7;
-  font-weight: 800;
-}
-
-/* ===== overlay menu ===== */
-.menuBackdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  z-index: 50;
-}
-
-.overlayMenu {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  width: 300px;
-  max-width: 86vw;
-  transform: translateX(-110%);
-  transition: transform 180ms ease;
-  z-index: 60;
-  background: rgba(12, 16, 25, 0.96);
-  border-right: 1px solid rgba(255, 255, 255, 0.10);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
-  display: flex;
-  flex-direction: column;
-}
-
-.overlayMenu.open {
-  transform: translateX(0);
-}
-
-.menuHeader {
-  padding: 14px 14px 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.menuHeaderLeft {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.menuLogo {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  font-weight: 900;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.menuTitleBlock {
-  min-width: 0;
-}
-
-.menuTitle {
-  font-weight: 900;
-  letter-spacing: 0.4px;
-}
-
-.menuSub {
-  font-size: 12px;
-  opacity: 0.75;
-  margin-top: 2px;
-}
-
-.menuCloseBtn {
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.menuBody {
-  padding: 12px 14px 14px;
-  overflow: auto;
-}
-
-.menuSectionTitle {
-  font-size: 12px;
-  opacity: 0.7;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  padding: 10px 2px 6px;
-}
-
-.menuGrid {
-  display: grid;
-  gap: 8px;
-}
-
-.menuItem {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  padding: 10px 10px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  cursor: pointer;
-  color: inherit;
-  /* font-weight: 900; */
-}
-
-.menuItem.active {
-  background: #5046e5;
-  border-color: rgba(99, 102, 241, 0.35);
-}
-
-.menuRow {
-  display: flex;
-  justify-content: space-between;
-  padding: 4px 2px;
-  margin-top: 6px;
-}
-
-.menuRowLabel {
-  font-size: 12px;
-  opacity: 0.75;
-  font-weight: 800;
-}
-
-.menuRowValue {
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.menuSlider {
-  padding: 0 2px;
-}
-
-.menuFooter {
-  margin-top: 14px;
-  padding: 10px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.menuFooterRow {
-  display: flex;
-  justify-content: space-between;
-  padding: 6px 0;
-}
-
-.menuFooterLabel {
-  font-size: 12px;
-  opacity: 0.75;
-  font-weight: 700;
-}
-
-.menuFooterValue {
-  font-weight: 900;
-}
-
-.menuFooterValue.ok {
-  color: #22c55e;
-}
-
-.menuFooterValue.bad {
-  color: #ef4444;
-}
-
-/* ===== notifications ===== */
-.notifBackdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  z-index: 70;
-}
-
-.notifDrawer {
-  position: fixed;
-  top: 0;
-  right: 0;
-  height: 100vh;
-  width: 300px;
-  max-width: 92vw;
-  transform: translateX(110%);
-  transition: transform 180ms ease;
-  z-index: 80;
-  background: rgba(12, 16, 25, 0.96);
-  border-left: 1px solid rgba(255, 255, 255, 0.10);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
-  display: flex;
-  flex-direction: column;
-}
-
-.notifDrawer.open {
-  transform: translateX(0);
-}
-
-.notifHeader {
-  padding: 14px 14px 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.notifHeaderTitle {
-  font-weight: 900;
-  letter-spacing: 0.6px;
-  font-size: 12px;
-  opacity: 0.9;
-}
-
-.notifCloseBtn {
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.notifBody {
-  padding: 12px 14px 14px;
-  overflow: auto;
-}
-
-.notifEmpty {
-  opacity: 0.7;
-  font-weight: 800;
-  padding: 10px 0;
-}
-
-/* notif cards */
-.notifCard {
-  border-radius: 12px;
-  padding: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  background: rgba(255, 255, 255, 0.03);
-  margin-bottom: 10px;
-}
-
-.notifCard.new {
-  background: rgba(239, 68, 68, 0.16);
-  border-color: rgba(239, 68, 68, 0.22);
-}
-
-.notifCard.ack {
-  background: rgba(249, 115, 22, 0.14);
-  border-color: rgba(249, 115, 22, 0.20);
-}
-
-.notifCard.stop {
-  background: rgba(34, 197, 94, 0.10);
-  border-color: rgba(34, 197, 94, 0.18);
-}
-
-.notifTopRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.notifTitle {
-  font-weight: 900;
-  font-size: 13px;
-  letter-spacing: 0.2px;
-}
-
-.notifPill {
-  font-size: 11px;
-  font-weight: 900;
-  padding: 4px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-}
-
-.pillNew {
-  background: rgba(239, 68, 68, 0.22);
-}
-
-.pillAck {
-  background: rgba(249, 115, 22, 0.22);
-}
-
-.pillStop {
-  background: rgba(34, 197, 94, 0.18);
-}
-
-.notifSub {
-  margin-top: 6px;
-  font-size: 12px;
-  opacity: 0.9;
-  font-weight: 700;
-}
-
-.notifSub2 {
-  margin-top: 4px;
-  font-size: 11px;
-  opacity: 0.75;
-  font-weight: 700;
-  color: #897575
-}
-
-.notifActions {
-  margin-top: 10px;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.notifBtn {
-  border-radius: 10px !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
-  background: rgba(255, 255, 255, 0.08) !important;
-  color: rgba(255, 255, 255, 0.92) !important;
-  font-weight: 900 !important;
-}
-
-.notifBtn.warn {
-  background: rgba(234, 179, 8, 0.22) !important;
-  border-color: rgba(234, 179, 8, 0.25) !important;
-}
-
-.notifBtn.ok {
-  background: rgba(34, 197, 94, 0.18) !important;
-  border-color: rgba(34, 197, 94, 0.22) !important;
-}
-
-.notifBtn.ghost {
-  background: rgba(255, 255, 255, 0.04) !important;
-}
-
-.hdMeta .v-icon {
-  color: rgba(99, 102, 241, 0.95) !important;
-  /* Indigo / blue-ish */
-  opacity: 0.95;
-}
-
-/* optional: make date icon slightly different */
-.hdMeta:nth-of-type(2) .v-icon {
-  color: rgba(34, 197, 94, 0.95) !important;
-  /* Green */
-}
-
-/* Improve disabled look for buttons */
-.hdBtn.v-btn--disabled {
-  opacity: 0.45 !important;
-  cursor: not-allowed !important;
-}
-
-/* Make main layout include footer row */
-.dashMain {
-  height: 100%;
-  width: 100%;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  /* header, content, footer */
-  min-width: 0;
-}
-
-.footerLogo {
-  height: 18px;
-  width: auto;
-  margin-right: 10px;
-  vertical-align: middle;
-  opacity: 0.95;
-}
-
-.dashFooter {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  /* ✅ move content to right */
-
-  gap: 8px;
-  padding: 10px 16px;
-
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.6px;
-  opacity: 0.8;
-
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.14);
-}
-
-/* Base circle */
 .statusCircle {
   width: 70px;
   height: 70px;
   border-radius: 50%;
   display: grid;
   place-items: center;
-  /* border: 2px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.18); */
   transition: all 0.25s ease;
 }
-
-/* OK state */
-/* .statusCircle.isOk {
-  background: rgba(34, 197, 94, 0.18);
-  border-color: rgba(34, 197, 94, 0.45);
-} */
 
 .statusIcon.isOk {
   color: #22c55e;
   font-size: 42px !important;
 }
 
-/* ALARM state */
 .statusCircle.isAlarm {
   background: rgba(239, 68, 68, 0.22);
   border-color: rgba(239, 68, 68, 0.65);
@@ -1791,12 +1340,10 @@ export default {
   font-size: 42px !important;
 }
 
-/* Optional stronger alarm */
 .statusCircle.danger {
   box-shadow: 0 0 18px rgba(239, 68, 68, 0.55);
 }
 
-/* Alarm pulse */
 @keyframes alarmPulse {
   0% {
     transform: scale(1);
@@ -1812,5 +1359,174 @@ export default {
     transform: scale(1);
     box-shadow: 0 0 0 rgba(239, 68, 68, 0.0);
   }
+}
+
+.cardBottom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 10px;
+  font-weight: 900;
+}
+
+.bottomOk {
+  background: rgba(34, 197, 94, 0.9);
+  color: rgba(255, 255, 255, 0.92);
+  font-weight: normal;
+}
+
+.bottomAlarm {
+  background: rgba(239, 68, 68, 0.85);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.bottomAck {
+  background: rgba(161, 98, 7, 0.9);
+  color: #fff;
+}
+
+.bottomText {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+}
+
+/* ===== notifications drawer ===== */
+.notifDrawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 200px;
+  max-width: 200px;
+  z-index: 80;
+  background: rgba(12, 16, 25, 0.96);
+  border-left: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+}
+
+.notifHeader {
+  padding: 14px 10px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.notifHeaderTitle {
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  font-size: 11px;
+  opacity: 0.9;
+  line-height: 1.2;
+}
+
+.notifMuteBtn {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  font-weight: 800 !important;
+  padding: 0 8px !important;
+  min-width: 0 !important;
+}
+
+.notifBody {
+  padding: 10px;
+  overflow: auto;
+}
+
+.notifEmpty {
+  opacity: 0.7;
+  font-weight: 800;
+  padding: 10px 0;
+  font-size: 12px;
+}
+
+.notifCard {
+  border-radius: 12px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.03);
+  margin-bottom: 10px;
+}
+
+.notifCard.new {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.22);
+}
+
+.notifCard.ack {
+  background: rgba(249, 115, 22, 0.14);
+  border-color: rgba(249, 115, 22, 0.20);
+}
+
+.notifTopRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.notifTitle {
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: 0.2px;
+  line-height: 1.2;
+}
+
+.notifPill {
+  font-size: 10px;
+  font-weight: 900;
+  padding: 3px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  white-space: nowrap;
+}
+
+.pillNew {
+  background: rgba(239, 68, 68, 0.22);
+}
+
+.pillAck {
+  background: rgba(249, 115, 22, 0.22);
+}
+
+.notifSub2 {
+  margin-top: 6px;
+  font-size: 11px;
+  opacity: 0.80;
+  font-weight: 700;
+  color: #c9bcbc;
+  line-height: 1.2;
+}
+
+.notifActions {
+  margin-top: 10px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.notifBtn {
+  border-radius: 10px !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+  font-weight: 900 !important;
+  font-size: 11px !important;
+}
+
+.notifBtn.warn {
+  background: rgba(234, 179, 8, 0.22) !important;
+  border-color: rgba(234, 179, 8, 0.25) !important;
+}
+
+.emptyState {
+  margin-top: 14px;
+  opacity: 0.7;
+  font-weight: 800;
 }
 </style>
