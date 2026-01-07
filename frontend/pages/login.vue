@@ -610,7 +610,11 @@ export default {
           }
 
           // Treat security user as success
-          return res.user?.user_type === "security";
+          // return res.user?.user_type === "security";
+
+          if (res.user?.user_type === "security")
+            this.$router.replace("/alarm/tvmonitor1");
+          return;
         }
 
         // Backend UP => normal Nuxt Auth
@@ -632,6 +636,7 @@ export default {
 
         if (user?.role_id == 0 && user?.user_type == "employee") {
           try {
+            // res.user?.user_type === "security"
             window.location.href = process.env.EMPLOYEE_APP_URL;
           } catch (e) { }
           return true;
@@ -642,6 +647,8 @@ export default {
           localStorage.setItem("saved_email", this.credentials.email);
           localStorage.setItem("saved_password", this.credentials.password);
         }
+
+        this.$router.replace("/alarm/dashboard");
 
         return true;
       } catch (e) {
