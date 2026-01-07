@@ -391,7 +391,7 @@ class MqttService
                 $this->mqtt->subscribe('tv/+/dashboard/request', function (string $topic, string $message) {
 
 
-                    echo "MQTT Request Message: " . $message;
+                    // echo "MQTT Request Message: " . $message;
                     try {
                         $payload = json_decode($message, true, 512, JSON_THROW_ON_ERROR);
 

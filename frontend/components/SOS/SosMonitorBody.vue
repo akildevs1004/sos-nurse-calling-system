@@ -42,98 +42,103 @@
       <!-- Left Rail (EXPAND ON HOVER) -->
       <aside class="rail" :class="{ expanded: railExpanded }" @mouseenter="railExpanded = true"
         @mouseleave="railExpanded = false">
-        <!-- Split -->
-        <button class="railItem" :class="{ active: splitMode === 4 }" @click="setSplit(4)" title="4-way">
-          <v-icon class="railIcon">mdi-view-grid</v-icon>
-          <span class="railText">4-way Split</span>
-        </button>
-
-        <button class="railItem" :class="{ active: splitMode === 8 }" @click="setSplit(8)" title="8-way">
-          <v-icon class="railIcon">mdi-view-grid-plus</v-icon>
-          <span class="railText">8-way Split</span>
-        </button>
-
-        <button class="railItem" :class="{ active: splitMode === 16 }" @click="setSplit(16)" title="16-way">
-          <v-icon class="railIcon">mdi-view-module</v-icon>
-          <span class="railText">16-way Split</span>
-        </button>
-
-        <button class="railItem" :class="{ active: splitMode === 32 }" @click="setSplit(32)" title="32-way">
-          <v-icon class="railIcon">mdi-view-comfy</v-icon>
-          <span class="railText">32-way Split</span>
-        </button>
-
-        <button class="railItem" :class="{ active: splitMode === 64 }" @click="setSplit(64)" title="64-way">
-          <v-icon class="railIcon">mdi-view-dashboard</v-icon>
-          <span class="railText">64-way Split</span>
-        </button>
-
-        <div class="railDivider"></div>
-
-        <!-- Mute / Unmute -->
-        <button class="railItem" @click="toggleMute" :title="muted ? 'Unmute' : 'Mute'">
-          <v-icon class="railIcon">{{ muted ? "mdi-volume-off" : "mdi-volume-high" }}</v-icon>
-          <span class="railText">{{ muted ? "Muted" : "Sound On" }}</span>
-        </button>
-
-        <!-- TV only: Prev/Next + Logout -->
-        <template v-if="isTv">
-          <button class="railItem" @click="prevPage" :disabled="totalPages <= 1" title="Prev">
-            <v-icon class="railIcon">mdi-chevron-left</v-icon>
-            <span class="railText">Prev</span>
+        <div class="railPanel">
+          <!-- Split -->
+          <button class="railItem" :class="{ active: splitMode === 4 }" @click="setSplit(4)" title="4-way">
+            <v-icon class="railIcon">mdi-view-grid</v-icon>
+            <span class="railText">4-way Split</span>
           </button>
 
-          <button class="railItem" @click="nextPage" :disabled="totalPages <= 1" title="Next">
-            <v-icon class="railIcon">mdi-chevron-right</v-icon>
-            <span class="railText">Next</span>
+          <button class="railItem" :class="{ active: splitMode === 8 }" @click="setSplit(8)" title="8-way">
+            <v-icon class="railIcon">mdi-view-grid-plus</v-icon>
+            <span class="railText">8-way Split</span>
           </button>
 
-          <button v-if="$auth?.user" class="railItem" @click="logout" title="Logout">
-            <v-icon class="railIcon">mdi-logout</v-icon>
-            <span class="railText">Logout</span>
+          <button class="railItem" :class="{ active: splitMode === 16 }" @click="setSplit(16)" title="16-way">
+            <v-icon class="railIcon">mdi-view-module</v-icon>
+            <span class="railText">16-way Split</span>
           </button>
-        </template>
 
-        <div class="railDivider"></div>
+          <button class="railItem" :class="{ active: splitMode === 32 }" @click="setSplit(32)" title="32-way">
+            <v-icon class="railIcon">mdi-view-comfy</v-icon>
+            <span class="railText">32-way Split</span>
+          </button>
 
-        <!-- Bell -->
-        <button class="railItem" :class="{ blink: bellBlink }" :disabled="activeNewAlarmRooms.length === 0"
-          @click="markBellSeen" title="NOTIFICATION   ALERTS">
-          <v-badge :content="activeNewAlarmRooms.length" :value="activeNewAlarmRooms.length > 0" overlap>
-            <v-icon class="railIcon">mdi-bell-outline</v-icon>
-          </v-badge>
-          <span class="railText">Alerts</span>
-        </button>
+          <button class="railItem" :class="{ active: splitMode === 64 }" @click="setSplit(64)" title="64-way">
+            <v-icon class="railIcon">mdi-view-dashboard</v-icon>
+            <span class="railText">64-way Split</span>
+          </button>
 
-        <!-- Desktop paging + logout -->
-        <template v-if="!isTv">
           <div class="railDivider"></div>
 
-          <button class="railItem" @click="prevPage" :disabled="totalPages <= 1" title="Prev">
-            <v-icon class="railIcon">mdi-chevron-left</v-icon>
-            <span class="railText">Prev</span>
+          <!-- Mute / Unmute -->
+          <button class="railItem" @click="toggleMute" :title="muted ? 'Unmute' : 'Mute'">
+            <v-icon class="railIcon">{{ muted ? "mdi-volume-off" : "mdi-volume-high" }}</v-icon>
+            <span class="railText">{{ muted ? "Muted" : "Sound On" }}</span>
           </button>
 
-          <div class="railPageText" v-if="railExpanded">
-            {{ pageIndex + 1 }}/{{ totalPages }}
-          </div>
+          <!-- TV only: Prev/Next + Logout -->
+          <template v-if="isTv">
+            <button class="railItem" @click="prevPage" :disabled="totalPages <= 1" title="Prev">
+              <v-icon class="railIcon">mdi-chevron-left</v-icon>
+              <span class="railText">Prev1</span>
+            </button>
+            <div class="railPageText">
+              {{ pageIndex + 1 }}/{{ totalPages }}
+            </div>
 
-          <button class="railItem" @click="nextPage" :disabled="totalPages <= 1" title="Next">
-            <v-icon class="railIcon">mdi-chevron-right</v-icon>
-            <span class="railText">Next</span>
+            <button class="railItem" @click="nextPage" :disabled="totalPages <= 1" title="Next">
+              <v-icon class="railIcon">mdi-chevron-right</v-icon>
+              <span class="railText">Next</span>
+            </button>
+
+            <button v-if="$auth?.user" class="railItem" @click="logout" title="Logout">
+              <v-icon class="railIcon">mdi-logout</v-icon>
+              <span class="railText">Logout</span>
+            </button>
+          </template>
+
+          <div class="railDivider"></div>
+
+          <!-- Bell -->
+          <button class="railItem" :class="{ blink: bellBlink }" :disabled="activeNewAlarmRooms.length === 0"
+            @click="markBellSeen" title="NOTIFICATION   ALERTS">
+            <v-badge :content="activeNewAlarmRooms.length" :value="activeNewAlarmRooms.length > 0" overlap>
+              <v-icon class="railIcon">mdi-bell-outline</v-icon>
+            </v-badge>
+            <span class="railText">Alerts</span>
           </button>
 
-          <button v-if="$auth?.user" class="railItem" @click="logout" title="Logout">
-            <v-icon class="railIcon">mdi-logout</v-icon>
-            <span class="railText">Logout</span>
-          </button>
-        </template>
+          <!-- Desktop paging + logout -->
+          <template v-if="!isTv">
+            <div class="railDivider"></div>
+
+            <button class="railItem" @click="prevPage" :disabled="totalPages <= 1" title="Prev">
+              <v-icon class="railIcon">mdi-chevron-left</v-icon>
+              <span class="railText">Prev2</span>
+            </button>
+
+            <div class="railPageText railItem railIcon" style="display:grid">
+              {{ pageIndex + 1 }}/{{ totalPages }}
+            </div>
+
+            <button class="railItem" @click="nextPage" :disabled="totalPages <= 1" title="Next">
+              <v-icon class="railIcon">mdi-chevron-right</v-icon>
+              <span class="railText">Next</span>
+            </button>
+
+            <button v-if="$auth?.user" class="railItem" @click="logout" title="Logout">
+              <v-icon class="railIcon">mdi-logout</v-icon>
+              <span class="railText">Logout</span>
+            </button>
+          </template>
+        </div>
       </aside>
 
       <!-- Main grid -->
       <main class="dashMain">
         <section class="dashCards">
-          <div class="cardsGrid" :style="roomsGridStyle">
+          <div class="cardsGrid" :class="splitClass" :style="roomsGridStyle">
             <div v-for="(d, i) in gridItems" :key="d ? (d.id || d.room_id) : `blank-${i}`" class="cardCell">
               <v-card v-if="d" outlined class="roomCard" :class="cardClass(d)">
                 <div class="cardTop " :class="{
@@ -283,7 +288,7 @@ export default {
 
       // Auto rotate
       autoRotateTimer: null,
-      AUTO_ROTATE_MS: 5000,
+      AUTO_ROTATE_MS: 1000 * 60,
 
       // Desktop sound suppression after ACK
       soundSuppressUntil: 0
@@ -292,6 +297,9 @@ export default {
 
   computed: {
     // TV: width 0 OR between 500..1000
+    splitClass() {
+      return `split-${this.splitMode}`; // split-4 / split-8 / split-16 / split-32 / split-64
+    },
     isTv() {
       const w = Number(this.screenW || 0);
       if (w === 0) return true;
@@ -342,12 +350,13 @@ export default {
     roomsGridStyle() {
       return {
         gridTemplateColumns: `repeat(${this.splitGrid.cols}, minmax(0, 1fr))`,
-        gridTemplateRows: `repeat(${this.splitGrid.rows}, minmax(0, 1fr))`
+        gridTemplateRows: `repeat(${this.splitGrid.rows}, minmax(0, 1fr))`,
+        "--grid-rows": String(this.splitGrid.rows),
       };
     },
     activeNewAlarmRooms() {
       return (this.devices || []).filter(
-        d => d && d.alarm_status === true && !d.alarm?.responded_datetime
+        d => d && d.alarm_status === true
       );
     },
 
@@ -914,25 +923,140 @@ export default {
 }
 
 /* Rail */
+/* Keep grid column fixed, allow overlay */
 .rail {
+  position: relative;
+  width: 60px;
+  /* DO NOT animate width */
   height: 100%;
   min-height: 0;
+  overflow: visible;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.18);
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  padding: 10px 8px;
-  gap: 10px;
-  overflow: hidden;
-  width: 60px;
-  transition: width 100ms ease;
+  background: transparent;
 }
 
-.rail.expanded {
-  width: 220px;
+/* The actual sliding panel */
+.rail {
+  position: relative;
+  width: 60px;
+  /* fixed grid column */
+  height: 100%;
+  overflow: visible;
+}
+
+/* panel */
+/* grid column width = collapsed visible width */
+.rail {
+  position: relative;
+  width: 60px;
+  /* COLLAPSED WIDTH */
+  height: 100%;
+  overflow: visible;
+  z-index: 99999;
+  /* optional */
+
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* panel expands over content */
+.railPanel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+
+  width: 200px;
+  /* EXPANDED WIDTH */
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  background: rgba(0, 0, 0, 0.18);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+
+  /* collapsed: show only 80px */
+  transform: translate3d(-140px, 0, 0);
+  /* 220 - 80 = 140 */
+  transition: transform 160ms ease;
+  will-change: transform;
   z-index: 9999;
+}
+
+.rail.expanded .railPanel {
+  transform: translate3d(0, 0, 0);
   background-color: #0a0e17;
+}
+
+
+
+/* icons always visible */
+/* default (expanded) stays as-is */
+.railItem {
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+}
+
+/* COLLAPSED: make item narrower and pinned to the right edge */
+.rail:not(.expanded) .railItem {
+  width: 56px;
+  /* reduced item width (adjust 48–64) */
+  margin-left: auto;
+  /* push item to the RIGHT side */
+  /* justify-content: center; */
+  /* icon centered inside the small item */
+  padding: 0;
+  /* no left/right padding */
+  gap: 0;
+  /* no spacing needed */
+}
+
+
+/* collapsed: keep icon inside the visible right-strip */
+.rail:not(.expanded) .railItem {
+  /* justify-content: flex-end; */
+  /* push content to the visible side */
+  padding: 0 10px;
+  /* right padding */
+  gap: 0;
+  width: 50px;
+}
+
+/* make sure icon has no extra left spacing */
+.rail:not(.expanded) .railIcon {
+  margin: 0 !important;
+}
+
+.railIcon {
+  min-width: 22px;
+  font-size: 22px !important;
+  color: currentColor !important;
+}
+
+/* Text transitions (no layout) */
+.railText {
+  opacity: 0;
+  transform: translateX(-8px);
+}
+
+.rail.expanded .railText {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.rail::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 10px;
+  /* buffer */
+  height: 100%;
 }
 
 .railItem {
@@ -963,6 +1087,8 @@ export default {
 .railIcon {
   font-size: 22px !important;
   min-width: 22px;
+  color: currentColor !important;
+
 }
 
 .railText {
@@ -1175,7 +1301,7 @@ export default {
 }
 
 .statusIcon {
-  font-size: 70px !important;
+  font-size: clamp(22px, calc(90vh / var(--grid-rows) / 1.6), 78px) !important;
 }
 
 .statusIcon.isOk {
@@ -1326,5 +1452,65 @@ export default {
   margin-top: 14px;
   opacity: 0.7;
   font-weight: 800;
+}
+
+/* Base (fallback) */
+.statusCircle {
+  width: 70px;
+  height: 70px;
+}
+
+.statusIcon {
+  font-size: 64px !important;
+}
+
+/* 4-way: biggest */
+.cardsGrid.split-4 .statusCircle {
+  width: 180px;
+  height: 180px;
+}
+
+.cardsGrid.split-4 .statusIcon {
+  font-size: 160px !important;
+}
+
+/* 8-way */
+.cardsGrid.split-8 .statusCircle {
+  width: 95px;
+  height: 95px;
+}
+
+.cardsGrid.split-8 .statusIcon {
+  font-size: 82px !important;
+}
+
+/* 16-way */
+.cardsGrid.split-16 .statusCircle {
+  width: 78px;
+  height: 78px;
+}
+
+.cardsGrid.split-16 .statusIcon {
+  font-size: 70px !important;
+}
+
+/* 32-way */
+.cardsGrid.split-32 .statusCircle {
+  width: 58px;
+  height: 58px;
+}
+
+.cardsGrid.split-32 .statusIcon {
+  font-size: 50px !important;
+}
+
+/* 64-way: smallest */
+.cardsGrid.split-64 .statusCircle {
+  width: 44px;
+  height: 44px;
+}
+
+.cardsGrid.split-64 .statusIcon {
+  font-size: 36px !important;
 }
 </style>
