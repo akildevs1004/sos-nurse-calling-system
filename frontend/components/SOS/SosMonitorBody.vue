@@ -86,7 +86,7 @@
 
         <!-- Bell (blink until user clicks) -->
         <v-btn icon class="railBtn" :class="{ blink: bellBlink }" :disabled="activeAlarmRooms.length === 0"
-          @click="markBellSeen" title="Notification Queue For Alerts">
+          @click="markBellSeen" title="Notification  Alerts">
           <v-badge :content="activeAlarmRooms.length" :value="activeAlarmRooms.length > 0" overlap>
             <v-icon>mdi-bell-outline</v-icon>
           </v-badge>
@@ -255,7 +255,10 @@ export default {
       TIMER_MS: 1000,
 
       // Bell blink
-      bellSeen: false
+      bellSeen: false,
+
+      autoRotateMs: 5000,
+      autoRotateTimer: null,
     };
   },
 
@@ -365,6 +368,8 @@ export default {
 
     this.mqttUrl = process.env.MQTT_SOCKET_HOST;
     this.connectMqtt();
+
+    this.startAutoRotate();
   },
 
   beforeDestroy() {
@@ -375,9 +380,35 @@ export default {
       if (this.timer) clearInterval(this.timer);
       this.disconnectMqtt();
     } catch (e) { }
+
+    this.stopAutoRotate();
+
   },
 
   methods: {
+    startAutoRotate() {
+      this.stopAutoRotate();
+      this.autoRotateTimer = setInterval(() => {
+        this.nextPageLoop();
+      }, this.autoRotateMs);
+    },
+
+    stopAutoRotate() {
+      if (this.autoRotateTimer) {
+        clearInterval(this.autoRotateTimer);
+        this.autoRotateTimer = null;
+      }
+    },
+
+    restartAutoRotate() {
+      this.startAutoRotate();
+    },
+
+    nextPageLoop() {
+      // only rotate if there is more than 1 page
+      if (this.totalPages <= 1) return;
+      this.pageIndex = (this.pageIndex + 1) % this.totalPages;
+    },
     notifKind(r) {
       if (r?.alarm_status === true && r?.alarm?.responded_datetime) return "ack";
       if (r?.alarm_status === true) return "new";
@@ -404,16 +435,19 @@ export default {
       this.splitMode = n;
       this.pageIndex = 0;
       this.safeLsSet(SPLIT_MODE_KEY, String(n));
+      this.restartAutoRotate();
     },
 
     nextPage() {
       if (this.totalPages <= 1) return;
       this.pageIndex = (this.pageIndex + 1) % this.totalPages;
+      this.restartAutoRotate();
     },
 
     prevPage() {
       if (this.totalPages <= 1) return;
       this.pageIndex = (this.pageIndex - 1 + this.totalPages) % this.totalPages;
+      this.restartAutoRotate();
     },
 
     logout() {
