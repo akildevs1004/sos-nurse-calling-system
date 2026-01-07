@@ -1,5 +1,7 @@
 <template>
   <div class="pageShell">
+
+    <SosAlarmPopupMqtt @triggerUpdateDashboard="requestDashboardSnapshot()" />
     <!-- Header ONLY when NOT TV -->
     <!-- <HeaderBar :visible="!isTv" :companyName="companyName" subtitle="AKIL SECURITY AND ALARM SYSTEM" :logoSrc="logoSrc"
       :isConnected="isConnected" :timeText="headerTime" :dateText="headerDate" :muted="muted"
@@ -32,7 +34,6 @@ export default {
 
   data() {
     return {
-      key: 1,
       // TV detect
       screenW: 0,
       screenH: 0,
@@ -136,14 +137,14 @@ export default {
     this.updateHeaderClock();
     this._clock = setInterval(() => this.updateHeaderClock(), 1000);
 
-    // this.mqttUrl = process.env.MQTT_SOCKET_HOST;
-    // this.connectMqtt();
+    this.mqttUrl = process.env.MQTT_SOCKET_HOST;
+    this.connectMqtt();
   },
 
   beforeDestroy() {
     window.removeEventListener("resize", this.readScreen);
     if (this._clock) clearInterval(this._clock);
-    // this.disconnectMqtt();
+    this.disconnectMqtt();
   },
 
   methods: {
@@ -258,8 +259,6 @@ export default {
     onMqttMessage(topic, payload) {
       let msg;
       try { msg = JSON.parse(payload.toString()); } catch (e) { return; }
-
-      this.key++;
 
       if (topic === this.topics.rooms) {
         const data = msg?.data;

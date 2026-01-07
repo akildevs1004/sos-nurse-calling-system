@@ -6,7 +6,7 @@
     </v-snackbar>
 
     <!-- ===== HEADER (ONLY WHEN NOT TV) ===== -->
-    <header v-if="!isTv" class="dashHeader">
+    <!-- <header v-if="!isTv" class="dashHeader">
       <div class="hdLeft">
         <v-avatar size="34" class="hdLogo">
           <v-img :src="getLogo" />
@@ -38,7 +38,7 @@
           {{ muted ? "Mute" : "Sound On" }}
         </v-btn>
       </div>
-    </header>
+    </header> -->
 
     <!-- ===== BODY: Rail + Grid + NotifDrawer(200px only when alarms > 0) ===== -->
     <div class="dashBody" :class="{ hasNotif: activeAlarmRooms.length > 0 }">
@@ -352,9 +352,6 @@ export default {
 
     const savedSplit = Number(this.safeLsGet(SPLIT_MODE_KEY));
     if ([4, 8, 16, 32, 64].includes(savedSplit)) this.splitMode = savedSplit;
-
-    // this.connectMqtt();
-
   },
 
   mounted() {
@@ -490,9 +487,6 @@ export default {
       const companyId = this.$auth?.user
         ? this.$auth?.user?.company_id
         : Number(process.env.TV_COMPANY_ID || 0);
-      console.log("companyId", companyId);
-
-
 
       if (!companyId) {
         this.snackbar = true;
@@ -509,13 +503,11 @@ export default {
       this.client = mqtt.connect(this.mqttUrl, {
         reconnectPeriod: 3000,
         keepalive: 30,
-        clean: true,
-        clientId: `tvmonitor-${companyId}-${Math.random().toString(16).slice(2)}`,
+        clean: true
       });
 
       this.client.on("connect", () => {
         this.isConnected = true;
-        // alert("MQTT Connected");
         this.client.subscribe(
           [this.topics.rooms, this.topics.stats, this.topics.reload, this.topics.reloadconfig],
           { qos: 0 },
@@ -563,9 +555,6 @@ export default {
     },
 
     onMqttMessage(topic, payload) {
-      // console.log("topic", topic);
-
-      // return "";
       if (
         topic !== this.topics.rooms &&
         topic !== this.topics.stats &&
@@ -577,12 +566,9 @@ export default {
       try {
         msg = JSON.parse(payload.toString());
       } catch (e) {
-
-        console.log(e.message(), msg);
-
-        //return;
+        return;
       }
-      console.log("msg", msg);
+
       if (topic === this.topics.rooms) {
         const data = msg?.data;
         const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
