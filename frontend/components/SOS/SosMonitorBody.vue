@@ -1,175 +1,323 @@
 <template>
-  <div class="dashBody" :class="{ hasNotif: (activeAlarmRooms || []).length > 0 }">
-    <!-- Left Rail -->
-    <aside class="rail">
-      <!-- Split -->
-      <v-btn icon class="railBtn" :class="{ active: splitMode === 4 }" @click="$emit('setSplit', 4)" title="4-way">
-        <v-icon>mdi-view-grid</v-icon>
-      </v-btn>
-      <v-btn icon class="railBtn" :class="{ active: splitMode === 8 }" @click="$emit('setSplit', 8)" title="8-way">
-        <v-icon>mdi-view-grid-plus</v-icon>
-      </v-btn>
-      <v-btn icon class="railBtn" :class="{ active: splitMode === 16 }" @click="$emit('setSplit', 16)" title="16-way">
-        <v-icon>mdi-view-module</v-icon>
-      </v-btn>
-      <v-btn icon class="railBtn" :class="{ active: splitMode === 32 }" @click="$emit('setSplit', 32)" title="32-way">
-        <v-icon>mdi-view-comfy</v-icon>
-      </v-btn>
-      <v-btn icon class="railBtn" :class="{ active: splitMode === 64 }" @click="$emit('setSplit', 64)" title="64-way">
-        <v-icon>mdi-view-dashboard</v-icon>
-      </v-btn>
+  <div class="dashShell">
+    <!-- Snackbar -->
+    <v-snackbar v-model="snackbar" :timeout="3000" elevation="24" class="center-snackbar">
+      {{ snackbarResponse }}
+    </v-snackbar>
 
-      <div class="railDivider"></div>
+    <!-- ===== HEADER (ONLY WHEN NOT TV) ===== -->
+    <!-- <header v-if="!isTv" class="dashHeader">
+      <div class="hdLeft">
+        <v-avatar size="34" class="hdLogo">
+          <v-img :src="getLogo" />
+        </v-avatar>
 
-      <!-- Mute/Unmute -->
-      <v-btn icon class="railBtn" @click="$emit('toggleMute')" :title="muted ? 'Unmute' : 'Mute'">
-        <v-icon>{{ muted ? "mdi-volume-off" : "mdi-volume-high" }}</v-icon>
-      </v-btn>
-
-      <!-- TV: Prev/Next + Logout -->
-      <template v-if="isTv">
-        <v-btn icon class="railBtn" @click="$emit('prevPage')" :disabled="totalPages <= 1" title="Prev">
-          <v-icon>mdi-chevron-left</v-icon>
-        </v-btn>
-        <v-btn icon class="railBtn" @click="$emit('nextPage')" :disabled="totalPages <= 1" title="Next">
-          <v-icon>mdi-chevron-right</v-icon>
-        </v-btn>
-
-        <v-btn icon class="railBtn" @click="$emit('logout')" title="Logout">
-          <v-icon>mdi-logout</v-icon>
-        </v-btn>
-      </template>
-
-      <div class="railDivider"></div>
-
-      <!-- Bell (blink until click) -->
-      <v-btn icon class="railBtn" :class="{ blink: bellBlink }" :disabled="(activeAlarmRooms || []).length === 0"
-        @click="$emit('bellSeen')" title="NOTIFICATION QUEUE FOR ALERTS">
-        <v-badge :content="(activeAlarmRooms || []).length" :value="(activeAlarmRooms || []).length > 0" overlap>
-          <v-icon>mdi-bell-outline</v-icon>
-        </v-badge>
-      </v-btn>
-
-      <!-- Desktop: Prev/Next + Logout -->
-      <template v-if="!isTv">
-        <div class="railDivider"></div>
-
-        <v-btn icon class="railBtn" @click="$emit('prevPage')" :disabled="totalPages <= 1" title="Prev">
-          <v-icon>mdi-chevron-left</v-icon>
-        </v-btn>
-
-        <div class="railPageText">{{ pageIndex + 1 }}/{{ totalPages }}</div>
-
-        <v-btn icon class="railBtn" @click="$emit('nextPage')" :disabled="totalPages <= 1" title="Next">
-          <v-icon>mdi-chevron-right</v-icon>
-        </v-btn>
-
-        <v-btn icon class="railBtn" @click="$emit('logout')" title="Logout">
-          <v-icon>mdi-logout</v-icon>
-        </v-btn>
-      </template>
-    </aside>
-
-    <!-- Main Grid -->
-    <main class="dashMain">
-      <section class="dashCards">
-        <div class="cardsGrid" :style="roomsGridStyle">
-          <div v-for="(d, i) in gridItems" :key="d ? (d.id || d.room_id) : `blank-${i}`" class="cardCell">
-            <v-card v-if="d" outlined class="roomCard" :class="cardClass(d)">
-              <div class="cardTop">
-                <div class="cardTitle">
-                  <v-icon small class="mr-1">{{ isToilet(d) ? "mdi-toilet" : "mdi-bed" }}</v-icon>
-                  <span class="text-truncate">{{ (d.name || "ROOM").toUpperCase() }}</span>
-                </div>
-
-                <v-icon small :class="d.device?.status_id == 1 ? 'wifiOk' : 'wifiOff'">
-                  {{ d.device?.status_id == 1 ? "mdi-wifi" : "mdi-wifi-off" }}
-                </v-icon>
-              </div>
-
-              <div class="cardMid">
-                <div class="statusCircle" :class="d.alarm_status ? 'isAlarm' : 'isOk'">
-                  <v-icon class="statusIcon" :class="d.alarm_status ? 'isAlarm' : 'isOk'">
-                    {{ d.alarm_status ? "mdi-close-circle" : "mdi-check-circle" }}
-                  </v-icon>
-                </div>
-              </div>
-
-              <div class="cardBottom" :class="{
-                bottomAlarm: d.alarm_status && !d.alarm?.responded_datetime,
-                bottomAck: d.alarm_status && d.alarm?.responded_datetime,
-                bottomOk: !d.alarm_status
-              }">
-                <v-icon x-small class="mr-2">
-                  {{
-                    d.alarm_status
-                      ? (d.alarm?.responded_datetime ? "mdi-bell-check" : "mdi-bell-ring")
-                      : "mdi-bell-off"
-                  }}
-                </v-icon>
-
-                <span class="bottomText">
-                  <template v-if="d.alarm_status">
-                    <template v-if="d.alarm?.responded_datetime">Acknowledged</template>
-                    <template v-else>Active Alarm: {{ (d.duration || "00:00:00").slice(3) }}</template>
-                  </template>
-                  <template v-else>No Active Alarm</template>
-                </span>
-              </div>
-            </v-card>
-
-            <div v-else class="blankCell"></div>
+        <div class="hdTitleBlock">
+          <div class="hdSub text-truncate">
+            {{ $auth?.user?.company?.name || "Company" }}
           </div>
-        </div>
-      </section>
-    </main>
-
-    <!-- Notification Queue (fixed 200px, only when alarms exist) -->
-    <aside v-if="(activeAlarmRooms || []).length > 0" class="notifDrawer">
-      <div class="notifHeader">
-        <div class="notifHeaderTitle">
-          NOTIFICATION QUEUE FOR ALERTS ({{ (activeAlarmRooms || []).length }})
         </div>
       </div>
 
-      <div class="notifBody">
-        <div v-for="r in activeAlarmRooms" :key="r.id || r.room_id" class="notifCard" :class="notifKind(r)">
-          <div class="notifTopRow">
-            <div class="notifTitle">{{ (r.name || "ROOM").toUpperCase() }}</div>
-            <div class="notifPill" :class="r.alarm?.responded_datetime ? 'pillAck' : 'pillNew'">
-              {{ r.alarm?.responded_datetime ? "ACK" : "NEW" }}
+      <div class="hdRight">
+        <div class="hdMeta">
+          <v-icon small class="mr-1 icoClock">mdi-clock-outline</v-icon>
+          {{ headerTime }}
+        </div>
+
+        <div class="hdMeta">
+          <v-icon small class="mr-1 icoDate">mdi-calendar-month-outline</v-icon>
+          {{ headerDate }}
+        </div>
+
+        <div class="hdMeta">
+          <span class="hdStatusDot" :class="isConnected ? 'ok' : 'bad'"></span>
+          <span class="hdStatusText">{{ isConnected ? "Online" : "Offline" }}</span>
+        </div>
+      </div>
+    </header> -->
+    <SosAlarmPopupMqtt @triggerUpdateDashboard="requestDashboardSnapshot()" />
+    <!-- ===== BODY ===== -->
+    <div class="dashBody" :class="{ hasNotif: activeNewAlarmRooms.length > 0 }">
+      <!-- Left Rail (EXPAND ON HOVER) -->
+      <aside class="rail" :class="{ expanded: railExpanded }" @mouseenter="railExpanded = true"
+        @mouseleave="railExpanded = false">
+        <!-- Split -->
+        <button class="railItem" :class="{ active: splitMode === 4 }" @click="setSplit(4)" title="4-way">
+          <v-icon class="railIcon">mdi-view-grid</v-icon>
+          <span class="railText">4-way Split</span>
+        </button>
+
+        <button class="railItem" :class="{ active: splitMode === 8 }" @click="setSplit(8)" title="8-way">
+          <v-icon class="railIcon">mdi-view-grid-plus</v-icon>
+          <span class="railText">8-way Split</span>
+        </button>
+
+        <button class="railItem" :class="{ active: splitMode === 16 }" @click="setSplit(16)" title="16-way">
+          <v-icon class="railIcon">mdi-view-module</v-icon>
+          <span class="railText">16-way Split</span>
+        </button>
+
+        <button class="railItem" :class="{ active: splitMode === 32 }" @click="setSplit(32)" title="32-way">
+          <v-icon class="railIcon">mdi-view-comfy</v-icon>
+          <span class="railText">32-way Split</span>
+        </button>
+
+        <button class="railItem" :class="{ active: splitMode === 64 }" @click="setSplit(64)" title="64-way">
+          <v-icon class="railIcon">mdi-view-dashboard</v-icon>
+          <span class="railText">64-way Split</span>
+        </button>
+
+        <div class="railDivider"></div>
+
+        <!-- Mute / Unmute -->
+        <button class="railItem" @click="toggleMute" :title="muted ? 'Unmute' : 'Mute'">
+          <v-icon class="railIcon">{{ muted ? "mdi-volume-off" : "mdi-volume-high" }}</v-icon>
+          <span class="railText">{{ muted ? "Muted" : "Sound On" }}</span>
+        </button>
+
+        <!-- TV only: Prev/Next + Logout -->
+        <template v-if="isTv">
+          <button class="railItem" @click="prevPage" :disabled="totalPages <= 1" title="Prev">
+            <v-icon class="railIcon">mdi-chevron-left</v-icon>
+            <span class="railText">Prev</span>
+          </button>
+
+          <button class="railItem" @click="nextPage" :disabled="totalPages <= 1" title="Next">
+            <v-icon class="railIcon">mdi-chevron-right</v-icon>
+            <span class="railText">Next</span>
+          </button>
+
+          <button v-if="$auth?.user" class="railItem" @click="logout" title="Logout">
+            <v-icon class="railIcon">mdi-logout</v-icon>
+            <span class="railText">Logout</span>
+          </button>
+        </template>
+
+        <div class="railDivider"></div>
+
+        <!-- Bell -->
+        <button class="railItem" :class="{ blink: bellBlink }" :disabled="activeNewAlarmRooms.length === 0"
+          @click="markBellSeen" title="NOTIFICATION   ALERTS">
+          <v-badge :content="activeNewAlarmRooms.length" :value="activeNewAlarmRooms.length > 0" overlap>
+            <v-icon class="railIcon">mdi-bell-outline</v-icon>
+          </v-badge>
+          <span class="railText">Alerts</span>
+        </button>
+
+        <!-- Desktop paging + logout -->
+        <template v-if="!isTv">
+          <div class="railDivider"></div>
+
+          <button class="railItem" @click="prevPage" :disabled="totalPages <= 1" title="Prev">
+            <v-icon class="railIcon">mdi-chevron-left</v-icon>
+            <span class="railText">Prev</span>
+          </button>
+
+          <div class="railPageText" v-if="railExpanded">
+            {{ pageIndex + 1 }}/{{ totalPages }}
+          </div>
+
+          <button class="railItem" @click="nextPage" :disabled="totalPages <= 1" title="Next">
+            <v-icon class="railIcon">mdi-chevron-right</v-icon>
+            <span class="railText">Next</span>
+          </button>
+
+          <button v-if="$auth?.user" class="railItem" @click="logout" title="Logout">
+            <v-icon class="railIcon">mdi-logout</v-icon>
+            <span class="railText">Logout</span>
+          </button>
+        </template>
+      </aside>
+
+      <!-- Main grid -->
+      <main class="dashMain">
+        <section class="dashCards">
+          <div class="cardsGrid" :style="roomsGridStyle">
+            <div v-for="(d, i) in gridItems" :key="d ? (d.id || d.room_id) : `blank-${i}`" class="cardCell">
+              <v-card v-if="d" outlined class="roomCard" :class="cardClass(d)">
+                <div class="cardTop " :class="{
+                  topAlarm: d.alarm_status && !d.alarm?.responded_datetime,
+                  topAck: d.alarm_status && d.alarm?.responded_datetime,
+                  topOk: !d.alarm_status
+                }">
+                  <div class="cardTitle">
+                    <v-icon small class="mr-2" style="font-size: 30px;">{{ isToilet(d) ? "mdi-toilet" : "mdi-bed"
+                    }}</v-icon>
+                    <span class="text-truncate">{{ (d.name || "ROOM").toUpperCase() }}</span>
+                  </div>
+
+                  <v-icon small :class="d.device?.status_id == 1 ? 'wifiOk' : 'wifiOff'">
+                    {{ d.device?.status_id == 1 ? "mdi-wifi" : "mdi-wifi-off" }}
+                  </v-icon>
+                </div>
+
+                <div class="cardMid">
+                  <div class="statusCircle" :class="d.alarm_status ? 'isAlarm' : 'isOk'">
+                    <v-icon medium class="statusIcon" :class="d.alarm_status ? 'isAlarm' : 'isOk'">
+                      {{ d.alarm_status ? "mdi-close-circle" : "mdi-check-circle-outline" }}
+                    </v-icon>
+                  </div>
+                </div>
+
+                <div class="cardBottom" :class="{
+                  bottomAlarm: d.alarm_status && !d.alarm?.responded_datetime,
+                  bottomAck: d.alarm_status && d.alarm?.responded_datetime,
+                  bottomOk: !d.alarm_status
+                }">
+                  <v-icon medium class="mr-2">
+                    {{
+                      d.alarm_status
+                        ? (d.alarm?.responded_datetime ? "mdi-bell-check" : "mdi-bell-ring")
+                        : "mdi-bell-off"
+                    }}
+                  </v-icon>
+
+                  <span class="bottomText">
+                    <template v-if="d.alarm_status">
+                      <template v-if="d.alarm?.responded_datetime">Acknowledged</template>
+                      <template v-else>Active Alarm: {{ (d.duration || "00:00:00").slice(3) }}</template>
+                    </template>
+                    <template v-else style="font-size:16px">No Active Alarm</template>
+                  </span>
+                </div>
+              </v-card>
+
+              <div v-else class="blankCell"></div>
             </div>
           </div>
 
-          <div class="notifSub2">Active Time: {{ getRoomActiveTime(r) }}</div>
-          <div class="notifSub2">Start: {{ r.alarm?.alarm_start_datetime || r.alarm_start_datetime || "-" }}</div>
+          <v-progress-linear v-if="loading" indeterminate height="3" class="mt-3" />
+          <div v-else-if="pagedDevices.length === 0" class="emptyState">Data is not available</div>
+        </section>
 
-          <v-btn x-small class="notifBtn warn" :disabled="!!r.alarm?.responded_datetime"
-            @click="$emit('ack', r.alarm?.id)">
-            SUBMIT ACKNOWLEDGEMENT
-          </v-btn>
+        <!-- Desktop sound (ONLY when NOT TV) -->
+        <AudioSoundPlay v-if="!isTv && stats.activeSos > 0 && !muted && Date.now() > soundSuppressUntil"
+          :key="totalSOSCount" :notificationsMenuItemsCount="stats.activeSos" />
+      </main>
+
+      <!-- Notifications Drawer (ONLY when alarms > 0) -->
+      <aside v-if="activeNewAlarmRooms.length > 0" class="notifDrawer">
+        <div class="notifHeader">
+          <div class="notifHeaderTitle">
+            NOTIFICATION ALERTS ({{ activeNewAlarmRooms.length }})
+          </div>
         </div>
-      </div>
-    </aside>
+
+        <div class="notifBody">
+          <div v-for="r in activeNewAlarmRooms" :key="r.id || r.room_id" class="notifCard" :class="notifKind(r)">
+            <div class="notifTopRow">
+              <div class="notifTitle">{{ (r.name || "ROOM").toUpperCase() }}</div>
+              <div class="notifPill" :class="r.alarm?.responded_datetime ? 'pillAck' : 'pillNew'">
+                {{ r.alarm?.responded_datetime ? "ACK" : "NEW" }}
+              </div>
+            </div>
+
+            <div class="notifSub2">Active Time: {{ getRoomActiveTime(r) }}</div>
+            <div class="notifSub2">Start: {{ r.alarm?.alarm_start_datetime || r.alarm_start_datetime || "-" }}</div>
+
+            <v-btn x-small class="notifBtn warn" :disabled="!!r.alarm?.responded_datetime"
+              @click="udpateResponse(r.alarm?.id)">
+              ACKNOWLEDGEMENT
+            </v-btn>
+          </div>
+        </div>
+      </aside>
+    </div>
   </div>
 </template>
 
 <script>
+import mqtt from "mqtt";
+import AudioSoundPlay from "@/components/Alarm/AudioSoundPlay.vue";
+
+const SPLIT_MODE_KEY = "dash_split_mode";
+
 export default {
   name: "SosMonitorBody",
-  props: {
-    isTv: { type: Boolean, default: false },
-    splitMode: { type: Number, default: 16 },
-    pageIndex: { type: Number, default: 0 },
-    totalPages: { type: Number, default: 1 },
-    devices: { type: Array, default: () => [] },
-    pagedDevices: { type: Array, default: () => [] },
-    activeAlarmRooms: { type: Array, default: () => [] },
-    muted: { type: Boolean, default: false },
-    bellBlink: { type: Boolean, default: false }
+  components: { AudioSoundPlay },
+
+  data() {
+    return {
+      // UI
+      splitMode: 16,
+      pageIndex: 0,
+      muted: false,
+      railExpanded: false,
+
+      // Data
+      devices: [],
+      loading: false,
+
+      snackbar: false,
+      snackbarResponse: "",
+
+      // Screen
+      screenW: 0,
+      screenH: 0,
+
+      // Clock
+      headerTime: "",
+      headerDate: "",
+      _clock: null,
+
+      // MQTT
+      mqttUrl: "",
+      client: null,
+      isConnected: false,
+      topics: { req: "", rooms: "", stats: "", reload: "", reloadconfig: "" },
+      _onMqttMessageBound: null,
+
+      // Stats
+      repeated: 0,
+      ackCount: 0,
+      totalSOSCount: 0,
+      activeDisabledSos: 0,
+
+      // Duration timer
+      timer: null,
+      TIMER_MS: 1000,
+
+      // Bell blink
+      bellSeen: false,
+
+      // Auto rotate
+      autoRotateTimer: null,
+      AUTO_ROTATE_MS: 5000,
+
+      // Desktop sound suppression after ACK
+      soundSuppressUntil: 0
+    };
   },
 
   computed: {
+    // TV: width 0 OR between 500..1000
+    isTv() {
+      const w = Number(this.screenW || 0);
+      if (w === 0) return true;
+      return w >= 500 && w <= 1000;
+    },
+
+    getLogo() {
+      return this.$auth?.user?.company?.logo || "/logo.png";
+    },
+
+    pageSize() {
+      const s = Number(this.splitMode);
+      return [4, 8, 16, 32, 64].includes(s) ? s : 16;
+    },
+
+    totalPages() {
+      const n = (this.devices || []).length;
+      return Math.max(1, Math.ceil(n / this.pageSize));
+    },
+
+    pagedDevices() {
+      const start = this.pageIndex * this.pageSize;
+      return (this.devices || []).slice(start, start + this.pageSize);
+    },
+
+    // Exact grid geometry (your spec)
     splitGrid() {
       const s = Number(this.splitMode);
       if (s === 4) return { cols: 2, rows: 2 };
@@ -184,7 +332,6 @@ export default {
       return this.splitGrid.cols * this.splitGrid.rows;
     },
 
-    // pad with blanks to keep full-height division perfect
     gridItems() {
       const items = (this.pagedDevices || []).slice(0, this.gridSlots);
       const blanks = Math.max(0, this.gridSlots - items.length);
@@ -197,18 +344,171 @@ export default {
         gridTemplateColumns: `repeat(${this.splitGrid.cols}, minmax(0, 1fr))`,
         gridTemplateRows: `repeat(${this.splitGrid.rows}, minmax(0, 1fr))`
       };
+    },
+    activeNewAlarmRooms() {
+      return (this.devices || []).filter(
+        d => d && d.alarm_status === true && !d.alarm?.responded_datetime
+      );
+    },
+
+    activeSosCount() {
+      return this.activeNewAlarmRooms.length;
+    },
+
+    bellBlink() {
+      return this.activeNewAlarmRooms.length > 0 && !this.bellSeen;
+    },
+
+    stats() {
+      return {
+        totalPoints: this.devices.length,
+        activeSos: this.activeSosCount,
+        repeated: this.repeated,
+        ackCount: this.ackCount,
+        totalSOSCount: this.totalSOSCount,
+        activeDisabledSos: this.activeDisabledSos
+      };
     }
   },
 
+  watch: {
+    totalPages() {
+      if (this.pageIndex > this.totalPages - 1) this.pageIndex = 0;
+    }
+  },
+
+  created() {
+    this.$vuetify.theme.dark = true;
+
+    // screen
+    this.readScreen();
+
+    // saved split
+    const savedSplit = Number(this.safeLsGet(SPLIT_MODE_KEY));
+    if ([4, 8, 16, 32, 64].includes(savedSplit)) this.splitMode = savedSplit;
+
+    // mqttUrl must be set BEFORE connect
+    this.mqttUrl = process.env.MQTT_SOCKET_HOST || "";
+  },
+
+  mounted() {
+    window.addEventListener("resize", this.readScreen);
+
+    // Clock
+    this.updateHeaderClock();
+    this._clock = setInterval(() => this.updateHeaderClock(), 1000);
+
+    // Duration ticking
+    this.timer = setInterval(() => this.updateDurationAll(), this.TIMER_MS);
+
+    // MQTT
+    this.connectMqtt();
+
+    // Auto rotate
+    this.startAutoRotate();
+  },
+
+  beforeDestroy() {
+    window.removeEventListener("resize", this.readScreen);
+
+    try {
+      if (this._clock) clearInterval(this._clock);
+      if (this.timer) clearInterval(this.timer);
+      this.stopAutoRotate();
+      this.disconnectMqtt();
+    } catch (e) { }
+  },
+
   methods: {
+    // ========== Rail behavior ==========
+    collapseRailAfterAction() {
+      this.railExpanded = false;
+    },
+
+    // ========== Auto rotate ==========
+    startAutoRotate() {
+      this.stopAutoRotate();
+      this.autoRotateTimer = setInterval(() => {
+        this.nextPageLoop();
+      }, this.AUTO_ROTATE_MS);
+    },
+
+    stopAutoRotate() {
+      if (this.autoRotateTimer) {
+        clearInterval(this.autoRotateTimer);
+        this.autoRotateTimer = null;
+      }
+    },
+
+    nextPageLoop() {
+      if (this.totalPages <= 1) return;
+      this.pageIndex = (this.pageIndex + 1) % this.totalPages;
+    },
+
+    // ========== UI ==========
     notifKind(r) {
       if (r?.alarm_status === true && r?.alarm?.responded_datetime) return "ack";
       if (r?.alarm_status === true) return "new";
       return "stop";
     },
 
-    isToilet(d) {
-      return d?.room_type === "toilet" || d?.room_type === "toilet-ph";
+    markBellSeen() {
+      this.bellSeen = true;
+      this.collapseRailAfterAction();
+    },
+
+    toggleMute() {
+      this.muted = !this.muted;
+
+      // TV: AndroidBridge only
+      if (this.isTv) {
+        try {
+          if (this.muted) AndroidBridge.stopAlarm();
+          else if (this.activeSosCount > 0) AndroidBridge.startAlarm();
+        } catch (e) { }
+      }
+
+      this.collapseRailAfterAction();
+    },
+
+    setSplit(n) {
+      this.splitMode = n;
+      this.pageIndex = 0;
+      this.safeLsSet(SPLIT_MODE_KEY, String(n));
+      this.collapseRailAfterAction();
+    },
+
+    nextPage() {
+      if (this.totalPages <= 1) return;
+      this.pageIndex = (this.pageIndex + 1) % this.totalPages;
+      this.collapseRailAfterAction();
+    },
+
+    prevPage() {
+      if (this.totalPages <= 1) return;
+      this.pageIndex = (this.pageIndex - 1 + this.totalPages) % this.totalPages;
+      this.collapseRailAfterAction();
+    },
+
+    logout() {
+      this.$router.push("/logout");
+      this.collapseRailAfterAction();
+    },
+
+    readScreen() {
+      try {
+        this.screenW = window.innerWidth || 0;
+        this.screenH = window.innerHeight || 0;
+      } catch (e) {
+        this.screenW = 0;
+        this.screenH = 0;
+      }
+    },
+
+    updateHeaderClock() {
+      const d = new Date();
+      this.headerTime = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      this.headerDate = d.toISOString().slice(0, 10);
     },
 
     cardClass(d) {
@@ -216,6 +516,10 @@ export default {
       if (d.alarm_status === true && !d.alarm?.responded_datetime) return "cardOn";
       if (d.alarm_status === true && d.alarm?.responded_datetime) return "cardAck";
       return "cardOff";
+    },
+
+    isToilet(d) {
+      return d?.room_type === "toilet" || d?.room_type === "toilet-ph";
     },
 
     getRoomActiveTime(room) {
@@ -229,14 +533,376 @@ export default {
         return `${mm}:${ss}`;
       }
       return "--:--";
+    },
+
+    // ========== Sound control ==========
+    stopAlarmSoundNow() {
+      // Desktop: suppress AudioSoundPlay briefly
+      this.soundSuppressUntil = Date.now() + 3000;
+
+      // TV: stop Android alarm immediately
+      if (this.isTv) {
+        try {
+          AndroidBridge.stopAlarm();
+        } catch (e) { }
+      }
+    },
+
+    // ========== SAFE LOCALSTORAGE ==========
+    safeLsGet(key) {
+      try {
+        return window?.localStorage?.getItem(key) ?? null;
+      } catch (e) {
+        return null;
+      }
+    },
+
+    safeLsSet(key, value) {
+      try {
+        window?.localStorage?.setItem(key, value);
+      } catch (e) { }
+    },
+
+    // ========== MQTT (IMPORTANT FIX: bind handlers) ==========
+    connectMqtt() {
+      if (this.client) return;
+
+      if (!this.mqttUrl) {
+        this.snackbar = true;
+        this.snackbarResponse = "MQTT_SOCKET_HOST missing in env";
+        return;
+      }
+
+      const companyId = this.$auth?.user ? this.$auth?.user?.company_id : Number(process.env.TV_COMPANY_ID || 0);
+      if (!companyId) {
+        this.snackbar = true;
+        this.snackbarResponse = "TV_COMPANY_ID missing in env";
+        return;
+      }
+
+      this.topics.req = `tv/${companyId}/dashboard/request`;
+      this.topics.rooms = `tv/${companyId}/dashboard/rooms`;
+      this.topics.stats = `tv/${companyId}/dashboard/stats`;
+      this.topics.reload = `tv/reload`;
+      this.topics.reloadconfig = `${process.env.MQTT_DEVICE_CLIENTID}/${companyId}/message`;
+
+      const clientId = `tvmonitor-${companyId}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+      this.client = mqtt.connect(this.mqttUrl, {
+        reconnectPeriod: 3000,
+        keepalive: 30,
+        clean: true,
+        clientId
+      });
+
+      // ✅ bind message handler so Vue "this" is correct
+      this._onMqttMessageBound = (t, p) => this.onMqttMessage(t, p);
+
+      this.client.on("connect", () => {
+        this.isConnected = true;
+
+        this.client.subscribe(
+          [this.topics.rooms, this.topics.stats, this.topics.reload, this.topics.reloadconfig],
+          { qos: 0 },
+          (err) => {
+            if (err) return;
+            this.requestDashboardSnapshot();
+          }
+        );
+      });
+
+      this.client.on("message", this._onMqttMessageBound);
+      this.client.on("close", () => (this.isConnected = false));
+      this.client.on("offline", () => (this.isConnected = false));
+      this.client.on("error", () => (this.isConnected = false));
+    },
+
+    disconnectMqtt() {
+      try {
+        if (!this.client) return;
+
+        if (this._onMqttMessageBound) {
+          this.client.removeListener("message", this._onMqttMessageBound);
+          this._onMqttMessageBound = null;
+        }
+
+        this.client.end(true);
+        this.client = null;
+        this.isConnected = false;
+      } catch (e) { }
+    },
+
+    requestDashboardSnapshot() {
+      if (!this.client || !this.isConnected) return;
+
+      const companyId = this.$auth?.user ? this.$auth?.user?.company_id : Number(process.env.TV_COMPANY_ID || 0);
+      const securityId = this.$auth?.user?.security?.id || 0;
+
+      const payload = {
+        reqId: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        params: {
+          company_id: companyId,
+          securityId: securityId || null
+        }
+      };
+
+      this.client.publish(this.topics.req, JSON.stringify(payload), { qos: 0, retain: false });
+    },
+
+    onMqttMessage(topic, payload) {
+      if (
+        topic !== this.topics.rooms &&
+        topic !== this.topics.stats &&
+        topic !== this.topics.reload &&
+        topic !== this.topics.reloadconfig
+      ) return;
+
+      let msg;
+      try {
+        msg = JSON.parse(payload.toString());
+      } catch (e) {
+        return;
+      }
+
+      if (topic === this.topics.rooms) {
+        const data = msg?.data;
+        const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
+
+        this.devices = this.normalizeRooms(list);
+        this.updateDurationAll();
+
+        if (this.pageIndex > this.totalPages - 1) this.pageIndex = 0;
+
+        // TV sound control
+        if (this.isTv) {
+          try {
+            if (this.muted) AndroidBridge.stopAlarm();
+            else if (this.activeSosCount > 0) AndroidBridge.startAlarm();
+            else AndroidBridge.stopAlarm();
+          } catch (e) { }
+        }
+
+        // Bell resets when alarms exist
+        if (this.activeSosCount > 0) this.bellSeen = false;
+
+        return;
+      }
+
+      if (topic === this.topics.reload) {
+        try {
+          window.location.reload();
+        } catch (e) { }
+        return;
+      }
+
+      if (topic === this.topics.reloadconfig) {
+        try {
+          this.requestDashboardSnapshot();
+        } catch (e) { }
+        return;
+      }
+
+      if (topic === this.topics.stats) {
+        const s = msg?.data || {};
+        this.repeated = s.repeated || 0;
+        this.ackCount = s.ackCount || 0;
+        this.totalSOSCount = s.totalSOSCount || 0;
+        this.activeDisabledSos = s.activeDisabledSos || 0;
+
+        // TV sound control
+        if (this.isTv) {
+          try {
+            if (this.muted) AndroidBridge.stopAlarm();
+            else if (this.activeSosCount > 0) AndroidBridge.startAlarm();
+            else AndroidBridge.stopAlarm();
+          } catch (e) { }
+        }
+      }
+    },
+
+    // ========== Rooms normalize + duration ==========
+    toBool(v) {
+      if (v === true) return true;
+      if (v === false) return false;
+      const s = String(v ?? "").trim().toUpperCase();
+      return s === "1" || s === "TRUE" || s === "ON" || s === "YES";
+    },
+
+    parseStartMs(dateStr) {
+      if (!dateStr) return null;
+      const raw = String(dateStr).trim();
+      if (raw.includes("T")) {
+        const ms = Date.parse(raw);
+        return Number.isFinite(ms) ? ms : null;
+      }
+      const clean = raw.replace(/\.\d+$/, "");
+      const isoLocal = clean.replace(" ", "T");
+      const ms = Date.parse(isoLocal);
+      return Number.isFinite(ms) ? ms : null;
+    },
+
+    formatHHMMSS(totalSeconds) {
+      const hh = Math.floor(totalSeconds / 3600);
+      const mm = Math.floor((totalSeconds % 3600) / 60);
+      const ss = totalSeconds % 60;
+      return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
+    },
+
+    normalizeRooms(list = []) {
+      return list.map((r) => {
+        const alarm = r.alarm || null;
+
+        const alarm_status =
+          typeof r.alarm_status === "boolean"
+            ? r.alarm_status
+            : this.toBool(r.alarm_status ?? alarm?.alarm_status ?? r.status);
+
+        const startMs = alarm?.alarm_start_datetime
+          ? this.parseStartMs(alarm.alarm_start_datetime)
+          : r.alarm_start_datetime
+            ? this.parseStartMs(r.alarm_start_datetime)
+            : null;
+
+        return { ...r, alarm, alarm_status, startMs, duration: "" };
+      });
+    },
+
+    updateDurationAll() {
+      const nowMs = Date.now();
+      this.devices.forEach((d, idx) => {
+        if (!d) return;
+
+        if (d.alarm_status !== true || !d.startMs) {
+          if (d.duration) this.$set(this.devices, idx, { ...d, duration: "" });
+          return;
+        }
+
+        const diffSec = Math.max(0, Math.floor((nowMs - d.startMs) / 1000));
+        const hhmmss = this.formatHHMMSS(diffSec);
+
+        if (d.duration !== hhmmss) {
+          this.$set(this.devices, idx, { ...d, duration: hhmmss });
+        }
+      });
+    },
+
+    // ========== ACK ==========
+    udpateResponse(alarmId) {
+      if (!alarmId) return;
+
+      // ✅ stop sound immediately (TV + Desktop)
+      this.stopAlarmSoundNow();
+
+      const companyId = this.$auth?.user ? this.$auth?.user?.company_id : Number(process.env.TV_COMPANY_ID || 0);
+
+      const payload = {
+        reqId: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        params: { company_id: companyId, alarmId }
+      };
+
+      try {
+        if (this.client && this.isConnected) {
+          this.client.publish(
+            `tv/${companyId}/dashboard_alarm_response`,
+            JSON.stringify(payload),
+            { qos: 0, retain: false }
+          );
+        }
+      } catch (e) { }
+
+      // refresh after short delay
+      setTimeout(() => this.requestDashboardSnapshot(), 400);
     }
   }
 };
 </script>
 
 <style scoped>
-.dashBody {
+/* force LEFT layout always */
+.dashShell {
+  direction: ltr !important;
+  width: 100%;
   height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(180deg, #0a0e16, #0e1420);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+/* Header desktop only */
+.dashHeader {
+  height: 54px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.hdLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.hdLogo {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.hdSub {
+  font-size: 12px;
+  opacity: 0.85;
+  font-weight: 900;
+}
+
+.hdRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.hdMeta {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.icoClock {
+  color: rgba(99, 102, 241, 0.95) !important;
+}
+
+.icoDate {
+  color: rgba(34, 197, 94, 0.95) !important;
+}
+
+.hdStatusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 99px;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.hdStatusDot.ok {
+  background: #22c55e;
+}
+
+.hdStatusDot.bad {
+  background: #ef4444;
+}
+
+.hdStatusText {
+  font-weight: 900;
+}
+
+/* Body layout */
+.dashBody {
+  height: 100%;
   min-height: 0;
   display: grid;
   grid-template-columns: 60px 1fr;
@@ -255,34 +921,74 @@ export default {
   background: rgba(0, 0, 0, 0.18);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 10px 6px;
+  align-items: stretch;
+  padding: 10px 8px;
   gap: 10px;
   overflow: hidden;
+  width: 60px;
+  transition: width 100ms ease;
 }
 
-.railBtn {
-  width: 44px !important;
-  height: 44px !important;
-  border-radius: 12px !important;
-  border: 1px solid rgba(255, 255, 255, 0.10) !important;
-  background: rgba(255, 255, 255, 0.04) !important;
+.rail.expanded {
+  width: 220px;
+  z-index: 9999;
+  background-color: #0a0e17;
 }
 
-.railBtn.active {
-  background: rgba(99, 102, 241, 0.35) !important;
-  border-color: rgba(99, 102, 241, 0.45) !important;
+.railItem {
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px;
+}
+
+.railItem.active {
+  background: rgba(99, 102, 241, 0.35);
+  border-color: rgba(99, 102, 241, 0.45);
+}
+
+.railItem:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.railIcon {
+  font-size: 22px !important;
+  min-width: 22px;
+}
+
+.railText {
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: all 50ms ease;
+  white-space: nowrap;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.rail.expanded .railText {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .railDivider {
-  width: 42px;
+  width: 100%;
   height: 1px;
   background: rgba(255, 255, 255, 0.10);
-  margin: 4px 0;
+  margin: 2px 0;
 }
 
 .railPageText {
-  font-size: 11px;
+  text-align: center;
+  font-size: 12px;
   font-weight: 900;
   opacity: 0.85;
 }
@@ -304,7 +1010,7 @@ export default {
   }
 }
 
-/* Main grid */
+/* Main */
 .dashMain {
   height: 100%;
   min-height: 0;
@@ -318,6 +1024,7 @@ export default {
   padding: 12px;
 }
 
+/* Grid: FULL HEIGHT with fixed rows per split */
 .cardsGrid {
   width: 100%;
   height: 100% !important;
@@ -336,7 +1043,6 @@ export default {
 .roomCard {
   height: 100% !important;
   min-height: 0 !important;
-  max-height: 100%;
   border-radius: 14px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -357,6 +1063,7 @@ export default {
   background: rgba(255, 255, 255, 0.02);
 }
 
+/* Card states */
 .cardOn {
   border-color: rgba(239, 68, 68, 0.28);
   background: linear-gradient(180deg, rgba(239, 68, 68, 0.16), rgba(15, 23, 42, 0.92));
@@ -367,14 +1074,26 @@ export default {
   background: linear-gradient(180deg, rgba(161, 98, 7, 0.14), rgba(15, 23, 42, 0.92));
 }
 
+
+.topAlarm {
+  background: rgb(56 29 40) !important;
+  color: rgba(255, 255, 255, 0.95);
+  border: 1px solid #6f2931 !important;
+}
+
+.topAck {
+  background: rgba(161, 98, 7, 0.92);
+  color: rgba(255, 255, 255, 0.95);
+}
+
 .cardTop {
-  height: 36px;
+  height: 50px;
   padding: 8px 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(17 24 39 / 0.5);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -383,7 +1102,7 @@ export default {
   align-items: center;
   min-width: 0;
   font-weight: 900;
-  font-size: 13px;
+  font-size: 16px;
   letter-spacing: 0.3px;
 }
 
@@ -402,7 +1121,7 @@ export default {
   place-items: center;
 }
 
-.statusCircle {
+/* .statusCircle {
   width: 76px;
   height: 76px;
   border-radius: 50%;
@@ -416,6 +1135,26 @@ export default {
   border-color: rgba(239, 68, 68, 0.65);
   box-shadow: 0 0 18px rgba(239, 68, 68, 0.55);
   animation: alarmPulse 1.2s infinite;
+} */
+
+.roomCard.cardOn {
+  border-color: rgba(239, 68, 68, 0.65);
+  /* box-shadow: 0 0 18px rgba(239, 68, 68, 0.55); */
+  animation: pulseOpacity 1.2s infinite;
+}
+
+@keyframes pulseOpacity {
+  0% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+
+  100% {
+    opacity: 1;
+  }
 }
 
 @keyframes alarmPulse {
@@ -436,7 +1175,7 @@ export default {
 }
 
 .statusIcon {
-  font-size: 54px !important;
+  font-size: 70px !important;
 }
 
 .statusIcon.isOk {
@@ -458,7 +1197,7 @@ export default {
 }
 
 .bottomOk {
-  background: rgba(34, 197, 94, 0.90);
+  background: rgb(34 197 94 / var(--tw-bg-opacity, 1));
   color: rgba(255, 255, 255, 0.95);
   font-weight: normal;
 }
@@ -474,13 +1213,15 @@ export default {
 }
 
 .bottomText {
-  font-size: 13px;
+  font-size: 17px;
+  ;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 900;
 }
 
-/* Notification queue */
+/* Notif drawer fixed 200px */
 .notifDrawer {
   height: 100%;
   min-height: 0;
@@ -579,5 +1320,11 @@ export default {
 .notifBtn.warn {
   background: rgba(234, 179, 8, 0.22) !important;
   border-color: rgba(234, 179, 8, 0.25) !important;
+}
+
+.emptyState {
+  margin-top: 14px;
+  opacity: 0.7;
+  font-weight: 800;
 }
 </style>
