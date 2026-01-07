@@ -44,6 +44,23 @@
         @mouseleave="railExpanded = false">
         <div class="railPanel">
           <!-- Split -->
+
+          <!-- <button class="railItem railIconItem"> -->
+          <!-- <v-img class="railIconImg" :src="getLogo" contain eager /> -->
+
+          <!-- <img :src="getLogo" style="width:100%" class="railIconImg" /> -->
+          <!-- </button> -->
+
+
+
+          <!-- TOP -->
+          <!-- <button class="  railLogoTop railItem" title="Company">
+            <v-img class="  railIcon" :src="getLogo" contain eager />
+            <span class="railText">{{ $auth?.user?.company?.name || "Company" }}</span>
+          </button> -->
+          <div class="railDivider"></div>
+
+
           <button class="railItem" :class="{ active: splitMode === 4 }" @click="setSplit(4)" title="4-way">
             <v-icon class="railIcon">mdi-view-grid</v-icon>
             <span class="railText">4-way Split</span>
@@ -118,7 +135,7 @@
               <span class="railText">Prev2</span>
             </button>
 
-            <div class="railPageText railItem railIcon" style="display:grid">
+            <div class="  railItem  " style="display:grid">
               {{ pageIndex + 1 }}/{{ totalPages }}
             </div>
 
@@ -131,6 +148,28 @@
               <v-icon class="railIcon">mdi-logout</v-icon>
               <span class="railText">Logout</span>
             </button>
+
+
+            <!-- push bottom content to bottom -->
+            <div class="railSpacer"></div>
+
+            <!-- BOTTOM: Brand / Product logo + text -->
+            <!-- BOTTOM -->
+            <!-- <button class="railItem railBrandBottom" title="Brand">
+              <v-img class="railBrandImg" src="/logo.png" contain eager />
+              <span class="railText">Brand Product</span>
+            </button> -->
+
+
+            <button class="railItem"> <v-img class="railIcon" src="/logo.png" />
+              <!-- <span class="railText"> {{
+              $auth?.user?.company?.name || "Company" }}</span>  -->
+
+            </button>
+            <!-- <button class="railItem railText">
+              <span class="railText"> XtremeGuard</span>
+
+            </button> -->
           </template>
         </div>
       </aside>
@@ -148,7 +187,7 @@
                 }">
                   <div class="cardTitle">
                     <v-icon small class="mr-2" style="font-size: 30px;">{{ isToilet(d) ? "mdi-toilet" : "mdi-bed"
-                    }}</v-icon>
+                      }}</v-icon>
                     <span class="text-truncate">{{ (d.name || "ROOM").toUpperCase() }}</span>
                   </div>
 
@@ -1038,6 +1077,10 @@ export default {
   color: currentColor !important;
 }
 
+.railIcon img {
+  width: 50px;
+}
+
 /* Text transitions (no layout) */
 .railText {
   opacity: 0;
@@ -1512,5 +1555,115 @@ export default {
 
 .cardsGrid.split-64 .statusIcon {
   font-size: 36px !important;
+}
+
+/* Push bottom section down */
+.railSpacer {
+  flex: 1 1 auto;
+}
+
+/* =========
+   Logo/Icon box (matches railIcon footprint)
+========= */
+.railLogoImg,
+.railBrandImg {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Make sure v-img internal wrappers respect size */
+.railLogoImg :deep(.v-responsive),
+.railLogoImg :deep(.v-image),
+.railLogoImg :deep(.v-image__image),
+.railBrandImg :deep(.v-responsive),
+.railBrandImg :deep(.v-image),
+.railBrandImg :deep(.v-image__image) {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* =========
+   Collapsed mode: show only icon box (no text)
+   Align to right edge (your current behavior)
+========= */
+.rail:not(.expanded) .railLogoTop,
+.rail:not(.expanded) .railBrandBottom {
+  width: 48px;
+  margin-left: auto;
+  justify-content: center;
+  padding: 0;
+  gap: 0;
+}
+
+/* In collapsed, slightly smaller images if you want */
+.rail:not(.expanded) .railLogoImg,
+.rail:not(.expanded) .railBrandImg {
+  width: 26px;
+  height: 26px;
+  flex-basis: 26px;
+}
+
+/* Expanded: keep normal spacing */
+.rail.expanded .railLogoTop,
+.rail.expanded .railBrandBottom {
+  padding: 0 12px;
+  gap: 10px;
+}
+
+.railLogoImg,
+.railBrandImg {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.railLogoImg::v-deep(.v-image),
+.railLogoImg::v-deep(.v-responsive),
+.railBrandImg::v-deep(.v-image),
+.railBrandImg::v-deep(.v-responsive) {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.railIconItem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.railIconImg {
+  /* width: 24px; */
+  /* icon size */
+  /* height: 24px;
+  max-width: 24px;
+  max-height: 24px; */
+  flex: 0 0 90px;
+  overflow: hidden;
+}
+
+.railIconImg::v-deep(.v-image),
+.railIconImg::v-deep(.v-responsive),
+.railIconImg::v-deep(.v-image__image),
+.railIconImg::v-deep(.v-responsive__content) {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.railIconImg:not(.expanded) .railIconItem {
+  max-width: 24px;
+  max-height: 24px;
+  flex: 0 0 24px;
+  overflow: hidden;
+}
+
+.rail:not(.expanded) .railIconItem {
+  width: 48px;
+  margin-left: auto;
+  padding: 0;
 }
 </style>
