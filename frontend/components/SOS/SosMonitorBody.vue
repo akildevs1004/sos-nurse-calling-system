@@ -1337,6 +1337,8 @@ export default {
 .statusCircle {
   width: 70px;
   height: 70px;
+
+  text-align: center;
 }
 
 .statusIcon {
@@ -1439,5 +1441,47 @@ export default {
   background: rgba(161, 98, 7, 0.92);
   border: 2px solid rgba(234, 179, 8, 0.75);
   box-shadow: 0 0 16px rgba(234, 179, 8, 0.55);
+}
+</style>
+
+<style scoped>
+@media (min-width: 500px) and (max-width: 1000px) {
+  .notifDrawer {
+    width: 200px;
+  }
+
+  .dashBody.hasNotif {
+    grid-template-columns: 60px 1fr 200px;
+  }
+
+  .cardsGrid.split-4 .statusIcon {
+    font-size: 100px !important;
+  }
+
+
+  .cardsGrid.split-9 .statusIcon {
+    font-size: 80px !important;
+  }
+
+  .cardsGrid.split-12 .statusIcon {
+    font-size: 50px !important;
+  }
+
+  .cardsGrid.split-16 .statusIcon {
+    font-size: 40px !important;
+  }
+
+  .cardsGrid.split-35 .statusIcon {
+    font-size: 25px !important;
+  }
+
+
+  .cardsGrid.split-60 .statusIcon {
+    font-size: 18px !important;
+  }
+
+  .cardsGrid.split-60 .statusIcon {
+    display: none !important;
+  }
 }
 </style>
