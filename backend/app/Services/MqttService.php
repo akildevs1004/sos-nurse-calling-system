@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Http\Controllers\Alarm\Api\ApiAlarmControlController;
 use App\Http\Controllers\Dashboards\SOSRoomsControllers;
+use App\Http\Controllers\DeviceController;
 use PhpMqtt\Client\MqttClient;
 use PhpMqtt\Client\ConnectionSettings;
 use Illuminate\Support\Facades\Log;
@@ -437,6 +438,51 @@ class MqttService
                         ]);
                     }
                 }, 0);
+
+
+                $this->mqtt->subscribe('tv/+/device-list/get', function (string $topic, string $message) {
+                    $payload = json_decode($message, true);
+
+                    $companyId = $payload['company_id'] ?? null;
+                    $requestId = $payload['requestId'] ?? null;
+
+                    echo "\n Device List Request from Company ID: " . $companyId;
+
+                    // Basic validation
+                    if (!$companyId || !$requestId) {
+                        return;
+                    }
+
+                    $respTopic = "tv/{$companyId}/device-list/resp";
+
+
+                    try {
+
+                        $devices = (new DeviceController())->dropdownList((new Request(['company_id' => $companyId])));
+                        echo "\n Count" . count($devices);
+                        $resp = [
+                            'requestId' => $requestId,
+                            'ok'        => true,
+                            'data'      => $devices, // collection will JSON serialize
+                            'ts'        => now()->timestamp,
+                        ];
+
+                        $this->mqtt->publish($respTopic, json_encode($resp), 0, false);
+                    } catch (\Throwable $e) {
+
+                        echo "\n Error: " . $e->getMessage();
+                        $resp = [
+                            'requestId' => $requestId,
+                            'ok'        => false,
+                            'message'   => $e->getMessage(),
+                            'ts'        => now()->timestamp,
+                        ];
+
+                        $this->mqtt->publish($respTopic, json_encode($resp), 0, false);
+                    }
+                }, 1);
+
+
                 // Listen to all companies
                 $this->mqtt->subscribe('tv/+/dashboard_alarm_response', function (string $topic, string $message) {
 

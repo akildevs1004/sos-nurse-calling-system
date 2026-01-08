@@ -102,7 +102,6 @@ export default {
   async mounted() {
 
     // alert("Connected");
-    await this.getDevicesFromApi();
 
 
     // if ((this.allowedSerials.length))
@@ -111,6 +110,7 @@ export default {
       this.connectMqtt();
     }
 
+    await this.getDevicesFromApi();
 
     // Duration timer
     this.tick = setInterval(this.updateCurrentDuration, 1000);
@@ -123,6 +123,11 @@ export default {
   methods: {
 
     async getDevicesFromApi() {
+
+      await this.loadAllowedSerials();
+
+      return false;
+
       // this.loading = true;
       // this.apiError = "";
 
@@ -151,6 +156,116 @@ export default {
         // this.loading = false;
       }
     },
+
+
+    async fetchDeviceListViaMqtt() {
+      const companyId =
+        this.$auth?.user?.company_id || process.env.TV_COMPANY_ID;
+
+      const reqTopic = `tv/${companyId}/device-list/get`;
+      const respTopic = `tv/${companyId}/device-list/resp`;
+
+      console.log("reqTopic", reqTopic);
+
+
+      // unique request id
+      const requestId = `dl_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`;
+
+      // Ensure we are subscribed BEFORE publishing
+      await this.mqttSubscribeOnce(respTopic);
+
+      return new Promise((resolve, reject) => {
+        const timeoutMs = 1000 * 50;
+
+        const onMessage = (topic, payload) => {
+          if (topic !== respTopic) return;
+
+          let msg;
+          try {
+            msg = JSON.parse(payload.toString());
+
+            // console.log("msg", msg);
+
+          } catch (e) {
+            return; // ignore non-json
+          }
+
+          // only accept the matching response
+          if (msg?.requestId !== requestId) return;
+
+          // cleanup listener + timeout
+          cleanup();
+
+          if (!msg?.ok) {
+            reject(new Error(msg?.message || "Device list request failed"));
+            return;
+          }
+
+          const list = Array.isArray(msg?.data)
+            ? msg.data
+            : Array.isArray(msg?.data?.data)
+              ? msg.data.data
+              : [];
+
+          resolve(list);
+        };
+
+        const t = setTimeout(() => {
+          cleanup();
+          reject(new Error("MQTT device list timeout"));
+        }, timeoutMs);
+
+        const cleanup = () => {
+          clearTimeout(t);
+          if (this.client?.off) this.client.off("message", onMessage);
+          else this.client?.removeListener?.("message", onMessage);
+        };
+
+        // attach listener
+        this.client.on("message", onMessage);
+
+        // publish request
+        const reqPayload = {
+          requestId,
+          company_id: companyId,
+          ts: Date.now(),
+        };
+
+        this.client.publish(reqTopic, JSON.stringify(reqPayload), { qos: 1 }, (err) => {
+          if (err) {
+            cleanup();
+            reject(err);
+          }
+        });
+      });
+    },
+
+    // helper: subscribe and wait until broker acknowledges (mqtt.js callback)
+    mqttSubscribeOnce(topic) {
+      return new Promise((resolve, reject) => {
+        if (!this.client) return reject(new Error("MQTT client not available"));
+        this.client.subscribe(topic, { qos: 1 }, (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+    },
+
+    async loadAllowedSerials() {
+      try {
+        const list = await this.fetchDeviceListViaMqtt();
+
+        this.allowedSerials = list
+          .map(d => d?.serial_number)
+          .filter(Boolean);
+
+        console.log("this.allowedSerials", this.allowedSerials);
+      } catch (err) {
+        console.log("this.allowedSerials Err", err);
+      }
+    },
+
+
     // ================= MQTT =================
     connectMqtt() {
       if (this.client) return;
@@ -181,14 +296,14 @@ export default {
       try {
         msg = JSON.parse(payload.toString());
       } catch (e) {
-        console.log("onMqttMessage", e, msg);
+        // console.log("onMqttMessage", e, msg);
 
         return;
       }
 
       if (!msg || msg.type !== "sos") {
 
-        console.log("msg.type", msg.type);
+        // console.log("msg.type", msg.type);
 
         return
       };

@@ -5,7 +5,7 @@
       {{ snackbarResponse }}
     </v-snackbar>
 
-    <SosAlarmPopupMqtt @triggerUpdateDashboard="requestDashboardSnapshot()" />
+    <SosAlarmPopupMqtt @triggerUpdateDashboard="requestDashboardSnapshot()" :isMQTT="isMQTT" />
 
     <!-- ===== BODY ===== -->
     <div class="dashBody" :class="{ hasNotif: activeNewAlarmRooms.length > 0 }">
@@ -253,6 +253,7 @@ export default {
 
   data() {
     return {
+      isMQTT: false,
       // UI
       splitMode: 16,
       pageIndex: 0,

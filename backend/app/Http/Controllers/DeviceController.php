@@ -36,15 +36,17 @@ class DeviceController extends Controller
     const ONLINE_STATUS_ID = 1;
     const OFFLINE_STATUS_ID = 2;
 
-    public function dropdownList()
+    public function dropdownList(Request $request)
     {
+
+
         $model = Device::query();
-        $model->where('company_id', request('company_id'));
+        $model->where('company_id', $request->company_id);
         $model->where("device_type", "!=", "Manual");
         $model->where("device_id", "!=", "Manual");
         $model->Where("device_id",  'not like', "%Mobile%");
-        $model->when(request()->filled('branch_id'), fn($q) => $q->where('branch_id', request('branch_id')));
-        $model->orderBy(request('order_by') ?? "name", request('sort_by_desc') ? "desc" : "asc");
+        $model->when($request->filled('branch_id'), fn($q) => $q->where('branch_id', $request->branch_id));
+        $model->orderBy($request->input('order_by') ?? "name", $request->input('sort_by_desc') ? "desc" : "asc");
         return $model->get(["id", "name", "location", "device_id", "device_type", "serial_number", "last_live_datetime", "utc_time_zone"]);
     }
 
