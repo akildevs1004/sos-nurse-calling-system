@@ -446,6 +446,8 @@ export default {
 
     const sosRooms = this.$auth?.user?.security?.sos_rooms ?? [];
     this.filterRoomTableIds = Array.isArray(sosRooms) ? sosRooms.map(r => r.id) : [];
+
+
   },
 
   mounted() {
@@ -468,7 +470,9 @@ export default {
 
     // }, 5000);
 
-
+    setTimeout(() => {
+      this.$router.push("/alarm/tvmonitor2");
+    }, 5000);
 
 
 

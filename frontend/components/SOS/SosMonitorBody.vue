@@ -48,20 +48,20 @@
 
           <div class="railDivider"></div>
 
-          <!-- Mute / Unmute -->
+
           <button class="railItem" @click="toggleMute" :title="muted ? 'Unmute' : 'Mute'">
             <v-icon class="railIcon">{{ muted ? "mdi-volume-off" : "mdi-volume-high" }}</v-icon>
             <span class="railText">{{ muted ? "Muted" : "Sound On" }}</span>
           </button>
 
           <!-- TV only: Prev/Next + Logout -->
-          <template v-if="isTv">
+          <template>
             <button class="railItem" @click="prevPage" :disabled="totalPages <= 1" title="Prev">
               <v-icon class="railIcon">mdi-chevron-left</v-icon>
               <span class="railText">Prev</span>
             </button>
 
-            <div class="railPageText">
+            <div class="railItem" style="display:grid">
               {{ pageIndex + 1 }}/{{ totalPages }}
             </div>
 
@@ -87,8 +87,16 @@
             <span class="railText">Alerts</span>
           </button>
 
+          <div class="railSpacer"></div>
+
+
+          <button class="railItem railItem--img" title="Brand">
+            <v-img class="railImg" src="/logo.png" contain eager />
+            <span class="railText">XtremeGuard</span>
+          </button>
+
           <!-- Desktop paging + logout -->
-          <template v-if="!isTv">
+          <!-- <template v-if="!isTv">
             <div class="railDivider"></div>
 
             <button class="railItem" @click="prevPage" :disabled="totalPages <= 1" title="Prev">
@@ -110,15 +118,15 @@
               <span class="railText">Logout</span>
             </button>
 
-            <!-- push bottom content to bottom -->
-            <div class="railSpacer"></div>
 
-            <!-- Bottom brand logo -->
-            <button class="railItem railItem--img" title="Brand">
-              <v-img class="railImg" src="/logo.png" contain eager />
-              <span class="railText">XtremeGuard</span>
-            </button>
-          </template>
+          <div class="railSpacer"></div>
+
+
+          <button class="railItem railItem--img" title="Brand">
+            <v-img class="railImg" src="/logo.png" contain eager />
+            <span class="railText">XtremeGuard</span>
+          </button>
+</template> -->
         </div>
       </aside>
 
@@ -197,7 +205,9 @@
       <!-- Notifications Drawer (ONLY when alarms > 0) -->
       <aside v-if="activeNewAlarmRooms.length > 0" class="notifDrawer">
         <div class="notifHeader">
-          <div class="notifHeaderTitle">
+          <div class="notifHeaderTitle" style="padding-top:10px;">
+            <!-- <span>{{ this.screenW }} {{ this.screenH }} </span> -->
+
             NOTIFICATION ALERTS ({{ activeNewAlarmRooms.length }})
           </div>
         </div>
