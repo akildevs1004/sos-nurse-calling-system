@@ -1485,3 +1485,64 @@ export default {
   }
 }
 </style>
+
+<style scoped>
+/* =========================
+   MOBILE (<500px): vertical list
+   ========================= */
+
+
+/* =========================
+   MOBILE (<500px): show only Rail + Notifications
+   ========================= */
+@media (max-width: 499px) {
+
+  /* One-column layout */
+  /* .dashBody,
+  .dashBody.hasNotif {
+    grid-template-columns: 1fr !important;
+  } */
+  .notifDrawer {
+    width: 100%;
+    min-width: 350px !important;
+  }
+
+  /* Rail becomes normal (not overlay) */
+  .rail {
+    width: 100% !important;
+    height: auto !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .railPanel {
+    position: relative !important;
+    width: 100% !important;
+    transform: none !important;
+    border-right: 0 !important;
+  }
+
+  /* HIDE cards area completely */
+  .dashMain,
+  .dashCards,
+  .cardsGrid,
+  .cardCell,
+  .roomCard,
+  .blankCell {
+    display: none !important;
+  }
+
+  /* Notifications full width under rail */
+  .notifDrawer {
+    width: 100% !important;
+    height: calc(100vh - 220px) !important;
+    /* adjust if your rail height differs */
+    border-left: 0 !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.10);
+  }
+
+  .notifBody {
+    overflow: auto !important;
+  }
+}
+</style>
