@@ -454,6 +454,9 @@ export default {
     async tvAutoRedirectIfSaved() {
       if (!this.isTv || this.autoRedirecting) return;
 
+      console.log("this.$auth", this.$auth);
+
+
       // Consider token existence as logged-in
       const hasToken =
         !!this.$auth?.strategy?.token?.get() ||
@@ -486,7 +489,7 @@ export default {
       try {
         const ok = await this.login();
         if (ok) {
-          this.$router.replace("/alarm/tvmonitor1");
+          this.$router.replace("/alarm/tvmonitor14");
           return;
         }
         this.autoRedirecting = false;
@@ -628,7 +631,7 @@ export default {
         const user = data?.user || this.$auth.user;
 
         if (user?.user_type === "security")
-          this.$router.replace("/alarm/tvmonitor1");
+          this.$router.replace("/alarm/tvmonitor12");
         return;
 
         if (user?.branch_id == 0 && user?.is_master == false) {

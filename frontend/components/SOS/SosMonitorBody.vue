@@ -70,10 +70,7 @@
               <span class="railText">Next</span>
             </button>
 
-            <button v-if="$auth?.user" class="railItem" @click="logout" title="Logout">
-              <v-icon class="railIcon">mdi-logout</v-icon>
-              <span class="railText">Logout</span>
-            </button>
+
           </template>
 
           <div class="railDivider"></div>
@@ -89,7 +86,11 @@
 
           <div class="railSpacer"></div>
 
-
+          <button class="railItem" @click="logout" title="Logout">
+            <v-icon class="railIcon">mdi-logout</v-icon>
+            <span class="railText">Logout</span>
+          </button>
+          <div class="railSpacer"></div>
           <button class="railItem railItem--img" title="Brand">
             <v-img class="railImg" src="/logo.png" contain eager />
             <span class="railText">XtremeGuard</span>

@@ -9,18 +9,31 @@
 <script>
 export default {
   name: "TvLayout",
-  auth: true,
+  auth: false,
   middleware: [],// hard bypass,
 
   created() {
+    const hasToken =
+      !!this.$auth?.strategy?.token?.get() ||
+      !!this.$auth?.$storage?.getUniversal?.("auth._token.local");
 
-
-    if (!this.$auth.user) {
-      {
-        this.logout();
-        return "";
-      }
+    if (this.$auth?.loggedIn || hasToken) {
+      // this.autoRedirecting = true;
+      // this.$router.replace("/alarm/tvmonitor1");
+      // return;
     }
+    else {
+      alert("Unauthorized Access. Redirecting to Login.");
+      this.logout();
+      return "";
+    }
+
+    // if (!this.$auth.user) {
+    //   {
+    //     this.logout();
+    //     return "";
+    //   }
+    // }
   }
 };
 
