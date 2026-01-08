@@ -17,32 +17,32 @@
 
           <!-- Split Modes -->
           <button class="railItem" :class="{ active: splitMode === 4 }" @click="setSplit(4)" title="4-way">
-            <v-icon class="railIcon">mdi-view-grid</v-icon>
+            <v-icon class="railIcon">mdi-view-grid-outline</v-icon>
             <span class="railText">4-way Split</span>
           </button>
 
           <button class="railItem" :class="{ active: splitMode === 9 }" @click="setSplit(9)" title="9-way">
-            <v-icon class="railIcon">mdi-view-grid</v-icon>
+            <v-icon class="railIcon">mdi-view-module</v-icon>
             <span class="railText">9-way Split</span>
           </button>
 
           <button class="railItem" :class="{ active: splitMode === 12 }" @click="setSplit(12)" title="12-way">
-            <v-icon class="railIcon">mdi-view-grid-plus</v-icon>
+            <v-icon class="railIcon">mdi-grid</v-icon>
             <span class="railText">12-way Split</span>
           </button>
 
           <button class="railItem" :class="{ active: splitMode === 16 }" @click="setSplit(16)" title="16-way">
-            <v-icon class="railIcon">mdi-view-module</v-icon>
+            <v-icon class="railIcon">mdi-view-headline</v-icon>
             <span class="railText">16-way Split</span>
           </button>
 
           <button class="railItem" :class="{ active: splitMode === 35 }" @click="setSplit(35)" title="35-way">
-            <v-icon class="railIcon">mdi-view-comfy</v-icon>
+            <v-icon class="railIcon">mdi-view-grid-compact</v-icon>
             <span class="railText">35-way Split</span>
           </button>
 
           <button class="railItem" :class="{ active: splitMode === 60 }" @click="setSplit(60)" title="60-way">
-            <v-icon class="railIcon">mdi-view-dashboard</v-icon>
+            <v-icon class="railIcon">mdi-view-grid-plus</v-icon>
             <span class="railText">60-way Split</span>
           </button>
 
@@ -135,7 +135,9 @@
         <section class="dashCards">
           <div class="cardsGrid" :class="splitClass" :style="roomsGridStyle">
             <div v-for="(d, i) in gridItems" :key="d ? (d.id || d.room_id) : `blank-${i}`" class="cardCell">
-              <v-card v-if="d" outlined class="roomCard" :class="cardClass(d)">
+              <v-card v-if="d" outlined class="roomCard"
+                :class="[cardClass(d), { clickable: d.alarm_status && !d.alarm?.responded_datetime }]"
+                @click="d.alarm_status && !d.alarm?.responded_datetime && udpateResponse(d.alarm?.id)">
                 <div class="cardTop" :class="{
                   topAlarm: d.alarm_status && !d.alarm?.responded_datetime,
                   topAck: d.alarm_status && d.alarm?.responded_datetime,
@@ -825,29 +827,35 @@ export default {
 
     // ========== ACK ==========
     udpateResponse(alarmId) {
-      if (!alarmId) return;
 
-      // stop sound immediately (TV + Desktop)
-      this.stopAlarmSoundNow();
 
-      const companyId = this.$auth?.user ? this.$auth?.user?.company_id : Number(process.env.TV_COMPANY_ID || 0);
 
-      const payload = {
-        reqId: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-        params: { company_id: companyId, alarmId }
-      };
+      if (confirm("Are you sure you want to Acknowledge this alarm?")) {
+        if (!alarmId) return;
 
-      try {
-        if (this.client && this.isConnected) {
-          this.client.publish(
-            `tv/${companyId}/dashboard_alarm_response`,
-            JSON.stringify(payload),
-            { qos: 0, retain: false }
-          );
-        }
-      } catch (e) { }
+        // stop sound immediately (TV + Desktop)
+        this.stopAlarmSoundNow();
 
-      setTimeout(() => this.requestDashboardSnapshot(), 400);
+        const companyId = this.$auth?.user ? this.$auth?.user?.company_id : Number(process.env.TV_COMPANY_ID || 0);
+
+        const payload = {
+          reqId: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          params: { company_id: companyId, alarmId }
+        };
+
+        try {
+          if (this.client && this.isConnected) {
+            this.client.publish(
+              `tv/${companyId}/dashboard_alarm_response`,
+              JSON.stringify(payload),
+              { qos: 0, retain: false }
+            );
+          }
+        } catch (e) { }
+
+        setTimeout(() => this.requestDashboardSnapshot(), 400);
+
+      }
     }
   }
 };
@@ -1452,10 +1460,28 @@ export default {
   border: 2px solid rgba(234, 179, 8, 0.75);
   box-shadow: 0 0 16px rgba(234, 179, 8, 0.55);
 }
+
+.roomCard.clickable {
+  cursor: pointer;
+}
+
+.roomCard:not(.clickable) {
+  cursor: default;
+}
 </style>
 
 <style scoped>
 @media (min-width: 500px) and (max-width: 1000px) {
+  .cardsGrid.split-4 .cardTop {
+    height: 60px !important;
+    padding: 14px 14px !important;
+  }
+
+  .cardsGrid.split-4 .cardBottom {
+    height: 60px !important;
+    padding: 0 14px !important;
+  }
+
   .notifDrawer {
     width: 200px;
   }
@@ -1474,7 +1500,7 @@ export default {
   }
 
   .cardsGrid.split-12 .statusIcon {
-    font-size: 50px !important;
+    font-size: 45px !important;
   }
 
   .cardsGrid.split-16 .statusIcon {
@@ -1482,7 +1508,17 @@ export default {
   }
 
   .cardsGrid.split-35 .statusIcon {
-    font-size: 25px !important;
+    font-size: 20px !important;
+  }
+
+  .cardsGrid.split-35 .cardTop {
+    height: 30px !important;
+    padding: 14px 14px !important;
+  }
+
+  .cardsGrid.split-35 .cardBottom {
+    height: 30px !important;
+    padding: 0 14px !important;
   }
 
 
