@@ -5,70 +5,30 @@
       {{ snackbarResponse }}
     </v-snackbar>
 
-    <!-- ===== HEADER (ONLY WHEN NOT TV) ===== -->
-    <!-- <header v-if="!isTv" class="dashHeader">
-      <div class="hdLeft">
-        <v-avatar size="34" class="hdLogo">
-          <v-img :src="getLogo" />
-        </v-avatar>
-
-        <div class="hdTitleBlock">
-          <div class="hdSub text-truncate">
-            {{ $auth?.user?.company?.name || "Company" }}
-          </div>
-        </div>
-      </div>
-
-      <div class="hdRight">
-        <div class="hdMeta">
-          <v-icon small class="mr-1 icoClock">mdi-clock-outline</v-icon>
-          {{ headerTime }}
-        </div>
-
-        <div class="hdMeta">
-          <v-icon small class="mr-1 icoDate">mdi-calendar-month-outline</v-icon>
-          {{ headerDate }}
-        </div>
-
-        <div class="hdMeta">
-          <span class="hdStatusDot" :class="isConnected ? 'ok' : 'bad'"></span>
-          <span class="hdStatusText">{{ isConnected ? "Online" : "Offline" }}</span>
-        </div>
-      </div>
-    </header> -->
     <SosAlarmPopupMqtt @triggerUpdateDashboard="requestDashboardSnapshot()" />
+
     <!-- ===== BODY ===== -->
     <div class="dashBody" :class="{ hasNotif: activeNewAlarmRooms.length > 0 }">
       <!-- Left Rail (EXPAND ON HOVER) -->
       <aside class="rail" :class="{ expanded: railExpanded }" @mouseenter="railExpanded = true"
         @mouseleave="railExpanded = false">
         <div class="railPanel">
-          <!-- Split -->
+          <!-- <div class="railDivider"></div> -->
 
-          <!-- <button class="railItem railIconItem"> -->
-          <!-- <v-img class="railIconImg" :src="getLogo" contain eager /> -->
-
-          <!-- <img :src="getLogo" style="width:100%" class="railIconImg" /> -->
-          <!-- </button> -->
-
-
-
-          <!-- TOP -->
-          <!-- <button class="  railLogoTop railItem" title="Company">
-            <v-img class="  railIcon" :src="getLogo" contain eager />
-            <span class="railText">{{ $auth?.user?.company?.name || "Company" }}</span>
-          </button> -->
-          <div class="railDivider"></div>
-
-
+          <!-- Split Modes -->
           <button class="railItem" :class="{ active: splitMode === 4 }" @click="setSplit(4)" title="4-way">
             <v-icon class="railIcon">mdi-view-grid</v-icon>
             <span class="railText">4-way Split</span>
           </button>
 
-          <button class="railItem" :class="{ active: splitMode === 8 }" @click="setSplit(8)" title="8-way">
+          <button class="railItem" :class="{ active: splitMode === 9 }" @click="setSplit(9)" title="9-way">
+            <v-icon class="railIcon">mdi-view-grid</v-icon>
+            <span class="railText">9-way Split</span>
+          </button>
+
+          <button class="railItem" :class="{ active: splitMode === 12 }" @click="setSplit(12)" title="12-way">
             <v-icon class="railIcon">mdi-view-grid-plus</v-icon>
-            <span class="railText">8-way Split</span>
+            <span class="railText">12-way Split</span>
           </button>
 
           <button class="railItem" :class="{ active: splitMode === 16 }" @click="setSplit(16)" title="16-way">
@@ -76,14 +36,14 @@
             <span class="railText">16-way Split</span>
           </button>
 
-          <button class="railItem" :class="{ active: splitMode === 32 }" @click="setSplit(32)" title="32-way">
+          <button class="railItem" :class="{ active: splitMode === 35 }" @click="setSplit(35)" title="35-way">
             <v-icon class="railIcon">mdi-view-comfy</v-icon>
-            <span class="railText">32-way Split</span>
+            <span class="railText">35-way Split</span>
           </button>
 
-          <button class="railItem" :class="{ active: splitMode === 64 }" @click="setSplit(64)" title="64-way">
+          <button class="railItem" :class="{ active: splitMode === 60 }" @click="setSplit(60)" title="60-way">
             <v-icon class="railIcon">mdi-view-dashboard</v-icon>
-            <span class="railText">64-way Split</span>
+            <span class="railText">60-way Split</span>
           </button>
 
           <div class="railDivider"></div>
@@ -98,8 +58,9 @@
           <template v-if="isTv">
             <button class="railItem" @click="prevPage" :disabled="totalPages <= 1" title="Prev">
               <v-icon class="railIcon">mdi-chevron-left</v-icon>
-              <span class="railText">Prev1</span>
+              <span class="railText">Prev</span>
             </button>
+
             <div class="railPageText">
               {{ pageIndex + 1 }}/{{ totalPages }}
             </div>
@@ -119,7 +80,7 @@
 
           <!-- Bell -->
           <button class="railItem" :class="{ blink: bellBlink }" :disabled="activeNewAlarmRooms.length === 0"
-            @click="markBellSeen" title="NOTIFICATION   ALERTS">
+            @click="markBellSeen" title="NOTIFICATION ALERTS">
             <v-badge :content="activeNewAlarmRooms.length" :value="activeNewAlarmRooms.length > 0" overlap>
               <v-icon class="railIcon">mdi-bell-outline</v-icon>
             </v-badge>
@@ -132,10 +93,10 @@
 
             <button class="railItem" @click="prevPage" :disabled="totalPages <= 1" title="Prev">
               <v-icon class="railIcon">mdi-chevron-left</v-icon>
-              <span class="railText">Prev2</span>
+              <span class="railText">Prev</span>
             </button>
 
-            <div class="  railItem  " style="display:grid">
+            <div class="railItem" style="display:grid">
               {{ pageIndex + 1 }}/{{ totalPages }}
             </div>
 
@@ -149,27 +110,14 @@
               <span class="railText">Logout</span>
             </button>
 
-
             <!-- push bottom content to bottom -->
             <div class="railSpacer"></div>
 
-            <!-- BOTTOM: Brand / Product logo + text -->
-            <!-- BOTTOM -->
-            <!-- <button class="railItem railBrandBottom" title="Brand">
-              <v-img class="railBrandImg" src="/logo.png" contain eager />
-              <span class="railText">Brand Product</span>
-            </button> -->
-
-
-            <button class="railItem"> <v-img class="railIcon" src="/logo.png" />
-              <!-- <span class="railText"> {{
-              $auth?.user?.company?.name || "Company" }}</span>  -->
-
+            <!-- Bottom brand logo -->
+            <button class="railItem railItem--img" title="Brand">
+              <v-img class="railImg" src="/logo.png" contain eager />
+              <span class="railText">XtremeGuard</span>
             </button>
-            <!-- <button class="railItem railText">
-              <span class="railText"> XtremeGuard</span>
-
-            </button> -->
           </template>
         </div>
       </aside>
@@ -180,14 +128,15 @@
           <div class="cardsGrid" :class="splitClass" :style="roomsGridStyle">
             <div v-for="(d, i) in gridItems" :key="d ? (d.id || d.room_id) : `blank-${i}`" class="cardCell">
               <v-card v-if="d" outlined class="roomCard" :class="cardClass(d)">
-                <div class="cardTop " :class="{
+                <div class="cardTop" :class="{
                   topAlarm: d.alarm_status && !d.alarm?.responded_datetime,
                   topAck: d.alarm_status && d.alarm?.responded_datetime,
                   topOk: !d.alarm_status
                 }">
                   <div class="cardTitle">
-                    <v-icon small class="mr-2" style="font-size: 30px;">{{ isToilet(d) ? "mdi-toilet" : "mdi-bed"
-                      }}</v-icon>
+                    <v-icon small class="mr-2" style="font-size: 30px;">
+                      {{ isToilet(d) ? "mdi-toilet" : "mdi-bed" }}
+                    </v-icon>
                     <span class="text-truncate">{{ (d.name || "ROOM").toUpperCase() }}</span>
                   </div>
 
@@ -198,7 +147,8 @@
 
                 <div class="cardMid">
                   <div class="statusCircle" :class="d.alarm_status ? 'isAlarm' : 'isOk'">
-                    <v-icon medium class="statusIcon" :class="d.alarm_status ? 'isAlarm' : 'isOk'">
+                    <v-icon medium class="statusIcon"
+                      :class="d.alarm_status ? d.alarm.responded_datetime ? 'isAck' : 'isAlarm' : 'isOk'">
                       {{ d.alarm_status ? "mdi-close-circle" : "mdi-check-circle-outline" }}
                     </v-icon>
                   </div>
@@ -209,7 +159,11 @@
                   bottomAck: d.alarm_status && d.alarm?.responded_datetime,
                   bottomOk: !d.alarm_status
                 }">
-                  <v-icon medium class="mr-2">
+                  <v-icon medium class="mr-2" :class="{
+                    isAlarm: d.alarm_status && !d.alarm?.responded_datetime,
+                    isAck: d.alarm_status && d.alarm?.responded_datetime,
+                    isOk: !d.alarm_status
+                  }">
                     {{
                       d.alarm_status
                         ? (d.alarm?.responded_datetime ? "mdi-bell-check" : "mdi-bell-ring")
@@ -222,7 +176,7 @@
                       <template v-if="d.alarm?.responded_datetime">Acknowledged</template>
                       <template v-else>Active Alarm: {{ (d.duration || "00:00:00").slice(3) }}</template>
                     </template>
-                    <template v-else style="font-size:16px">No Active Alarm</template>
+                    <template v-else>No Active Alarm</template>
                   </span>
                 </div>
               </v-card>
@@ -258,12 +212,16 @@
             </div>
 
             <div class="notifSub2">Active Time: {{ getRoomActiveTime(r) }}</div>
-            <div class="notifSub2">Start: {{ r.alarm?.alarm_start_datetime || r.alarm_start_datetime || "-" }}</div>
+            <div class="notifSub2">Start: {{ formatStartDate(r.alarm?.alarm_start_datetime || r.alarm_start_datetime) }}
+            </div>
 
-            <v-btn x-small class="notifBtn warn" :disabled="!!r.alarm?.responded_datetime"
-              @click="udpateResponse(r.alarm?.id)">
+            <v-btn x-small class="notifBtn danger" :disabled="!!r.alarm?.responded_datetime"
+              v-if="!r.alarm?.responded_datetime" @click="udpateResponse(r.alarm?.id)">
               ACKNOWLEDGEMENT
             </v-btn>
+            <div style="height:30px;" v-if="!!r.alarm?.responded_datetime" @click="udpateResponse(r.alarm?.id)">
+              &nbsp;
+            </div>
           </div>
         </div>
       </aside>
@@ -335,10 +293,10 @@ export default {
   },
 
   computed: {
-    // TV: width 0 OR between 500..1000
     splitClass() {
-      return `split-${this.splitMode}`; // split-4 / split-8 / split-16 / split-32 / split-64
+      return `split-${this.splitMode}`; // split-4 / split-9 / split-12 / split-16 / split-35 / split-60
     },
+
     isTv() {
       const w = Number(this.screenW || 0);
       if (w === 0) return true;
@@ -351,7 +309,7 @@ export default {
 
     pageSize() {
       const s = Number(this.splitMode);
-      return [4, 8, 16, 32, 64].includes(s) ? s : 16;
+      return [4, 9, 12, 16, 35, 60].includes(s) ? s : 16;
     },
 
     totalPages() {
@@ -368,10 +326,11 @@ export default {
     splitGrid() {
       const s = Number(this.splitMode);
       if (s === 4) return { cols: 2, rows: 2 };
-      if (s === 8) return { cols: 3, rows: 3 };
+      if (s === 9) return { cols: 3, rows: 3 };
+      if (s === 12) return { cols: 3, rows: 4 };
       if (s === 16) return { cols: 4, rows: 4 };
-      if (s === 32) return { cols: 7, rows: 5 };
-      if (s === 64) return { cols: 12, rows: 6 };
+      if (s === 35) return { cols: 7, rows: 5 };
+      if (s === 60) return { cols: 10, rows: 6 }; // ✅ 10x6
       return { cols: 4, rows: 4 };
     },
 
@@ -393,10 +352,9 @@ export default {
         "--grid-rows": String(this.splitGrid.rows),
       };
     },
+
     activeNewAlarmRooms() {
-      return (this.devices || []).filter(
-        d => d && d.alarm_status === true
-      );
+      return (this.devices || []).filter(d => d && d.alarm_status === true);
     },
 
     activeSosCount() {
@@ -433,7 +391,7 @@ export default {
 
     // saved split
     const savedSplit = Number(this.safeLsGet(SPLIT_MODE_KEY));
-    if ([4, 8, 16, 32, 64].includes(savedSplit)) this.splitMode = savedSplit;
+    if ([4, 9, 12, 16, 35, 60].includes(savedSplit)) this.splitMode = savedSplit;
 
     // mqttUrl must be set BEFORE connect
     this.mqttUrl = process.env.MQTT_SOCKET_HOST || "";
@@ -468,6 +426,29 @@ export default {
   },
 
   methods: {
+    formatStartDate(value) {
+      if (!value) return "-";
+
+      const d = new Date(value);
+      if (isNaN(d.getTime())) return "-";
+
+      const time = d.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true
+      });
+
+      const day = d.getDate();
+      const month = d.toLocaleString("en-US", { month: "short" });
+      const year = d.getFullYear();
+
+      const suffix =
+        day % 10 === 1 && day !== 11 ? "st" :
+          day % 10 === 2 && day !== 12 ? "nd" :
+            day % 10 === 3 && day !== 13 ? "rd" : "th";
+
+      return `${time} · ${day}${suffix} ${month} ${year}`;
+    },
     // ========== Rail behavior ==========
     collapseRailAfterAction() {
       this.railExpanded = false;
@@ -611,7 +592,7 @@ export default {
       } catch (e) { }
     },
 
-    // ========== MQTT (IMPORTANT FIX: bind handlers) ==========
+    // ========== MQTT ==========
     connectMqtt() {
       if (this.client) return;
 
@@ -643,7 +624,6 @@ export default {
         clientId
       });
 
-      // ✅ bind message handler so Vue "this" is correct
       this._onMqttMessageBound = (t, p) => this.onMqttMessage(t, p);
 
       this.client.on("connect", () => {
@@ -730,7 +710,6 @@ export default {
           } catch (e) { }
         }
 
-        // Bell resets when alarms exist
         if (this.activeSosCount > 0) this.bellSeen = false;
 
         return;
@@ -838,7 +817,7 @@ export default {
     udpateResponse(alarmId) {
       if (!alarmId) return;
 
-      // ✅ stop sound immediately (TV + Desktop)
+      // stop sound immediately (TV + Desktop)
       this.stopAlarmSoundNow();
 
       const companyId = this.$auth?.user ? this.$auth?.user?.company_id : Number(process.env.TV_COMPANY_ID || 0);
@@ -858,7 +837,6 @@ export default {
         }
       } catch (e) { }
 
-      // refresh after short delay
       setTimeout(() => this.requestDashboardSnapshot(), 400);
     }
   }
@@ -876,78 +854,6 @@ export default {
   color: rgba(255, 255, 255, 0.92);
 }
 
-/* Header desktop only */
-.dashHeader {
-  height: 54px;
-  padding: 10px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.14);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-}
-
-.hdLeft {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.hdLogo {
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.hdSub {
-  font-size: 12px;
-  opacity: 0.85;
-  font-weight: 900;
-}
-
-.hdRight {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-.hdMeta {
-  display: flex;
-  align-items: center;
-  font-size: 12px;
-  opacity: 0.9;
-}
-
-.icoClock {
-  color: rgba(99, 102, 241, 0.95) !important;
-}
-
-.icoDate {
-  color: rgba(34, 197, 94, 0.95) !important;
-}
-
-.hdStatusDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 99px;
-  display: inline-block;
-  margin-right: 6px;
-}
-
-.hdStatusDot.ok {
-  background: #22c55e;
-}
-
-.hdStatusDot.bad {
-  background: #ef4444;
-}
-
-.hdStatusText {
-  font-weight: 900;
-}
-
 /* Body layout */
 .dashBody {
   height: 100%;
@@ -958,43 +864,19 @@ export default {
 }
 
 .dashBody.hasNotif {
-  grid-template-columns: 60px 1fr 200px;
+  grid-template-columns: 60px 1fr 300px;
 }
 
 /* Rail */
-/* Keep grid column fixed, allow overlay */
-.rail {
-  position: relative;
-  width: 60px;
-  /* DO NOT animate width */
-  height: 100%;
-  min-height: 0;
-  overflow: visible;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  background: transparent;
-}
-
-/* The actual sliding panel */
 .rail {
   position: relative;
   width: 60px;
   /* fixed grid column */
   height: 100%;
   overflow: visible;
-}
-
-/* panel */
-/* grid column width = collapsed visible width */
-.rail {
-  position: relative;
-  width: 60px;
-  /* COLLAPSED WIDTH */
-  height: 100%;
-  overflow: visible;
   z-index: 99999;
-  /* optional */
-
   border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
 }
 
 /* panel expands over content */
@@ -1005,7 +887,7 @@ export default {
   bottom: 0;
 
   width: 200px;
-  /* EXPANDED WIDTH */
+  /* expanded width */
   padding: 10px 8px;
   display: flex;
   flex-direction: column;
@@ -1014,9 +896,7 @@ export default {
   background: rgba(0, 0, 0, 0.18);
   border-right: 1px solid rgba(255, 255, 255, 0.08);
 
-  /* collapsed: show only 80px */
   transform: translate3d(-140px, 0, 0);
-  /* 220 - 80 = 140 */
   transition: transform 160ms ease;
   will-change: transform;
   z-index: 9999;
@@ -1027,81 +907,17 @@ export default {
   background-color: #0a0e17;
 }
 
-
-
-/* icons always visible */
-/* default (expanded) stays as-is */
-.railItem {
-  width: 100%;
-  height: 44px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0 12px;
-}
-
-/* COLLAPSED: make item narrower and pinned to the right edge */
-.rail:not(.expanded) .railItem {
-  width: 56px;
-  /* reduced item width (adjust 48–64) */
-  margin-left: auto;
-  /* push item to the RIGHT side */
-  /* justify-content: center; */
-  /* icon centered inside the small item */
-  padding: 0;
-  /* no left/right padding */
-  gap: 0;
-  /* no spacing needed */
-}
-
-
-/* collapsed: keep icon inside the visible right-strip */
-.rail:not(.expanded) .railItem {
-  /* justify-content: flex-end; */
-  /* push content to the visible side */
-  padding: 0 10px;
-  /* right padding */
-  gap: 0;
-  width: 50px;
-}
-
-/* make sure icon has no extra left spacing */
-.rail:not(.expanded) .railIcon {
-  margin: 0 !important;
-}
-
-.railIcon {
-  min-width: 22px;
-  font-size: 22px !important;
-  color: currentColor !important;
-}
-
-.railIcon img {
-  width: 50px;
-}
-
-/* Text transitions (no layout) */
-.railText {
-  opacity: 0;
-  transform: translateX(-8px);
-}
-
-.rail.expanded .railText {
-  opacity: 1;
-  transform: translateX(0);
-}
-
+/* buffer */
 .rail::after {
   content: "";
   position: absolute;
   left: 0;
   top: 0;
   width: 10px;
-  /* buffer */
   height: 100%;
 }
 
+/* item */
 .railItem {
   width: 100%;
   height: 44px;
@@ -1127,13 +943,46 @@ export default {
   cursor: not-allowed;
 }
 
-.railIcon {
-  font-size: 22px !important;
-  min-width: 22px;
-  color: currentColor !important;
-
+/* collapsed: show only right strip */
+.rail:not(.expanded) .railItem {
+  width: 50px;
+  margin-left: auto;
+  padding: 0 10px;
+  gap: 0;
+  justify-content: center;
 }
 
+.rail:not(.expanded) .railText {
+  display: none;
+}
+
+/* icons */
+.railIcon {
+  min-width: 22px;
+  font-size: 22px !important;
+  color: currentColor !important;
+}
+
+/* image in rail item */
+.railImg {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+.railImg :deep(.v-responsive),
+.railImg :deep(.v-image),
+.railImg :deep(.v-image__image),
+.railImg :deep(.v-responsive__content) {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* text */
 .railText {
   opacity: 0;
   transform: translateX(-6px);
@@ -1160,6 +1009,11 @@ export default {
   font-size: 12px;
   font-weight: 900;
   opacity: 0.85;
+}
+
+/* Push bottom section down */
+.railSpacer {
+  flex: 1 1 auto;
 }
 
 /* Blink bell */
@@ -1193,7 +1047,7 @@ export default {
   padding: 12px;
 }
 
-/* Grid: FULL HEIGHT with fixed rows per split */
+/* Grid */
 .cardsGrid {
   width: 100%;
   height: 100% !important;
@@ -1243,7 +1097,6 @@ export default {
   background: linear-gradient(180deg, rgba(161, 98, 7, 0.14), rgba(15, 23, 42, 0.92));
 }
 
-
 .topAlarm {
   background: rgb(56 29 40) !important;
   color: rgba(255, 255, 255, 0.95);
@@ -1290,25 +1143,8 @@ export default {
   place-items: center;
 }
 
-/* .statusCircle {
-  width: 76px;
-  height: 76px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: rgba(0, 0, 0, 0.16);
-  border: 2px solid rgba(255, 255, 255, 0.12);
-}
-
-.statusCircle.isAlarm {
-  border-color: rgba(239, 68, 68, 0.65);
-  box-shadow: 0 0 18px rgba(239, 68, 68, 0.55);
-  animation: alarmPulse 1.2s infinite;
-} */
-
 .roomCard.cardOn {
   border-color: rgba(239, 68, 68, 0.65);
-  /* box-shadow: 0 0 18px rgba(239, 68, 68, 0.55); */
   animation: pulseOpacity 1.2s infinite;
 }
 
@@ -1326,23 +1162,7 @@ export default {
   }
 }
 
-@keyframes alarmPulse {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 0 rgba(239, 68, 68, 0);
-  }
-
-  50% {
-    transform: scale(1.08);
-    box-shadow: 0 0 22px rgba(239, 68, 68, 0.6);
-  }
-
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 rgba(239, 68, 68, 0);
-  }
-}
-
+/* Dynamic icon sizing by rows */
 .statusIcon {
   font-size: clamp(22px, calc(90vh / var(--grid-rows) / 1.6), 78px) !important;
 }
@@ -1354,6 +1174,11 @@ export default {
 .statusIcon.isAlarm {
   color: #ef4444;
 }
+
+.statusIcon.isAck {
+  color: #a16207;
+}
+
 
 .cardBottom {
   height: 40px;
@@ -1383,7 +1208,6 @@ export default {
 
 .bottomText {
   font-size: 17px;
-  ;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1394,7 +1218,7 @@ export default {
 .notifDrawer {
   height: 100%;
   min-height: 0;
-  width: 200px;
+  width: 300px;
   border-left: 1px solid rgba(255, 255, 255, 0.10);
   background: rgba(0, 0, 0, 0.16);
   display: flex;
@@ -1416,7 +1240,7 @@ export default {
 }
 
 .notifBody {
-  padding: 10px;
+  padding: 14px;
   overflow: auto;
   display: flex;
   flex-direction: column;
@@ -1432,12 +1256,17 @@ export default {
 
 .notifCard.new {
   background: rgba(239, 68, 68, 0.16);
-  border-color: rgba(239, 68, 68, 0.22);
+  /* border-color: rgba(239, 68, 68, 0.22); */
+  border-color: red;
+
+
 }
 
 .notifCard.ack {
   background: rgba(161, 98, 7, 0.14);
-  border-color: rgba(161, 98, 7, 0.22);
+  /* border-color: rgba(161, 98, 7, 0.22); */
+  border-color: rgb(245, 160, 4);
+
 }
 
 .notifTopRow {
@@ -1474,7 +1303,7 @@ export default {
   font-size: 11px;
   opacity: 0.75;
   font-weight: 700;
-  color: #897575;
+  color: #ffffff;
 }
 
 .notifBtn {
@@ -1490,6 +1319,13 @@ export default {
   background: rgba(234, 179, 8, 0.22) !important;
   border-color: rgba(234, 179, 8, 0.25) !important;
 }
+
+.notifBtn.danger {
+  background: rgba(239, 68, 68, 0.85) !important;
+  border-color: rgba(239, 68, 68, 0.85) !important;
+}
+
+
 
 .emptyState {
   margin-top: 14px;
@@ -1507,7 +1343,7 @@ export default {
   font-size: 64px !important;
 }
 
-/* 4-way: biggest */
+/* Optional per-split sizing overrides */
 .cardsGrid.split-4 .statusCircle {
   width: 180px;
   height: 180px;
@@ -1517,17 +1353,24 @@ export default {
   font-size: 160px !important;
 }
 
-/* 8-way */
-.cardsGrid.split-8 .statusCircle {
+.cardsGrid.split-9 .statusCircle {
+  width: 120px;
+  height: 120px;
+}
+
+.cardsGrid.split-9 .statusIcon {
+  font-size: 100px !important;
+}
+
+.cardsGrid.split-12 .statusCircle {
   width: 95px;
   height: 95px;
 }
 
-.cardsGrid.split-8 .statusIcon {
+.cardsGrid.split-12 .statusIcon {
   font-size: 82px !important;
 }
 
-/* 16-way */
 .cardsGrid.split-16 .statusCircle {
   width: 78px;
   height: 78px;
@@ -1537,133 +1380,64 @@ export default {
   font-size: 70px !important;
 }
 
-/* 32-way */
-.cardsGrid.split-32 .statusCircle {
-  width: 58px;
-  height: 58px;
+.cardsGrid.split-35 .statusCircle {
+  width: 56px;
+  height: 56px;
 }
 
-.cardsGrid.split-32 .statusIcon {
-  font-size: 50px !important;
+.cardsGrid.split-35 .statusIcon {
+  font-size: 48px !important;
 }
 
-/* 64-way: smallest */
-.cardsGrid.split-64 .statusCircle {
+.cardsGrid.split-60 .statusCircle {
   width: 44px;
   height: 44px;
 }
 
-.cardsGrid.split-64 .statusIcon {
+.cardsGrid.split-60 .statusIcon {
   font-size: 36px !important;
 }
 
-/* Push bottom section down */
-.railSpacer {
-  flex: 1 1 auto;
+/* =========================
+   SPLIT-4: Bigger top/bottom
+   ========================= */
+
+/* Increase header/footer height ONLY for split-4 */
+.cardsGrid.split-4 .cardTop {
+  height: 100px !important;
+  padding: 14px 14px !important;
 }
 
-/* =========
-   Logo/Icon box (matches railIcon footprint)
-========= */
-.railLogoImg,
-.railBrandImg {
-  width: 28px;
-  height: 28px;
-  flex: 0 0 28px;
-  border-radius: 8px;
-  overflow: hidden;
+.cardsGrid.split-4 .cardBottom {
+  height: 100px !important;
+  padding: 0 14px !important;
 }
 
-/* Make sure v-img internal wrappers respect size */
-.railLogoImg :deep(.v-responsive),
-.railLogoImg :deep(.v-image),
-.railLogoImg :deep(.v-image__image),
-.railBrandImg :deep(.v-responsive),
-.railBrandImg :deep(.v-image),
-.railBrandImg :deep(.v-image__image) {
-  width: 100% !important;
-  height: 100% !important;
+/* Increase title + bottom text sizes ONLY for split-4 */
+.cardsGrid.split-4 .cardTitle {
+  font-size: 28px !important;
 }
 
-/* =========
-   Collapsed mode: show only icon box (no text)
-   Align to right edge (your current behavior)
-========= */
-.rail:not(.expanded) .railLogoTop,
-.rail:not(.expanded) .railBrandBottom {
-  width: 48px;
-  margin-left: auto;
-  justify-content: center;
-  padding: 0;
-  gap: 0;
+.cardsGrid.split-4 .bottomText {
+  font-size: 26px !important;
 }
 
-/* In collapsed, slightly smaller images if you want */
-.rail:not(.expanded) .railLogoImg,
-.rail:not(.expanded) .railBrandImg {
-  width: 26px;
-  height: 26px;
-  flex-basis: 26px;
+/* Optional: make icons in top/bottom slightly larger for split-4 */
+.cardsGrid.split-4 .cardTop .v-icon {
+  font-size: 42px !important;
 }
 
-/* Expanded: keep normal spacing */
-.rail.expanded .railLogoTop,
-.rail.expanded .railBrandBottom {
-  padding: 0 12px;
-  gap: 10px;
+.cardsGrid.split-4 .cardBottom .v-icon {
+  font-size: 40px !important;
 }
 
-.railLogoImg,
-.railBrandImg {
-  width: 28px;
-  height: 28px;
-  flex: 0 0 28px;
-  border-radius: 8px;
-  overflow: hidden;
-}
+/* =========================
+   ACKNOWLEDGED STATE (CENTER)
+   ========================= */
 
-.railLogoImg::v-deep(.v-image),
-.railLogoImg::v-deep(.v-responsive),
-.railBrandImg::v-deep(.v-image),
-.railBrandImg::v-deep(.v-responsive) {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.railIconItem {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.railIconImg {
-  /* width: 24px; */
-  /* icon size */
-  /* height: 24px;
-  max-width: 24px;
-  max-height: 24px; */
-  flex: 0 0 90px;
-  overflow: hidden;
-}
-
-.railIconImg::v-deep(.v-image),
-.railIconImg::v-deep(.v-responsive),
-.railIconImg::v-deep(.v-image__image),
-.railIconImg::v-deep(.v-responsive__content) {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.railIconImg:not(.expanded) .railIconItem {
-  max-width: 24px;
-  max-height: 24px;
-  flex: 0 0 24px;
-  overflow: hidden;
-}
-
-.rail:not(.expanded) .railIconItem {
-  width: 48px;
-  margin-left: auto;
-  padding: 0;
+.statusCircle.isAck {
+  background: rgba(161, 98, 7, 0.92);
+  border: 2px solid rgba(234, 179, 8, 0.75);
+  box-shadow: 0 0 16px rgba(234, 179, 8, 0.55);
 }
 </style>

@@ -627,6 +627,10 @@ export default {
         const { data } = await this.$auth.loginWith("local", { data: this.credentials });
         const user = data?.user || this.$auth.user;
 
+        if (user?.user_type === "security")
+          this.$router.replace("/alarm/tvmonitor1");
+        return;
+
         if (user?.branch_id == 0 && user?.is_master == false) {
           this.snackbar = true;
           this.snackbarMessage = "You do not have Permission to access this page";
