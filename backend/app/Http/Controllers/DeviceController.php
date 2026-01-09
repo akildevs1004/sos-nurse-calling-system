@@ -242,9 +242,9 @@ class DeviceController extends Controller
 
 
             if ($request->isNotFilled("device_type")) {
-                $data["device_type"] = "---";
+                $data["device_type"] = null;
             }
-
+            $data["device_type"] = null;
 
             $data["ip"] = "0.0.0.0";
             $data["port"] = "0000";

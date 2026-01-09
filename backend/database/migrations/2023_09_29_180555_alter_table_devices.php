@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -14,7 +15,14 @@ return new class extends Migration
     public function up()
     {
         Schema::table('devices', function (Blueprint $table) {
-            $table->dropForeign('devices_device_type_check');
+            // Skip dropForeign on SQLite
+            if (DB::getDriverName() !== 'sqlite') {
+                Schema::table('devices', function ($table) {
+                    $table->dropForeign('devices_status_id_foreign'); // or the correct name
+                    // other dropForeign/dropIndex that are not supported
+                });
+            }
+            // $table->dropForeign('devices_device_type_check');
         });
     }
 

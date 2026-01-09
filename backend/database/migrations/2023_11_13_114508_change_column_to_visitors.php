@@ -15,6 +15,9 @@ return new class extends Migration
     {
         Schema::table('visitors', function (Blueprint $table) {
             $table->dropColumn("time_in");
+        });
+        Schema::table('visitors', function (Blueprint $table) {
+
             $table->dropColumn("time_out");
         });
     }

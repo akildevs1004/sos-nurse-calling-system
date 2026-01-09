@@ -80,9 +80,9 @@ return new class extends Migration
         Schema::table('leave_types', function (Blueprint $table) {
             $table->integer("branch_id")->nullable();
         });
-        Schema::table('notifications', function (Blueprint $table) {
-            $table->integer("branch_id")->nullable();
-        });
+        // Schema::table('notifications', function (Blueprint $table) {
+        //     $table->integer("branch_id")->nullable();
+        // });
         // Schema::table('overtimes', function (Blueprint $table) {
         //     $table->integer("branch_id")->nullable();
         // });

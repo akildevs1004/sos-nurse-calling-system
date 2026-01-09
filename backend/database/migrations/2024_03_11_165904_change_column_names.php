@@ -16,6 +16,10 @@ return new class extends Migration
         Schema::table('nurse_calling_logs', function (Blueprint $table) {
 
             $table->renameColumn('switch1', 'switch1_status');
+        });
+        Schema::table('nurse_calling_logs', function (Blueprint $table) {
+
+
             $table->renameColumn('switch2', 'switch2_status');
         });
     }

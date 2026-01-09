@@ -14,7 +14,7 @@ return new class extends Migration
     public function up()
     {
         Schema::table('security_logins', function (Blueprint $table) {
-            $table->string("picture")->nullable()->change();
+            // $table->string("picture")->nullable()->change();
             $table->integer("branch_id")->nullable()->change();
         });
     }
@@ -27,7 +27,7 @@ return new class extends Migration
     public function down()
     {
         Schema::table('security_logins', function (Blueprint $table) {
-            $table->dropColumn("picture");
+            // $table->dropColumn("picture");
         });
     }
 };

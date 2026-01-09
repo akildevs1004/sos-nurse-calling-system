@@ -8,7 +8,7 @@
     <SosAlarmPopupMqtt @triggerUpdateDashboard="requestDashboardSnapshot()" :isMQTT="isMQTT" />
 
     <!-- ===== BODY ===== -->
-    <div class="dashBody" :class="{ hasNotif: activeNewAlarmRooms.length > 0 }">
+    <div class="dashBody" :class="{ hasNotif: activeNewAlarmRooms.length > 0 }" :style="dashBodyStyle">
       <!-- Left Rail (EXPAND ON HOVER) -->
       <aside class="rail" :class="{ expanded: railExpanded }" @mouseenter="railExpanded = true"
         @mouseleave="railExpanded = false">
@@ -88,7 +88,7 @@
 
           <button class="railItem" @click="logout" title="Logout">
             <v-icon class="railIcon">mdi-logout</v-icon>
-            <span class="railText">Logout</span>
+            <span class="railText">Logout {{ offset }}</span>
           </button>
           <div class="railSpacer"></div>
           <button class="railItem railItem--img" title="Brand">
@@ -251,7 +251,12 @@ const SPLIT_MODE_KEY = "dash_split_mode";
 export default {
   name: "SosMonitorBody",
   components: { AudioSoundPlay },
-
+  props: {
+    offset: {
+      type: Number,
+      default: 0
+    }
+  },
   data() {
     return {
       isMQTT: false,
@@ -307,6 +312,13 @@ export default {
   },
 
   computed: {
+    computed: {
+      dashBodyStyle() {
+        return {
+          '--offset': `${Number(this.offset || 0)}px`
+        };
+      }
+    },
     splitClass() {
       return `split-${this.splitMode}`; // split-4 / split-9 / split-12 / split-16 / split-35 / split-60
     },
@@ -894,12 +906,24 @@ export default {
 
 /* Body layout */
 .dashBody {
-  height: 100%;
+  height: calc(100vh - var(--offset, 0px));
   min-height: 0;
   display: grid;
   grid-template-columns: 60px 1fr;
   overflow: hidden;
 }
+
+:root {
+  --offset: 100px;
+}
+
+/* .dashBody {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  overflow: hidden;
+} */
 
 .dashBody.hasNotif {
   grid-template-columns: 60px 1fr 300px;

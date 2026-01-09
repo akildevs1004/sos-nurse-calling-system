@@ -13,9 +13,9 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('notifications', function (Blueprint $table) {
-            $table->string("redirect_url")->nullable();
-        });
+        // Schema::table('notifications', function (Blueprint $table) {
+        //     $table->string("redirect_url")->nullable();
+        // });
     }
 
     /**
@@ -25,8 +25,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('notifications', function (Blueprint $table) {
-            $table->dropColumn('redirect_url');
-        });
+        // Schema::table('notifications', function (Blueprint $table) {
+        //     $table->dropColumn('redirect_url');
+        // });
     }
 };

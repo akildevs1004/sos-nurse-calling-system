@@ -535,9 +535,17 @@ class SOSRoomsControllers extends Controller
 
         // DB-specific hour extraction
         $driver = DB::getDriverName();
-        $hourExpr = ($driver === 'pgsql')
-            ? "EXTRACT(HOUR FROM l.alarm_start_datetime)"
-            : "HOUR(l.alarm_start_datetime)";
+        $driver = DB::getDriverName();
+
+        if ($driver === 'pgsql') {
+            $hourExpr = "EXTRACT(HOUR FROM l.alarm_start_datetime)";
+        } elseif ($driver === 'sqlite') {
+            // SQLite: hour as 00-23 string, cast to int
+            $hourExpr = "CAST(strftime('%H', l.alarm_start_datetime) AS INTEGER)";
+        } else {
+            // MySQL/MariaDB
+            $hourExpr = "HOUR(l.alarm_start_datetime)";
+        }
 
         // Aggregate
         $rows = $query
@@ -660,10 +668,23 @@ class SOSRoomsControllers extends Controller
         });
 
         // DB-specific hour extraction
+        // $driver = DB::getDriverName();
+        // $hourExpr = ($driver === 'pgsql')
+        //     ? "CAST(EXTRACT(HOUR FROM l.alarm_start_datetime) AS INT)"
+        //     : "HOUR(l.alarm_start_datetime)";
+
+
         $driver = DB::getDriverName();
-        $hourExpr = ($driver === 'pgsql')
-            ? "CAST(EXTRACT(HOUR FROM l.alarm_start_datetime) AS INT)"
-            : "HOUR(l.alarm_start_datetime)";
+
+        if ($driver === 'pgsql') {
+            $hourExpr = "EXTRACT(HOUR FROM l.alarm_start_datetime)";
+        } elseif ($driver === 'sqlite') {
+            // SQLite: hour as 00-23 string, cast to int
+            $hourExpr = "CAST(strftime('%H', l.alarm_start_datetime) AS INTEGER)";
+        } else {
+            // MySQL/MariaDB
+            $hourExpr = "HOUR(l.alarm_start_datetime)";
+        }
 
         // Aggregate per hour
         $rows = $query
@@ -1087,16 +1108,27 @@ class SOSRoomsControllers extends Controller
         }
 
         // DB-specific expressions
+        // $driver = DB::getDriverName();
+
+        // $hourExpr = ($driver === 'pgsql')
+        //     ? "CAST(EXTRACT(HOUR FROM l.alarm_start_datetime) AS INT)"
+        //     : "HOUR(l.alarm_start_datetime)";
+
+        $driver = DB::getDriverName();
+
         $driver = DB::getDriverName();
 
         $hourExpr = ($driver === 'pgsql')
-            ? "CAST(EXTRACT(HOUR FROM l.alarm_start_datetime) AS INT)"
-            : "HOUR(l.alarm_start_datetime)";
+            ? "EXTRACT(HOUR FROM l.alarm_start_datetime)"
+            : (($driver === 'sqlite')
+                ? "CAST(strftime('%H', l.alarm_start_datetime) AS INTEGER)"
+                : "HOUR(l.alarm_start_datetime)");
 
         $responseMinutesExpr = ($driver === 'pgsql')
             ? "EXTRACT(EPOCH FROM (l.responded_datetime - l.alarm_start_datetime)) / 60"
-            : "TIMESTAMPDIFF(MINUTE, l.alarm_start_datetime, l.responded_datetime)";
-
+            : (($driver === 'sqlite')
+                ? "(strftime('%s', l.responded_datetime) - strftime('%s', l.alarm_start_datetime)) / 60.0"
+                : "TIMESTAMPDIFF(MINUTE, l.alarm_start_datetime, l.responded_datetime)");
         // Aggregate
         $rows = $query
             ->selectRaw("

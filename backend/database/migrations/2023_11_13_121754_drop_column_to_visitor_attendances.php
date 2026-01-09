@@ -15,6 +15,9 @@ return new class extends Migration
     {
         Schema::table('visitor_attendances', function (Blueprint $table) {
             $table->dropColumn("in");
+        });
+        Schema::table('visitor_attendances', function (Blueprint $table) {
+
             $table->dropColumn("out");
         });
     }

@@ -80,24 +80,30 @@ class MqttService
                     try {
                         echo "\n";
                         $serialNumber = $this->extractSerial($topic);
-                        echo $serialNumber . "-sosalarm\n";
+                        echo $serialNumber . "-sosalarm New Alarm Received\n";
                         File::prepend($logPath, "------------------------------------------------------\n");
                         File::prepend($logPath, "[" . now() . "] Data: " . $message . "\n");
 
                         $json = json_decode($message, true);
 
                         if (!is_array($json)) {
+                            echo $serialNumber . "[" . now() . "] ERROR: invalid JSON payload\n";
+
                             File::prepend($logPath, "[" . now() . "] ERROR: invalid JSON payload\n");
                             return;
                         }
 
                         if (($json['type'] ?? null) !== 'sos' || $serialNumber === '') {
+                            echo $serialNumber . "[" . now() . "] ERROR: Type is Not SOS " . $json['type'] . "\n";
+
                             File::prepend($logPath, "[" . now() . "] ERROR: Type is Not SOS " . $json['type'] . "\n");
                             return;
                         }
 
                         $device = Device::where("serial_number", $serialNumber)->first();
                         if (!$device) {
+                            echo $serialNumber . "[" . now() . "] ERROR: Device not found for $serialNumber\n";
+
                             File::prepend($logPath, "[" . now() . "] ERROR: Device not found for $serialNumber\n");
                             return;
                         }
@@ -441,6 +447,10 @@ class MqttService
 
 
                 $this->mqtt->subscribe('tv/+/device-list/get', function (string $topic, string $message) {
+
+
+                    echo $message;
+
                     $payload = json_decode($message, true);
 
                     $companyId = $payload['company_id'] ?? null;

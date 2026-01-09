@@ -175,7 +175,7 @@ export default {
       await this.mqttSubscribeOnce(respTopic);
 
       return new Promise((resolve, reject) => {
-        const timeoutMs = 1000 * 50;
+        const timeoutMs = 1000 * 12;
 
         const onMessage = (topic, payload) => {
           if (topic !== respTopic) return;
@@ -184,19 +184,28 @@ export default {
           try {
             msg = JSON.parse(payload.toString());
 
-            // console.log("msg", msg);
+            console.log("msg", msg);
 
           } catch (e) {
+
+            console.log("fetchDeviceListViaMqtt parse err", e);
             return; // ignore non-json
           }
 
           // only accept the matching response
-          if (msg?.requestId !== requestId) return;
+          if (msg?.requestId !== requestId) {
+
+            console.log("msg.requestId", msg?.requestId, requestId);
+
+            return
+          };
 
           // cleanup listener + timeout
           cleanup();
 
           if (!msg?.ok) {
+            console.log("fetchDeviceListViaMqtt msg error", msg);
+
             reject(new Error(msg?.message || "Device list request failed"));
             return;
           }
@@ -277,7 +286,7 @@ export default {
       });
 
       this.client.on("connect", () => {
-        console.log(" this.isConnected", "Connected");
+        console.log(" this.isConnected", "Connected SOS MQTT");
 
         this.isConnected = true;
         this.client.subscribe("xtremesos/+/sosalarm", { qos: 1 });
