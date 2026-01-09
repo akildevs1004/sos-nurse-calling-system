@@ -426,6 +426,8 @@ export default {
 
     // Auto rotate
     this.startAutoRotate();
+
+    // this.isTVUserAgent();
   },
 
   beforeDestroy() {
@@ -440,6 +442,22 @@ export default {
   },
 
   methods: {
+    // isTVUserAgent() {
+    //   const ua = navigator.userAgent.toLowerCase();
+
+
+
+    //   return (
+    //     ua.includes("android tv") ||
+    //     ua.includes("smart-tv") ||
+    //     ua.includes("smarttv") ||
+    //     ua.includes("googletv") ||
+    //     ua.includes("hbbtv") ||
+    //     ua.includes("tizen") ||
+    //     ua.includes("webos") ||
+    //     ua.includes("aft") // Amazon Fire TV
+    //   );
+    // },
     formatStartDate(value) {
       if (!value) return "-";
 

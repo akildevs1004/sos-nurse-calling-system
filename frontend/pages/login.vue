@@ -270,9 +270,9 @@ export default {
       const w = this.screenW || 0;
       const h = this.screenH || 0;
 
-      console.log(w, h);
+      //console.log(w, h);
 
-      return (w < 700) || (w >= 900 && w <= 1100) || (h > 0 && h < 700) || (w === 0 && h === 0); // treat 0x0 as TV for server-side rendering
+      return this.isTVUserAgent() || (w < 700) || (h < 900) || (w >= 900 && w <= 1100) || (h > 0 && h < 700) || (w === 0 && h === 0); // treat 0x0 as TV for server-side rendering
     },
 
     // Are saved credentials present?
@@ -419,6 +419,28 @@ export default {
   },
 
   methods: {
+    isTVUserAgent() {
+      try {
+        if (navigator === undefined) return false;
+        const ua = navigator.userAgent.toLowerCase();
+
+        console.log("ua", ua);
+
+
+        return (
+          ua.includes("android tv") ||
+          ua.includes("smart-tv") ||
+          ua.includes("smarttv") ||
+          ua.includes("googletv") ||
+          ua.includes("hbbtv") ||
+          ua.includes("tizen") ||
+          ua.includes("webos") ||
+          ua.includes("aft") // Amazon Fire TV
+        );
+      } catch (e) {
+        return false;
+      }
+    },
     updateViewport() {
       try {
         this.screenW = window.innerWidth || 0;
@@ -617,6 +639,9 @@ export default {
 
           if (res.user?.user_type === "security")
             this.$router.replace("/alarm/tvmonitor1");
+
+          else
+            this.$router.replace("/alarm/dashboard");
           return;
         }
 
@@ -631,7 +656,9 @@ export default {
         const user = data?.user || this.$auth.user;
 
         if (user?.user_type === "security")
-          this.$router.replace("/alarm/tvmonitor12");
+          this.$router.replace("/alarm/tvmonitor1");
+        else
+          this.$router.replace("/alarm/dashboard");
         return;
 
         if (user?.branch_id == 0 && user?.is_master == false) {
