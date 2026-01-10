@@ -396,14 +396,17 @@ class MqttService
 
                 // Listen to all companies
                 $this->mqtt->subscribe('tv/+/dashboard/request', function (string $topic, string $message) {
+                    echo "Dashboard rooms Request from Security ID: '\n";
 
 
                     // echo "MQTT Request Message: " . $message;
                     try {
                         $payload = json_decode($message, true, 512, JSON_THROW_ON_ERROR);
 
-                        $parts = explode('/', $topic); // tv/{companyId}/dashboard/request
+                        $parts = explode('/', $topic); // tv/{companyId}/dashboard/request/securityid
                         $companyId = (int)($parts[1] ?? 0);
+                        $securityId = (int)($parts[4] ?? 0);
+
                         if ($companyId <= 0) return;
 
                         $reqId = (string)($payload['reqId'] ?? '');
@@ -411,6 +414,8 @@ class MqttService
 
                         // Force company id from topic (cannot be spoofed)
                         $params['company_id'] = $companyId;
+                        $params['securityId'] = $securityId;
+                        echo "Dashboard rooms Request from Security ID: " .     $params['securityId'] . '\n';
 
                         // Call your existing controller methods directly (NO HTTP)
                         $controller = app(SOSRoomsControllers::class);
@@ -442,6 +447,8 @@ class MqttService
                             'message' => $message,
                             'error' => $e->getMessage(),
                         ]);
+
+                        echo "Error Dashboard rooms Request from Security ID: " .     $e->getMessage() . '\n';
                     }
                 }, 0);
 
@@ -456,7 +463,7 @@ class MqttService
                     $companyId = $payload['company_id'] ?? null;
                     $requestId = $payload['requestId'] ?? null;
 
-                    echo "\n Device List Request from Company ID: " . $companyId;
+                    echo "\n Device List Request from Company ID: " . $companyId . '\n';
 
                     // Basic validation
                     if (!$companyId || !$requestId) {

@@ -89,7 +89,7 @@
 
           <button class="railItem" @click="logout" title="Logout">
             <v-icon class="railIcon">mdi-logout</v-icon>
-            <span class="railText">Logout {{ offset }}</span>
+            <span class="railText">Logout </span>
           </button>
           <div class="railSpacer"></div>
           <button class="railItem railItem--img" title="Brand">
@@ -427,7 +427,8 @@ export default {
     this.mqttUrl = this.$store.state.env ? this.$store.state.env.MQTT_SOCKET_HOST : '';//process.env.MQTT_SOCKET_HOST || "";
   },
 
-  mounted() {
+  async mounted() {
+    await this.loadEnv();
     window.addEventListener("resize", this.readScreen);
 
     // Clock
@@ -458,7 +459,20 @@ export default {
   },
 
   methods: {
+    async loadEnv() {
+      // Load runtime env from store
+      try {
+        const res = await this.$axios.get("/envsettings");
 
+        this.$store.commit("SET_ENV", res.data);
+
+
+
+      } catch (e) {
+        console.error("Failed to load env settings", e);
+
+      }
+    },
     // isTVUserAgent() {
     //   const ua = navigator.userAgent.toLowerCase();
 
@@ -652,6 +666,8 @@ export default {
       }
 
       const companyId = this.$auth?.user ? this.$auth?.user?.company_id : Number(process.env.TV_COMPANY_ID || 0);
+      const securityId = this.$auth?.user?.security?.id || 0;
+
       if (!companyId) {
         this.snackbar = true;
         this.snackbarResponse = "TV_COMPANY_ID missing in env";
@@ -713,6 +729,9 @@ export default {
       if (!this.client || !this.isConnected) return;
 
       const companyId = this.$auth?.user ? this.$auth?.user?.company_id : Number(process.env.TV_COMPANY_ID || 0);
+
+      console.log("this.$auth?.user", this.$auth?.user);
+
       const securityId = this.$auth?.user?.security?.id || 0;
 
       const payload = {
@@ -722,6 +741,9 @@ export default {
           securityId: securityId || null
         }
       };
+
+      console.log("this.topics.req", this.topics.req, payload);
+
 
       this.client.publish(this.topics.req, JSON.stringify(payload), { qos: 0, retain: false });
     },

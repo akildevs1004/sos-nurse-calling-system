@@ -183,6 +183,8 @@ class SOSRoomsControllers extends Controller
         if ($request->filled('securityId')) {
             $securityId =   (int) $request->securityId;
 
+            echo $securityId;
+
             // IMPORTANT: pick the correct column:
             // - If this table stores DeviceSosRooms IDs, pluck('device_sos_room_id') (example)
             // - If it stores its own row IDs, pluck('id') will be wrong for filtering rooms.
