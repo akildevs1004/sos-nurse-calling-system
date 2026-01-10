@@ -1030,7 +1030,7 @@ export default {
   mounted() {
     setTimeout(() => {
       this.audio = new Audio(
-        process.env.BACKEND_URL2 + "alarm_sounds/alarm-sound1.mp3"
+        this.$store.state.env.BACKEND_URL2 + "alarm_sounds/alarm-sound1.mp3"
       );
     }, 2000);
     // setTimeout(() => {
@@ -1211,7 +1211,7 @@ export default {
     },
     palysound() {
       this.audio = new Audio(
-        process.env.BACKEND_URL2 + "alarm_sounds/alarm-sound1.mp3"
+        this.$store.state.env.BACKEND_URL2 + + "alarm_sounds/alarm-sound1.mp3"
       );
 
       this.playAudioOnUserInteraction();

@@ -540,7 +540,7 @@ export default {
       this.loading = true;
       console.log("connecting to MQTT");
 
-      const host = process.env.MQTT_SOCKET_HOST; // "wss://mqtt.xtremeguard.org:8084"; // If TLS WebSocket is available
+      const host = this.$store.state.env.MQTT_SOCKET_HOST;// process.env.MQTT_SOCKET_HOST; // "wss://mqtt.xtremeguard.org:8084"; // If TLS WebSocket is available
 
       const clientId = "vue-client-" + Math.random().toString(16).substr(2, 8);
 

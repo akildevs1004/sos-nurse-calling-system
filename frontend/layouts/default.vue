@@ -1179,7 +1179,8 @@ export default {
   //     },
   //   },
   // },
-  created() {
+  async created() {
+    await this.loadEnv();
     const savedTheme = this.$auth.user.company?.theme || "light";
 
     if (savedTheme === "dark") {
@@ -1238,15 +1239,18 @@ export default {
         }
       } catch (e) { }
     }, 1000);
+
+
   },
   beforeDestroy() {
     if (this.intervalObj) clearInterval(this.intervalObj);
     this.intervalObj = null;
   },
-  mounted() {
+  async mounted() {
+    await this.loadEnv();
     setTimeout(() => {
       this.audio = new Audio(
-        process.env.BACKEND_URL2 + "alarm_sounds/alarm-sound1.mp3"
+        this.$store.state.env.BACKEND_URL2 + "alarm_sounds/alarm-sound1.mp3"
       );
     }, 2000);
     // setTimeout(() => {
@@ -1403,6 +1407,20 @@ export default {
   },
 
   methods: {
+    async loadEnv() {
+      // Load runtime env from store
+      try {
+        const res = await this.$axios.get("/envsettings");
+
+        this.$store.commit("SET_ENV", res.data);
+
+
+
+      } catch (e) {
+        console.error("Failed to load env settings", e);
+
+      }
+    },
     // layoutMethod() {
     //   alert("");
     // },
@@ -1427,7 +1445,7 @@ export default {
     },
     palysound() {
       this.audio = new Audio(
-        process.env.BACKEND_URL2 + "alarm_sounds/alarm-sound1.mp3"
+        this.$store.state.env.BACKEND_URL2 + "alarm_sounds/alarm-sound1.mp3"
       );
 
       this.playAudioOnUserInteraction();

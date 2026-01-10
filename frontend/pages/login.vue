@@ -392,7 +392,7 @@ export default {
 
   },
 
-  mounted() {
+  async mounted() {
     this.$vuetify.theme.dark = false;
 
     this.updateViewport();
@@ -410,6 +410,8 @@ export default {
 
     // TV: auto redirect
     this.tvAutoRedirectIfSaved();
+
+    await this.loadEnv();
   },
 
   beforeDestroy() {
@@ -419,6 +421,25 @@ export default {
   },
 
   methods: {
+    async loadEnv() {
+      // Load runtime env from store
+      try {
+        // 1. Call backend envsettings API
+        const res = await this.$axios.get("/envsettings");
+
+        // 2. Store env data in Vuex
+        this.$store.commit("SET_ENV", res.data);
+
+        // 3. Use it immediately if needed
+        //console.log("MQTT HOST:", this.$store.state.env.MQTT_SOCKET_HOST);
+        //console.log("COMPANY ID:", this.$store.state.env.TV_COMPANY_ID);
+
+
+      } catch (e) {
+        console.error("Failed to load env settings", e);
+        // alert("Failed to load environment settings");
+      }
+    },
     isTVUserAgent() {
       try {
         if (navigator === undefined) return false;

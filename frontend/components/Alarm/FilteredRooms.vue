@@ -3,12 +3,7 @@
     <v-card class="mb-5 mt-5" elevation="0">
       <div v-if="can(`attendance_report_access`)">
         <div class="text-center">
-          <v-snackbar
-            v-model="snackbar"
-            top="top"
-            color="secondary"
-            elevation="24"
-          >
+          <v-snackbar v-model="snackbar" top="top" color="secondary" elevation="24">
             {{ response }}
           </v-snackbar>
           <v-snackbar v-model="snack" :timeout="3000" :color="snackColor">
@@ -21,80 +16,40 @@
         </div>
         <v-card class="mb-5" elevation="0">
           <v-toolbar class="backgrounds" dense flat>
-            <v-toolbar-title
-              ><span>{{ report_type }} Rooms </span></v-toolbar-title
-            >
+            <v-toolbar-title><span>{{ report_type }} Rooms </span></v-toolbar-title>
             <span>
-              <v-btn
-                dense
-                class="ma-0 px-0"
-                x-small
-                :ripple="false"
-                text
-                title="Reload"
-              >
-                <v-icon class="ml-2" @click="getDataFromApi" dark
-                  >mdi-reload</v-icon
-                >
+              <v-btn dense class="ma-0 px-0" x-small :ripple="false" text title="Reload">
+                <v-icon class="ml-2" @click="getDataFromApi" dark>mdi-reload</v-icon>
               </v-btn>
             </span>
 
             <v-spacer></v-spacer>
-            <span style="padding-left: 15px"
-              ><img
-                title="Print"
-                style="cursor: pointer"
-                @click="process_file('print_pdf')"
-                src="/icons/icon_print.png"
-                class="iconsize"
-            /></span>
-            <span style="padding-left: 15px"
-              ><img
-                title="Download Pdf"
-                style="cursor: pointer"
-                @click="process_file('download_pdf')"
-                src="/icons/icon_pdf.png"
-                class="iconsize"
-            /></span>
+            <span style="padding-left: 15px"><img title="Print" style="cursor: pointer"
+                @click="process_file('print_pdf')" src="/icons/icon_print.png" class="iconsize" /></span>
+            <span style="padding-left: 15px"><img title="Download Pdf" style="cursor: pointer"
+                @click="process_file('download_pdf')" src="/icons/icon_pdf.png" class="iconsize" /></span>
           </v-toolbar>
 
-          <v-data-table
-            dense
-            :headers="headers"
-            :items="data"
-            :loading="loading"
-            :options.sync="options"
-            :footer-props="{
-              itemsPerPageOptions: [10, 50, 100, 500, 1000],
-            }"
-            class="elevation-1"
-            model-value="data.id"
-            :server-items-length="totalRowsCount"
-            fixed-header
-            :height="tableHeight"
-          >
+          <v-data-table dense :headers="headers" :items="data" :loading="loading" :options.sync="options" :footer-props="{
+            itemsPerPageOptions: [10, 50, 100, 500, 1000],
+          }" class="elevation-1" model-value="data.id" :server-items-length="totalRowsCount" fixed-header
+            :height="tableHeight">
             <template v-slot:item.id="{ item, index }">
               {{ index + 1 }}
             </template>
             <template v-slot:item.full_name="{ item }" style="padding: 0px">
               <v-row no-gutters v-if="item.tanent">
-                <v-col
-                  md="2"
-                  style="
+                <v-col md="2" style="
                     padding: 3px;
                     padding-left: 0px;
                     width: 45px;
                     max-width: 45px;
-                  "
-                >
+                  ">
                   <v-avatar>
-                    <v-img
-                      :src="
-                        item.tanent && item.tanent.profile_picture
-                          ? item.tanent.profile_picture
-                          : '/no-profile-image.jpg'
-                      "
-                    >
+                    <v-img :src="item.tanent && item.tanent.profile_picture
+                      ? item.tanent.profile_picture
+                      : '/no-profile-image.jpg'
+                      ">
                     </v-img>
                   </v-avatar>
                 </v-col>
@@ -103,20 +58,13 @@
                     {{ item.tanent.full_name || "---" }}
                   </div>
                   <small class="mx-2 mt-2">
-                    {{ item.tanent.nationality || "---" }}</small
-                  >
+                    {{ item.tanent.nationality || "---" }}</small>
                 </v-col>
               </v-row>
             </template>
             <template v-slot:item.status_id="{ item }">
-              <v-chip
-                small
-                class="ma-1"
-                :color="item?.tanent?.id ? `grey` : `green`"
-                dark
-              >
-                {{ item?.tanent?.id ? "Occupied" : "Available" }}</v-chip
-              >
+              <v-chip small class="ma-1" :color="item?.tanent?.id ? `grey` : `green`" dark>
+                {{ item?.tanent?.id ? "Occupied" : "Available" }}</v-chip>
             </template>
           </v-data-table>
         </v-card>
@@ -312,7 +260,7 @@ export default {
         refresh: true,
         endpoint: this.endpoint,
         filters: this.payload,
-      
+
       });
       this.data = data;
       this.totalRowsCount = total;

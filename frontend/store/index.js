@@ -29,10 +29,14 @@ export const state = () => ({
   login_token: "",
   email: "",
   password: "",
+  env: null, // runtime env data
 });
 
 // contains your mutations
 export const mutations = {
+  SET_ENV(state, payload) {
+    state.env = payload;
+  },
   RESET_STATE(state) {
     // Object.keys(state).forEach((key) => {
     //   state[key] = null;

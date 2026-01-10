@@ -413,6 +413,7 @@ export default {
   },
 
   created() {
+
     this.$vuetify.theme.dark = true;
 
     // screen
@@ -423,7 +424,7 @@ export default {
     if ([4, 9, 12, 16, 35, 60].includes(savedSplit)) this.splitMode = savedSplit;
 
     // mqttUrl must be set BEFORE connect
-    this.mqttUrl = process.env.MQTT_SOCKET_HOST || "";
+    this.mqttUrl = this.$store.state.env ? this.$store.state.env.MQTT_SOCKET_HOST : '';//process.env.MQTT_SOCKET_HOST || "";
   },
 
   mounted() {
@@ -457,6 +458,7 @@ export default {
   },
 
   methods: {
+
     // isTVUserAgent() {
     //   const ua = navigator.userAgent.toLowerCase();
 
@@ -660,9 +662,9 @@ export default {
       this.topics.rooms = `tv/${companyId}/dashboard/rooms`;
       this.topics.stats = `tv/${companyId}/dashboard/stats`;
       this.topics.reload = `tv/reload`;
-      this.topics.reloadconfig = `${process.env.MQTT_DEVICE_CLIENTID}/${companyId}/message`;
+      this.topics.reloadconfig = `${this.$store.state.env.MQTT_DEVICE_CLIENTID}/${companyId}/message`;
 
-      const clientId = `tvmonitor-${process.env.MQTT_DEVICE_CLIENTID}-${companyId}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      const clientId = `tvmonitor-${this.$store.state.env.MQTT_DEVICE_CLIENTID}-${companyId}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
       this.client = mqtt.connect(this.mqttUrl, {
         reconnectPeriod: 3000,

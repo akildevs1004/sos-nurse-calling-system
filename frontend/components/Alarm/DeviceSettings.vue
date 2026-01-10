@@ -719,12 +719,27 @@ export default {
     if (this.mqttClient) this.mqttClient.end();
   },
   async created() {
+    await this.loadEnv();
     this.generateTimeOptions();
     this.generateTimeOptionsHeartBeat();
     this.connectMQTT();
     // await this.getConfigDataFromAPI();
   },
   methods: {
+    async loadEnv() {
+      // Load runtime env from store
+      try {
+        const res = await this.$axios.get("/envsettings");
+
+        this.$store.commit("SET_ENV", res.data);
+
+
+
+      } catch (e) {
+        console.error("Failed to load env settings", e);
+
+      }
+    },
     connectMQTT() {
       // this.key++;
       console.log("Device settingsconnecting to MQTT");
@@ -736,7 +751,7 @@ export default {
       // const host = "tcp://mqtt.xtremeguard.org:1883"; // For secure WebSocket
 
       // const host = "wss://mqtt.xtremeguard.org:8084"; // If TLS WebSocket is available
-      const host = process.env.MQTT_SOCKET_HOST; //
+      const host = this.$store.state.env ? this.$store.state.env.MQTT_SOCKET_HOST : '';//process.env.MQTT_SOCKET_HOST; //
 
       const clientId = "vue-client-" + Math.random().toString(16).substr(2, 8);
 

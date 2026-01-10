@@ -100,13 +100,13 @@ export default {
   // },
 
   async mounted() {
-
+    await this.loadEnv();
     // alert("Connected");
 
 
     // if ((this.allowedSerials.length))
     {
-      this.mqttUrl = process.env.MQTT_SOCKET_HOST;
+      this.mqttUrl = this.$store.state.env.MQTT_SOCKET_HOST;//process.env.MQTT_SOCKET_HOST;
       this.connectMqtt();
     }
 
@@ -121,7 +121,20 @@ export default {
   // MQTT remains alive even if popup closes or page navigates
 
   methods: {
+    async loadEnv() {
+      // Load runtime env from store
+      try {
+        const res = await this.$axios.get("/envsettings");
 
+        this.$store.commit("SET_ENV", res.data);
+
+
+
+      } catch (e) {
+        console.error("Failed to load env settings", e);
+
+      }
+    },
     async getDevicesFromApi() {
 
       await this.loadAllowedSerials();
@@ -160,7 +173,7 @@ export default {
 
     async fetchDeviceListViaMqtt() {
       const companyId =
-        this.$auth?.user?.company_id || process.env.TV_COMPANY_ID;
+        this.$auth?.user?.company_id;// || process.env.TV_COMPANY_ID;
 
       const reqTopic = `tv/${companyId}/device-list/get`;
       const respTopic = `tv/${companyId}/device-list/resp`;
