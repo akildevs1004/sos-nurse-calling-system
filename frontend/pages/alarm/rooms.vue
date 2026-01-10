@@ -1261,7 +1261,7 @@ export default {
     connectMQTT() {
 
       this.loading = true;
-      console.log("connecting to MQTT");
+      console.log("connecting to MQTT Alarm Page");
 
       const host = process.env.MQTT_SOCKET_HOST; // "wss://mqtt.xtremeguard.org:8084"; // If TLS WebSocket is available
 

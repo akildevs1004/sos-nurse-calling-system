@@ -1,5 +1,5 @@
 <template>
-  <SosMonitorBody :offset="100" />
+  <SosMonitorBody :offset="85" />
 </template>
 
 <script>

@@ -729,7 +729,7 @@ export default {
       // this.key++;
       console.log("Device settingsconnecting to MQTT");
       // this.loading = true;
-      this.mqqtt_response_status = "Connecting to MQTT....";
+      this.mqqtt_response_status = "Connecting to MQTT.... Device Settings";
       //const host = "wss://broker.hivemq.com:8884/mqtt"; // For secure WebSocket
       // const host = "ws://165.22.222.17:9001"; // For secure WebSocket
       // const host = "wss://mqtt.xtremeguard.org:9002"; // For secure WebSocket

@@ -1,5 +1,5 @@
 <template>
-  <div class="dashShell">
+  <div class="dashShell" :style="dashBodyStyle">
     <!-- Snackbar -->
     <v-snackbar v-model="snackbar" :timeout="3000" elevation="24" class="center-snackbar">
       {{ snackbarResponse }}
@@ -8,7 +8,8 @@
     <SosAlarmPopupMqtt @triggerUpdateDashboard="requestDashboardSnapshot()" :isMQTT="isMQTT" />
 
     <!-- ===== BODY ===== -->
-    <div class="dashBody" :class="{ hasNotif: activeNewAlarmRooms.length > 0 }" :style="dashBodyStyle">
+
+    <div class="dashBody" :class="{ hasNotif: activeNewAlarmRooms.length > 0 }">
       <!-- Left Rail (EXPAND ON HOVER) -->
       <aside class="rail" :class="{ expanded: railExpanded }" @mouseenter="railExpanded = true"
         @mouseleave="railExpanded = false">
@@ -312,13 +313,15 @@ export default {
   },
 
   computed: {
-    computed: {
-      dashBodyStyle() {
-        return {
-          '--offset': `${Number(this.offset || 0)}px`
-        };
-      }
+
+    dashBodyStyle() {
+      return {
+        height: `calc(100vh - ${Number(this.offset || 0)}px)`,
+        width: this.offset > 0 ? '101%' : undefined,
+        marginLeft: this.offset > 0 ? `-10px` : undefined
+      };
     },
+
     splitClass() {
       return `split-${this.splitMode}`; // split-4 / split-9 / split-12 / split-16 / split-35 / split-60
     },
@@ -906,16 +909,17 @@ export default {
 
 /* Body layout */
 .dashBody {
-  height: calc(100vh - var(--offset, 0px));
+  height: 100%;
+  ;
   min-height: 0;
   display: grid;
   grid-template-columns: 60px 1fr;
   overflow: hidden;
 }
 
-:root {
+/* :root {
   --offset: 100px;
-}
+} */
 
 /* .dashBody {
   height: 100%;
