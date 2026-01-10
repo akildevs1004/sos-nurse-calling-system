@@ -175,7 +175,7 @@ export default {
       await this.mqttSubscribeOnce(respTopic);
 
       return new Promise((resolve, reject) => {
-        const timeoutMs = 1000 * 12;
+        const timeoutMs = 1000 * 60;
 
         const onMessage = (topic, payload) => {
           if (topic !== respTopic) return;

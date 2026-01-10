@@ -662,7 +662,7 @@ export default {
       this.topics.reload = `tv/reload`;
       this.topics.reloadconfig = `${process.env.MQTT_DEVICE_CLIENTID}/${companyId}/message`;
 
-      const clientId = `tvmonitor-${companyId}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      const clientId = `tvmonitor-${process.env.MQTT_DEVICE_CLIENTID}-${companyId}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
       this.client = mqtt.connect(this.mqttUrl, {
         reconnectPeriod: 3000,

@@ -469,7 +469,7 @@ class MqttService
                     try {
 
                         $devices = (new DeviceController())->dropdownList((new Request(['company_id' => $companyId])));
-                        echo "\n Count" . count($devices);
+                        // echo "\n Count" . count($devices);
                         $resp = [
                             'requestId' => $requestId,
                             'ok'        => true,
