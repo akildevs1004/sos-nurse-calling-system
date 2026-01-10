@@ -202,8 +202,8 @@
         </section>
 
         <!-- Desktop sound (ONLY when NOT TV) -->
-        <AudioSoundPlay v-if="!isTv && stats.activeSos > 0 && !muted && Date.now() > soundSuppressUntil"
-          :key="totalSOSCount" :notificationsMenuItemsCount="stats.activeSos" />
+        <AudioSoundPlay :key="totalSOSCount"
+          :notificationsMenuItemsCount="!isTv && stats.activeSos > 0 && !muted && Date.now() > soundSuppressUntil ? 1 : 0" />
       </main>
 
       <!-- Notifications Drawer (ONLY when alarms > 0) -->

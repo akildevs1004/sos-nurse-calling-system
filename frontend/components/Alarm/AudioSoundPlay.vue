@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Local audio from /public/alarm_sounds/alarm-sound1.mp3 -->
-    <audio ref="audioPlayer" :src="audioFile" preload="auto"></audio>
+    <audio ref="audioPlayer" :src="audioFile" preload="auto" loop="true"></audio>
   </div>
 </template>
 
@@ -98,11 +98,12 @@ export default {
     playAudio(forceImmediate = false) {
       const audio = this.$refs.audioPlayer;
       if (!audio) return;
-
+      audio.play().catch(() => { });
       clearTimeout(this.playDelayTimer);
 
       // Keep alarming continuously while notifications > 0
       audio.loop = true;
+
 
       // Optional: restart from beginning on each play trigger
       audio.currentTime = 0;
@@ -124,6 +125,8 @@ export default {
       if (!audio) return;
 
       audio.pause();
+      audio.currentTime = 0;
+      audio.loop = false;
       this.isPlaying = false;
     },
 
