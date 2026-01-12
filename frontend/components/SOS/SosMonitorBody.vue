@@ -412,8 +412,8 @@ export default {
     }
   },
 
-  created() {
-
+  async created() {
+    await this.loadEnv();
     this.$vuetify.theme.dark = true;
 
     // screen
@@ -656,7 +656,9 @@ export default {
     },
 
     // ========== MQTT ==========
-    connectMqtt() {
+    async connectMqtt() {
+
+      await this.loadEnv();
       if (this.client) return;
 
       if (!this.mqttUrl) {

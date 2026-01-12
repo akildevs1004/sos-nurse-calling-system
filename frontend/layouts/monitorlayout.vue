@@ -1536,7 +1536,7 @@ export default {
     setMenus() {
       if (this.$auth.user.role.role_type == 0) {
         {
-          alert("Invalid User Type");
+          //alert("Invalid User Type");
           this.logout();
         }
 

@@ -28,7 +28,7 @@ class MqttService
 
     public function __construct()
     {
-        $host = env('MQTT_HOST');
+        $host =  $this->getServerIp(); //env('MQTT_HOST');
         $port = env('MQTT_PORT', 1883);
         $this->clientId = 'laravel-client-' . uniqid(); //env('MQTT_CLIENT_ID', 'laravel-client-' . uniqid());
         $this->mqttDeviceClientId = env('MQTT_DEVICE_CLIENTID');
@@ -49,7 +49,7 @@ class MqttService
 
 
         $clientId = 'laravel-client-' . uniqid(); //env('MQTT_CLIENT_ID', 'laravel-client-' . uniqid());
-        $host =  env('MQTT_HOST'); //env('MQTT_HOST', '165.22.222.17');
+        $host =   $this->getServerIp(); //env('MQTT_HOST'); //env('MQTT_HOST', '165.22.222.17');
         $port = env('MQTT_PORT', 1883);
 
         $mqtt = new MqttClient($host, $port, $clientId);
@@ -634,10 +634,19 @@ class MqttService
     }
 
     public function createUpdateNewAlarm() {}
-
+    function getServerIp()
+    {
+        $ips = gethostbynamel(gethostname());
+        foreach ($ips as $ip) {
+            if ($ip !== '127.0.0.1') {
+                return $ip;
+            }
+        }
+        return '127.0.0.1';
+    }
     protected function reconnect()
     {
-        $host = env('MQTT_HOST', '165.22.222.17');
+        $host = $this->getServerIp(); //env('MQTT_HOST', '165.22.222.17');
         $port = env('MQTT_PORT', 1883);
         $this->clientId = env('MQTT_CLIENT_ID', 'laravel-client-' . uniqid());
 

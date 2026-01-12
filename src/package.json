@@ -1,0 +1,106 @@
+{
+  "name": "xtremeguard-sos-desktop-app",
+  "version": "1.0.1",
+  "description": "Xtremeguard SOS Desktop Application",
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "npm run obf && electron .",
+    "dev:www": "cd www && npm run dev",
+    "build": "npm run obf && electron-builder",
+    "obf": "javascript-obfuscator main.js --output dist/main.js --compact true --string-array true --string-array-encoding base64 --control-flow-flattening true && javascript-obfuscator helpers.js --output dist/helpers.js --compact true --string-array true --string-array-encoding base64 --control-flow-flattening true && javascript-obfuscator socket.js --output dist/socket.js --compact true --string-array true --string-array-encoding base64 --control-flow-flattening true"
+  },
+  "build": {
+    "publish": {
+      "provider": "generic",
+      "url": "https://backend.smart-queue.com/desktop_updates/"
+    },
+    "appId": "xtremeguard-sos-desktop-app",
+    "files": [
+      "assets/**/*",
+      "dist/main.js",
+      "dist/helpers.js",
+      "dist/socket.js",
+      "index.html",
+      "www/**/*",
+      "!www/node_modules/**"
+    ],
+    "extraResources": [
+      {
+        "from": "stop-services.bat",
+        "to": "stop-services.bat"
+      },
+      {
+        "from": "assets",
+        "to": "assets"
+      },
+      {
+        "from": "conf",
+        "to": "conf"
+      },
+      {
+        "from": "logs",
+        "to": "logs"
+      },
+      {
+        "from": "temp",
+        "to": "temp"
+      },
+      {
+        "from": "nginx.exe",
+        "to": "nginx.exe"
+      },
+      {
+        "from": "vs_redist.exe",
+        "to": "vs_redist.exe"
+      },
+      {
+        "from": "www",
+        "to": "www",
+        "filter": [
+          "**/*",
+          "!node_modules/**",
+          "!package.json"
+        ]
+      },
+      {
+        "from": "frontend",
+        "to": "frontend"
+      },
+      {
+        "from": "mosquitto",
+        "to": "mosquitto"
+      }
+    ],
+    "productName": "XtremeGuard SOS",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis",
+      "artifactName": "${productName}-Setup-${version}.${ext}",
+      "icon": "favicon1.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "license": "license.txt",
+      "createDesktopShortcut": true
+    }
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3",
+    "javascript-obfuscator": "^5.1.0"
+  },
+  "dependencies": {
+    "electron-updater": "^6.6.2",
+    "simple-git": "^3.28.0",
+    "systeminformation": "^5.30.0",
+    "unzipper": "^0.12.3",
+    "ws": "^8.18.3"
+  }
+}

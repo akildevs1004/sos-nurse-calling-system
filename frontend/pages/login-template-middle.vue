@@ -2,11 +2,7 @@
   <v-app class="mobileBGColor">
     <v-dialog persistent v-model="dialogWhatsapp" width="600px">
       <v-card>
-        <v-card-title
-          dense
-          class="white--text"
-          style="background-color: #6946dd; color: #fff !important"
-        >
+        <v-card-title dense class="white--text" style="background-color: #6946dd; color: #fff !important">
           Whatsapp Verification
           <v-spacer></v-spacer>
           <v-icon @click="dialogWhatsapp = false" outlined dark color="white">
@@ -36,30 +32,18 @@
                 </h2>
                 <br />
                 <!-- <v-form ref="form" method="post" v-model="whatsappFormValid" lazy-validation> -->
-                <label
-                  for=""
-                  class="pb-5"
-                  style="font-weight: bold; font-size: 20px"
-                  >Type your 6 Digit Security Code</label
-                >
+                <label for="" class="pb-5" style="font-weight: bold; font-size: 20px">Type your 6 Digit Security
+                  Code</label>
                 <div class="form-outline mb-4">
-                  <v-otp-input
-                    v-model="otp"
-                    length="6"
-                    :rules="requiredRules"
-                  ></v-otp-input>
+                  <v-otp-input v-model="otp" length="6" :rules="requiredRules"></v-otp-input>
                 </div>
 
                 <div class="text-center pt-1 mb-5 pb-1">
                   <span v-if="msg" class="error--text">
                     {{ msg }}
                   </span>
-                  <v-btn
-                    :loading="loading"
-                    @click="checkOTP(otp)"
-                    class="btn btn-block fa-lg mt-1 mb-3"
-                    style="background-color: #6946dd; color: #fff"
-                  >
+                  <v-btn :loading="loading" @click="checkOTP(otp)" class="btn btn-block fa-lg mt-1 mb-3"
+                    style="background-color: #6946dd; color: #fff">
                     Verify OTP
                   </v-btn>
                   <!-- <v-btn :loading="loading" @click="checkOTP(otp)"
@@ -68,9 +52,7 @@
                     </v-btn> -->
                 </div>
 
-                <div
-                  class="d-flex align-items-center justify-content-center pb-4"
-                ></div>
+                <div class="d-flex align-items-center justify-content-center pb-4"></div>
                 <!-- </v-form> -->
               </div>
             </div>
@@ -98,31 +80,22 @@
     <section class="h-100 gradient-form" style="background-color: #6946dd">
       <div class="container py-5 h-100">
         <div class="row d-flex justify-content-center align-items-center h-100">
-          <div
-            class="col-xl-12 col-sm-12 col-lg-12 col-md-12"
-            style="margin: 25px; width: 100%; height: 200px; position: relative"
-          >
+          <div class="col-xl-12 col-sm-12 col-lg-12 col-md-12"
+            style="margin: 25px; width: 100%; height: 200px; position: relative">
             <div style="" class="loginForm">
               <div class="card1 text-black">
                 <v-card class="bgimage2 rounded-4 elevation-5 rounded-lg">
                   <v-row class="" style="height: 670px">
                     <v-col xs="12" sm="12" md="12" lg="5" style="padding: 0px">
-                      <div
-                        class="card-body p-md-5 mx-md-4"
-                        style="padding: 3rem !important"
-                      >
+                      <div class="card-body p-md-5 mx-md-4" style="padding: 3rem !important">
                         <div style="min-height: 100px">
                           <div style="width: 100%" class="text-center">
-                            <v-img
-                              class="text-center"
-                              style="
+                            <v-img class="text-center" style="
                                 width: 200px;
                                 padding: 0px;
                                 margin: auto;
                                 text-align: center;
-                              "
-                              src="/logo22.png"
-                            ></v-img>
+                              " src="/logo22.png"></v-img>
                           </div>
                           <h3 class="pb-7 pt-15">
                             Welcome To
@@ -130,84 +103,43 @@
                           </h3>
                         </div>
                         <div>
-                          <v-form
-                            ref="form"
-                            method="post"
-                            v-model="valid"
-                            lazy-validation
-                            autocomplete="off"
-                          >
+                          <v-form ref="form" method="post" v-model="valid" lazy-validation autocomplete="off">
                             <div class="form-outline">
-                              <v-text-field
-                                role="presentation"
-                                label="Email"
-                                v-model="credentials.email"
-                                :hide-details="false"
-                                id="form2Example11"
-                                autofill="false"
-                                required
-                                dense
-                                outlined
-                                type="email"
-                                prepend-inner-icon="mdi-account"
-                                append-icon="mdi-email"
-                                autocomplete="off"
-                                aria-autocomplete="none"
-                              ></v-text-field>
+                              <v-text-field role="presentation" label="Email" v-model="credentials.email"
+                                :hide-details="false" id="form2Example11" autofill="false" required dense outlined
+                                type="email" prepend-inner-icon="mdi-account" append-icon="mdi-email" autocomplete="off"
+                                aria-autocomplete="none"></v-text-field>
                             </div>
 
                             <div class="form-outline">
-                              <v-text-field
-                                role="presentation"
-                                label="Password"
-                                dense
-                                outlined
-                                autocomplete="off"
-                                prepend-inner-icon="mdi-lock  "
-                                :append-icon="
-                                  show_password ? 'mdi-eye' : 'mdi-eye-off'
-                                "
-                                :type="show_password ? 'text' : 'password'"
-                                v-model="credentials.password"
+                              <v-text-field role="presentation" label="Password" dense outlined autocomplete="off"
+                                prepend-inner-icon="mdi-lock  " :append-icon="show_password ? 'mdi-eye' : 'mdi-eye-off'
+                                  " :type="show_password ? 'text' : 'password'" v-model="credentials.password"
                                 class="input-group--focused"
-                                @click:append="show_password = !show_password"
-                              ></v-text-field>
+                                @click:append="show_password = !show_password"></v-text-field>
                             </div>
 
                             <v-row>
                               <v-col md="6">
                                 <v-checkbox value="red" disabled>
                                   <template v-slot:label>
-                                    <label style=""
-                                      >Remember&nbsp;Password</label
-                                    >
+                                    <label style="">Remember&nbsp;Password</label>
                                   </template>
                                 </v-checkbox>
                               </v-col>
                               <v-col md="6" class="text-right pt-6">
-                                <!-- <nuxt-link to="/reset-password"
-                                  >Forgot password?</nuxt-link
-                                > -->
-                                <v-btn text @click="openForgotPassword"
-                                  >Forgot password?</v-btn
-                                >
+
+                                <v-btn text @click="openForgotPassword">Forgot password?</v-btn>
                               </v-col>
                             </v-row>
 
                             <div class="text-center pt-1 mb-5 pb-1">
-                              <span
-                                v-if="msg"
-                                class="error--text111"
-                                style="color: #ff9f87"
-                              >
+                              <span v-if="msg" class="error--text111" style="color: #ff9f87">
                                 {{ msg }}
                               </span>
-                              <v-btn
-                                :loading="loading"
-                                @click="loginWithOTP()"
+                              <v-btn :loading="loading" @click="loginWithOTP()"
                                 class="btn primary btn-black btn-block mt-1 mb-3 p-4 btntext"
-                                style="width: 100%; height: 48px"
-                              >
+                                style="width: 100%; height: 48px">
                                 Login
                               </v-btn>
                             </div>
@@ -220,35 +152,20 @@
                         <v-row class="text-center" style="font-size: 13px">
                           <v-col class="pa-5">
                             For Technical Support :
-                            <a
-                              target="_blank"
-                              href="https://wa.me/971529048025?text=Hello MyTime2Cloud. I need your support."
-                              ><v-icon color="black">mdi-whatsapp</v-icon></a
-                            >
-                            <a
-                              style="text-decoration: none; color: black"
-                              href="tel:+971529048025"
-                              >+971 52 904 8025</a
-                            ></v-col
-                          >
+                            <a target="_blank"
+                              href="https://wa.me/971529048025?text=Hello MyTime2Cloud. I need your support."><v-icon
+                                color="black">mdi-whatsapp</v-icon></a>
+                            <a style="text-decoration: none; color: black" href="tel:+971529048025">+971 52 904
+                              8025</a></v-col>
                         </v-row>
                       </div>
                     </v-col>
-                    <v-col
-                      xs="12"
-                      sm="12"
-                      md="12"
-                      lg="7"
-                      style=""
-                      class="hide-on-mobile d-none d-lg-flex"
-                    >
-                      <div
-                        style="
+                    <v-col xs="12" sm="12" md="12" lg="7" style="" class="hide-on-mobile d-none d-lg-flex">
+                      <div style="
                           padding-left: 150px;
                           padding-top: 60px;
                           color: #fff;
-                        "
-                      >
+                        ">
                         <h3>About Xtreme Guard</h3>
                         <div style="font-weight: 300">
                           Xtreme Guard is an innovative and comprehensive
@@ -275,17 +192,11 @@
                         <v-row class="text-right">
                           <v-col class="pa-5">
                             For Technical Support :
-                            <a
-                              target="_blank"
-                              href="https://wa.me/971529048025?text=Hello MyTime2Cloud. I need your support."
-                              ><v-icon color="white">mdi-whatsapp</v-icon></a
-                            >
-                            <a
-                              style="color: #fff; text-decoration: none"
-                              href="tel:+971529048025"
-                              >+971 52 904 8025</a
-                            ></v-col
-                          >
+                            <a target="_blank"
+                              href="https://wa.me/971529048025?text=Hello MyTime2Cloud. I need your support."><v-icon
+                                color="white">mdi-whatsapp</v-icon></a>
+                            <a style="color: #fff; text-decoration: none" href="tel:+971529048025">+971 52 904
+                              8025</a></v-col>
                         </v-row>
                       </div>
                     </v-col>
@@ -380,9 +291,7 @@
                             </v-checkbox>
                           </v-col>
                           <v-col md="6" class="text-right pt-8">
-                            <nuxt-link class="text-white" to="/reset-password"
-                              >Forgot password?</nuxt-link
-                            >
+
                           </v-col>
                         </v-row>
 
@@ -499,7 +408,7 @@ export default {
       }
     },
 
-    handleInputChange() {},
+    handleInputChange() { },
     // mxVerify(res) {
     //   this.reCaptcha = res;
     //   this.showGRC = this.reCaptcha ? false : true;
@@ -653,15 +562,18 @@ body {
   font-weight: bold;
   font-size: 22px;
 }
+
 @media (max-width: 1200px) {
   .hide-on-mobile {
     display: none;
   }
 }
+
 @media (min-width: 1300px) {
   .gradient-form {
     height: 100vh !important;
   }
+
   /* .displaymobile {
     display: none;
   } */
@@ -681,10 +593,12 @@ body {
     left: 5%;
   }
 }
+
 @media (max-width: 700px) {
   .hide-on-mobile {
     display: none;
   }
+
   .mobileBGColor {
     background-color: #6946dd;
   }
@@ -695,6 +609,7 @@ body {
     top: 10%;
     left: 0%;
   }
+
   body {
     width: 100%;
     max-width: 100%;
@@ -705,7 +620,7 @@ body {
 /* @media (min-width: 769px) {
   .primary {
     background: #5fafa3 !important;
-     
+
     border-top-right-radius: 0.3rem;
     border-bottom-right-radius: 0.3rem;
   }

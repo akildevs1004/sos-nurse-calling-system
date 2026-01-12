@@ -151,7 +151,7 @@
           <span style="font-size: 30px; color: #fff"> {{ currentTime }}</span>
           <span style="font-size: 16px; color: #fff; font-weight: 200">{{
             todayDate
-          }}</span>
+            }}</span>
         </div>
       </span>
       <v-menu nudge-bottom="50" transition="scale-transition" origin="center center" bottom left min-width="200"
@@ -1113,7 +1113,7 @@ export default {
     setMenus() {
       if (this.$auth.user.role.role_type == 0) {
         {
-          alert("Invalid User Type");
+          //alert("Invalid User Type");
           this.logout();
         }
 
