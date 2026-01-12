@@ -172,7 +172,18 @@ class SOSRoomsControllers extends Controller
         ]);
     }
 
+    public function getServerIp()
+    {
 
+        return "192.168.2.87";
+        $ips = gethostbynamel(gethostname());
+        foreach ($ips as $ip) {
+            if ($ip !== '127.0.0.1') {
+                return $ip;
+            }
+        }
+        return '127.0.0.1';
+    }
 
     public function dashboardRooms(Request $request)
     {

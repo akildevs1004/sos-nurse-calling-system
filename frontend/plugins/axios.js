@@ -1,5 +1,5 @@
 export default ({ $axios, store }, inject) => {
-  const isClient = typeof window !== "undefined";
+  // const isClient = typeof window !== "undefined";
 
   // let backendURL = null; //process.env.BACKEND_URL;
   // let appURL = null; //process.env.APP_URL;
@@ -23,16 +23,29 @@ export default ({ $axios, store }, inject) => {
 
   // const isClient = typeof window !== "undefined";
 
+  // const backendURL = isClient
+  //   ? `${window.location.protocol}//${window.location.hostname}:8000/api`
+  //   : "http://localhost:8000/api";
+
+  // const appURL = isClient
+  //   ? `${window.location.protocol}//${window.location.hostname}:3001`
+  //   : "http://localhost:3001";
+
+  // console.log("backendURL", backendURL);
+  // console.log("appURL", appURL);
+
+  // inject("backendUrl", backendURL);
+  // inject("appUrl", appURL);
+
+  const isClient = process.client;
+
   const backendURL = isClient
     ? `${window.location.protocol}//${window.location.hostname}:8000/api`
-    : "http://localhost:8000/api";
+    : process.env.NUXT_ENV_BACKEND_URL || "http://192.168.2.67:8000/api";
 
   const appURL = isClient
     ? `${window.location.protocol}//${window.location.hostname}:3001`
-    : "http://localhost:3001";
-
-  console.log("backendURL", backendURL);
-  console.log("appURL", appURL);
+    : process.env.NUXT_ENV_APP_URL || "http://192.168.2.67:3001";
 
   inject("backendUrl", backendURL);
   inject("appUrl", appURL);
@@ -110,7 +123,11 @@ export default ({ $axios, store }, inject) => {
       // Keep existing department_ids passed from API calls
       config.params.department_ids = config.params.department_ids;
     }
-
+    console.log("AXIOS ->", config.method?.toUpperCase(), config.url);
     return config;
+  });
+
+  $axios.onError((err) => {
+    console.log("AXIOS ERR ->", err.response?.status, err.config?.url);
   });
 };

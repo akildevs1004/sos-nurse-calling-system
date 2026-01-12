@@ -116,7 +116,7 @@ function startServices() {
       "Application",
       "ℹ️ Services already started; skipping duplicate start."
     );
-    return;
+    // return;
   }
 
   // 1) ✅ Mosquitto Broker (only if not already running)
@@ -134,9 +134,6 @@ function startServices() {
       "ℹ️ Port 1883 already listening; broker is already running."
     );
   }
-
-  // 2) Nginx
-  nginxPID = spawnWrapper("[Nginx]", nginxPath, { cwd: appDir });
 
   // 3) PHP-CGI worker(s)
   serverPID = spawnPhpCgiWorker(phpCGi, 9000);
@@ -158,6 +155,9 @@ function startServices() {
   mqttPID = spawnWrapper("[MQTT]", phpPathCli, ["artisan", "mqtt:subscribe"], {
     cwd: srcDirectory,
   });
+
+  // 2) Nginx
+  nginxPID = spawnWrapper("[Nginx]", nginxPath, { cwd: appDir });
 
   logger("Application", `Application started at http://${ipv4Address}:8000`);
 }

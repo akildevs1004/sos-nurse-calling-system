@@ -16,20 +16,11 @@ use App\Http\Controllers\SecuritySosRoomsListController;
 
 //tv cmds
 Route::get('/envsettings',  function () {
-    function getServerIp()
-    {
-        $ips = gethostbynamel(gethostname());
-        foreach ($ips as $ip) {
-            if ($ip !== '127.0.0.1') {
-                return $ip;
-            }
-        }
-        return '127.0.0.1';
-    }
+
     return [
-        "MQTT_SOCKET_HOST" => "mqtt://" . getServerIp() . ":8083",
+        "MQTT_SOCKET_HOST" => "mqtt://" . (new SOSRoomsControllers())->getServerIp() . ":8083",
         "MQTT_DEVICE_CLIENTID" => "xtremesos",
         "TV_COMPANY_ID" => "8",
-        "BACKEND_URL2" => "http://" . getServerIp() . ":8000",
+        "BACKEND_URL2" => "http://" . (new SOSRoomsControllers())->getServerIp() . ":8000",
     ];
 });

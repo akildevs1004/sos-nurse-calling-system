@@ -28,7 +28,7 @@ class MqttService
 
     public function __construct()
     {
-        $host =  $this->getServerIp(); //env('MQTT_HOST');
+        $host =  (new SOSRoomsControllers())->getServerIp(); //env('MQTT_HOST');
         $port = env('MQTT_PORT', 1883);
         $this->clientId = 'laravel-client-' . uniqid(); //env('MQTT_CLIENT_ID', 'laravel-client-' . uniqid());
         $this->mqttDeviceClientId = env('MQTT_DEVICE_CLIENTID');
@@ -49,7 +49,7 @@ class MqttService
 
 
         $clientId = 'laravel-client-' . uniqid(); //env('MQTT_CLIENT_ID', 'laravel-client-' . uniqid());
-        $host =   $this->getServerIp(); //env('MQTT_HOST'); //env('MQTT_HOST', '165.22.222.17');
+        $host =   (new SOSRoomsControllers())->getServerIp(); //env('MQTT_HOST'); //env('MQTT_HOST', '165.22.222.17');
         $port = env('MQTT_PORT', 1883);
 
         $mqtt = new MqttClient($host, $port, $clientId);
@@ -646,7 +646,7 @@ class MqttService
     }
     protected function reconnect()
     {
-        $host = $this->getServerIp(); //env('MQTT_HOST', '165.22.222.17');
+        $host = (new SOSRoomsControllers())->getServerIp(); //env('MQTT_HOST', '165.22.222.17');
         $port = env('MQTT_PORT', 1883);
         $this->clientId = env('MQTT_CLIENT_ID', 'laravel-client-' . uniqid());
 
