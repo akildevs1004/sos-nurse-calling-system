@@ -175,7 +175,7 @@ class SOSRoomsControllers extends Controller
     public function getServerIp()
     {
 
-        return "192.168.2.87";
+        return "165.22.222.17";
         $ips = gethostbynamel(gethostname());
         foreach ($ips as $ip) {
             if ($ip !== '127.0.0.1') {

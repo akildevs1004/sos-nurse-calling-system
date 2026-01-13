@@ -39,6 +39,8 @@ export default ({ $axios, store }, inject) => {
 
   const isClient = process.client;
 
+  /*
+
   const backendURL = isClient
     ? `${window.location.protocol}//${window.location.hostname}:8000/api`
     : process.env.NUXT_ENV_BACKEND_URL || "http://192.168.2.67:8000/api";
@@ -48,7 +50,30 @@ export default ({ $axios, store }, inject) => {
     : process.env.NUXT_ENV_APP_URL || "http://192.168.2.67:3001";
 
   inject("backendUrl", backendURL);
-  inject("appUrl", appURL);
+  inject("appUrl", appURL);*/
+
+  let backendURL;
+  let appURL;
+
+  if (isClient) {
+    const { protocol, hostname } = window.location;
+
+    // === Production domain mapping ===
+    if (hostname.includes("sosalarm.xtremeguard.org")) {
+      backendURL = "https://sosalarmbackend.xtremeguard.org/api";
+      appURL = "https://sosalarm.xtremeguard.org";
+    } else {
+      // === Local / LAN fallback ===
+      backendURL = `${protocol}//${hostname}:8000/api`;
+      appURL = `${protocol}//${hostname}:3001`;
+    }
+  } else {
+    // === SSR / Build-time fallback ===
+    backendURL =
+      process.env.NUXT_ENV_BACKEND_URL || "http://192.168.2.67:8000/api";
+
+    appURL = process.env.NUXT_ENV_APP_URL || "http://192.168.2.67:3001";
+  }
 
   $axios.onRequest((config) => {
     config.baseURL = backendURL;
@@ -123,11 +148,11 @@ export default ({ $axios, store }, inject) => {
       // Keep existing department_ids passed from API calls
       config.params.department_ids = config.params.department_ids;
     }
-    console.log("AXIOS ->", config.method?.toUpperCase(), config.url);
+    // console.log("AXIOS ->", config.method?.toUpperCase(), config.url);
     return config;
   });
 
   $axios.onError((err) => {
-    console.log("AXIOS ERR ->", err.response?.status, err.config?.url);
+    //console.log("AXIOS ERR ->", err.response?.status, err.config?.url);
   });
 };
