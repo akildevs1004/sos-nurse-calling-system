@@ -196,11 +196,15 @@ class SOSRoomsControllers extends Controller
 
             echo $securityId;
 
-            // IMPORTANT: pick the correct column:
-            // - If this table stores DeviceSosRooms IDs, pluck('device_sos_room_id') (example)
-            // - If it stores its own row IDs, pluck('id') will be wrong for filtering rooms.
-            $filterRoomIds = SecuritySosRoomsList::where('security_user_id', $securityId)
-                ->pluck('sos_room_table_id'); // <-- adjust this column name to your schema
+            if ($securityId > 0) {
+
+                // IMPORTANT: pick the correct column:
+                // - If this table stores DeviceSosRooms IDs, pluck('device_sos_room_id') (example)
+                // - If it stores its own row IDs, pluck('id') will be wrong for filtering rooms.
+                $filterRoomIds = SecuritySosRoomsList::where('security_user_id', $securityId)
+                    ->pluck('sos_room_table_id'); // <-- adjust this column name to your schema
+
+            }
         }
 
         $query = DeviceSosRooms::query()

@@ -17,6 +17,13 @@ use App\Http\Controllers\SecuritySosRoomsListController;
 //tv cmds
 Route::get('/envsettings',  function (Request $request) {
 
+    return [
+        "MQTT_SOCKET_HOST" => "wss://mqtt.xtremeguard.org:8084",
+        "MQTT_DEVICE_CLIENTID" => "xtremesos",
+        "TV_COMPANY_ID" => "8",
+        "BACKEND_URL2" => "https://165.22.222.17:8000",
+    ];
+
     // The IP/domain the client used to reach THIS backend (server public IP)
     $serverAddr = $request->server('SERVER_ADDR');          // often the server IP
     $serverName = $request->server('SERVER_NAME');          // domain (if any)

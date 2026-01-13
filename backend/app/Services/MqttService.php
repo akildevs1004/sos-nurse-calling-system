@@ -72,6 +72,8 @@ class MqttService
                 $this->mqtt->subscribe($this->mqttDeviceClientId . '/+/sosalarm', function ($topic, $message) {
 
                     $logDir = base_path('../../logs/sos-nurse-calling-system/mqtt-sosalarm-logs');
+
+                    echo $logDir;
                     if (!File::exists($logDir)) {
                         File::makeDirectory($logDir, 0755, true);
                     }
@@ -80,7 +82,7 @@ class MqttService
                     try {
                         echo "\n";
                         $serialNumber = $this->extractSerial($topic);
-                        echo $serialNumber . "-sosalarm New Alarm Received\n";
+                        echo $serialNumber . "-----------------------------------------------------------sosalarm New Alarm Received\n";
                         File::prepend($logPath, "------------------------------------------------------\n");
                         File::prepend($logPath, "[" . now() . "] Data: " . $message . "\n");
 
@@ -140,9 +142,9 @@ class MqttService
                             return;
                         }
 
-                        echo "\n SOS Status : " . $status;
+                        echo "\n SOS Status------------------------------ : " . $status;
                         if ($status === "ON") {
-
+                            echo "\n SOS Status------------------------------ : " . $status;
                             // $now = now()->format("Y-m-d H:i:s");
 
                             $openLog = DeviceSosRoomLogs::where("serial_number", $serialNumber)
@@ -170,10 +172,15 @@ class MqttService
 
                                 $alarmId = DeviceSosRoomLogs::create($data);
 
-                                $deviceSosRoom->update([
+                                echo "\n -------------------------New Alarm Created\n";
+
+                                echo  $deviceSosRoom->update([
                                     'alarm_status'     => true,
                                     'updated_at' => now(),
                                 ]);
+
+                                echo "\n -------------------------New Alarm Created";
+
 
                                 File::prepend($logPath, "[" . now() . "] Info: SOS Alarm Is created $alarmId serial=$serialNumber room_id=$roomId\n");
                             } else {
@@ -211,6 +218,7 @@ class MqttService
                                         "response_in_minutes"  => $response_in_minutes,
 
                                     ]);
+                                    echo "\n -------------------------  Alarm Closed";
 
                                     File::prepend($logPath, "[" . now() . "] Info: SOS Alarm Is Updated  $log->id serial=$serialNumber room_id=$roomId\n");
                                 }
@@ -224,7 +232,7 @@ class MqttService
                             ]);
                         }
                     } catch (\Throwable $e) {
-                        echo $e->getMessage();
+                        echo "\nERROR------------------------------------------------------------" . $e->getMessage();
                         File::prepend($logPath, "[" . now() . "] EXCEPTION: " . $e->getMessage() . "\n");
                     }
                 });
@@ -398,9 +406,9 @@ class MqttService
 
                 // Listen to all companies
                 $this->mqtt->subscribe('tv/+/dashboard/request', function (string $topic, string $message) {
-                    echo "Dashboard rooms Request from Security ID: '\n";
+                    echo "Dashboard rooms Request   '\n";
 
-
+                    $companyId = 0;
                     // echo "MQTT Request Message: " . $message;
                     try {
                         $payload = json_decode($message, true, 512, JSON_THROW_ON_ERROR);
@@ -413,6 +421,7 @@ class MqttService
 
                         $reqId = (string)($payload['reqId'] ?? '');
                         $params = (array)($payload['params'] ?? []);
+                        echo " companyId: " .     $companyId . '\n';
 
                         // Force company id from topic (cannot be spoofed)
                         $params['company_id'] = $companyId;
@@ -424,7 +433,7 @@ class MqttService
 
                         $roomsRes = $controller->dashboardRooms(new Request($params));
                         $statsRes = $controller->dashboardStats(new Request($params));
-
+                        echo " companyId: " .      $companyId . '\n';
                         // Unwrap JsonResponse cleanly
                         $roomsData = method_exists($roomsRes, 'getData') ? $roomsRes->getData(true) : $roomsRes;
                         $statsData = method_exists($statsRes, 'getData') ? $statsRes->getData(true) : $statsRes;
@@ -432,14 +441,14 @@ class MqttService
                         // Publish responses
                         $this->mqtt->publish(
                             "tv/{$companyId}/dashboard/rooms",
-                            json_encode(['reqId' => $reqId, 'data' => $roomsData], JSON_UNESCAPED_SLASHES),
+                            json_encode(['reqId' => $reqId, 'companyId' =>  $companyId, 'data' => $roomsData], JSON_UNESCAPED_SLASHES),
                             0,
                             false
                         );
 
                         $this->mqtt->publish(
                             "tv/{$companyId}/dashboard/stats",
-                            json_encode(['reqId' => $reqId, 'data' => $statsData], JSON_UNESCAPED_SLASHES),
+                            json_encode(['reqId' => $reqId, 'companyId' =>  $companyId, 'data' => $statsData], JSON_UNESCAPED_SLASHES),
                             0,
                             false
                         );
@@ -450,7 +459,7 @@ class MqttService
                             'error' => $e->getMessage(),
                         ]);
 
-                        echo "Error Dashboard rooms Request from Security ID: " .     $e->getMessage() . '\n';
+                        echo "Error Dashboard rooms Request: " .     $e->getMessage() . '\n';
                     }
                 }, 0);
 
