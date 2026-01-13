@@ -1,18 +1,27 @@
 const data = async ({ $auth, redirect }) => {
   const { user_type, role } = $auth.user;
 
-  // console.log("user_type", $auth.user);
+  console.log("user_type", $auth.user);
 
-  if (user_type.branch_id == 0 && user_type.is_master == false) {
+  if (user_type?.branch_id == 0 && user_type?.is_master == false) {
     //this.$router.push("/login");
     redirect("/login");
     return "";
+  }
+  if (user_type == "company") {
+    redirect("/alarm/dashboard");
+    return;
   }
   if (user_type == "security") {
     redirect("/alarm/tvmonitor1");
     return;
   }
-  if (user_type == "master") {
+  if (user_type == "master" || $auth.user.is_master) {
+    redirect("/master");
+    return;
+  }
+
+  if (user_type == null && $auth.user.is_master) {
     redirect("/master");
     return;
   }
@@ -40,7 +49,7 @@ const data = async ({ $auth, redirect }) => {
       return "";
     }
   }
-  if (user_type.branch_id == 0 && user_type.is_master == false) {
+  if (user_type?.branch_id == 0 && user_type.is_master == false) {
     redirect("logout");
   } else {
     redirect("/dashboard");

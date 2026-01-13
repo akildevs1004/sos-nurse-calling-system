@@ -5,6 +5,7 @@ use App\Http\Controllers\AlarmLogsController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AttendanceLogController;
 use App\Http\Controllers\CameraController;
+use App\Http\Controllers\Dashboards\SOSRoomsControllers;
 use App\Http\Controllers\DeviceCameraController;
 use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\EmployeeController;
@@ -20,6 +21,7 @@ use App\Models\Alarm\DeviceSensorLogs;
 use App\Models\Attendance;
 use App\Models\AttendanceLog;
 use App\Models\Device;
+use App\Models\DeviceSosRooms;
 use App\Models\Employee;
 use App\Models\ReportNotification;
 use App\Models\Shift;
@@ -37,7 +39,11 @@ use Illuminate\Support\Facades\File;
 
 Route::get('/weather1111111', function (Request $request) {
 
+    $params['company_id'] = 8;
 
+    $controller = app(SOSRoomsControllers::class);
+
+    return $roomsRes = $controller->dashboardRooms(new Request($params));
     $response = Http::get('https://api.weatherapi.com/v1/current.json', [
         'key' => '6619ca39981a4e4a9c7153233250605',
         'q' => $request->query('q'),
@@ -611,6 +617,9 @@ Route::get('/generate_attendance_log', function (Request $request) {
 });
 
 Route::get('/test-re', function (Request $request) {
+
+
+    DeviceSosRooms::where("id", 150)->delete();
     // Employee::truncate();
     // DB::statement('DELETE FROM users WHERE id > 2');
 

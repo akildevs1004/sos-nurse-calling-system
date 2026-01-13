@@ -267,10 +267,12 @@ export default {
     // TV mode detection:
     // width 900..1100 OR height < 700
     isTv() {
+
+
       const w = this.screenW || 0;
       const h = this.screenH || 0;
 
-      //console.log(w, h);
+      console.log(w, h);
 
       return this.isTVUserAgent() || (w < 700) || (h < 900) || (w >= 900 && w <= 1100) || (h > 0 && h < 700) || (w === 0 && h === 0); // treat 0x0 as TV for server-side rendering
     },
@@ -393,6 +395,7 @@ export default {
   },
 
   async mounted() {
+
     this.$vuetify.theme.dark = false;
 
     this.updateViewport();
@@ -628,6 +631,9 @@ export default {
         // alert(this.isTv ? "TV/MQTT Login" : "Website/Backend Login");
 
         // If backend is down OR TV => MQTT
+
+        console.log("this.isTv", this.isTv);
+
         if (this.isTv) {
           let res = await this.mqttLoginVerify(this.credentials);
 
@@ -659,10 +665,15 @@ export default {
           // return res.user?.user_type === "security";
 
           if (res.user?.user_type === "security")
-            this.$router.replace("/alarm/tvmonitor1");
+            redirect("/alarm/tvmonitor1");
+
+
+          else if (res.user?.user_type === "master")
+            redirect("/master/");
 
           else
-            this.$router.replace("/alarm/dashboard");
+            redirect("/alarm/dashboard");
+
           return;
         }
 
@@ -673,13 +684,24 @@ export default {
           return false;
         }
 
+        // console.log("res.user?.user_type", res.user?.user_type);
+
+
         const { data } = await this.$auth.loginWith("local", { data: this.credentials });
         const user = data?.user || this.$auth.user;
 
+        console.log("user", user);
+
+
         if (user?.user_type === "security")
-          this.$router.replace("/alarm/tvmonitor1");
+          redirect("/alarm/tvmonitor1");
+
+        else if (res.user?.user_type === "master")
+          redirect("/master/");
+
         else
-          this.$router.replace("/alarm/dashboard");
+          redirect("/alarm/dashboard");
+
         return;
 
         if (user?.branch_id == 0 && user?.is_master == false) {

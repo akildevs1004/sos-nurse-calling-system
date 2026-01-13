@@ -575,6 +575,8 @@ class DeviceController extends Controller
 
     public function updateDevicesJson()
     {
+
+        return false;
         $devices = Device::where("device_category_name", "CAMERA")->get();
 
         $filePath = storage_path('app') . '' . '/devices_list.json';

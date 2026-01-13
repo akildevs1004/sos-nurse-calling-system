@@ -305,6 +305,9 @@ class AuthController extends Controller
     {
         if ($user->company_id > 0) {
 
+            if ($user->user_type === null)  return "master";
+
+
             if ($user->user_type === "company")  return $user->user_type;
 
             $branchesArray = CompanyBranch::where('user_id', $user->id)->select('id', 'branch_name', "logo as branch_logo")->first();

@@ -1,41 +1,19 @@
 <template>
   <v-app>
-    <v-navigation-drawer
-      v-model="drawer"
-      dark
-      :mini-variant="miniVariant"
-      :clipped="clipped"
-      fixed
-      app
-      class="no_print"
-      color="background"
-    >
+    <v-navigation-drawer v-model="drawer" dark :mini-variant="miniVariant" :clipped="clipped" fixed app class="no_print"
+      color="background">
       <v-list v-for="(i, idx) in items" :key="idx" style="padding: 5px 0 0 0px">
-        <v-list-item
-          :to="i.to"
-          router
-          v-if="!i.hasChildren"
-          :class="!miniVariant || 'pl-2'"
-        >
+        <v-list-item :to="i.to" router v-if="!i.hasChildren" :class="!miniVariant || 'pl-2'">
           <v-list-item-icon v-if="i.permission" class="ma-2">
             <v-icon>{{ i.icon }}</v-icon>
           </v-list-item-icon>
           <v-list-item-title v-if="i.permission">
             {{ i.title }}&nbsp;
-            <v-badge
-              v-if="i.title == 'Orders' && order_count > 0"
-              color="primary"
-              :content="order_count"
-              small
-            />
+            <v-badge v-if="i.title == 'Orders' && order_count > 0" color="primary" :content="order_count" small />
           </v-list-item-title>
         </v-list-item>
 
-        <v-list-item
-          v-else
-          @click="i.open_menu = !i.open_menu"
-          :class="!miniVariant || 'pl-2'"
-        >
+        <v-list-item v-else @click="i.open_menu = !i.open_menu" :class="!miniVariant || 'pl-2'">
           <v-list-item-icon v-if="i.permission" class="ma-2">
             <v-icon>{{ i.icon }}</v-icon>
           </v-list-item-icon>
@@ -47,11 +25,7 @@
           }}</v-icon>
         </v-list-item>
         <div v-if="i.open_menu">
-          <div
-            style="margin-left: 50px"
-            v-for="(j, jdx) in i.hasChildren"
-            :key="jdx"
-          >
+          <div style="margin-left: 50px" v-for="(j, jdx) in i.hasChildren" :key="jdx">
             <v-list-item v-if="j.permission" style="min-height: 0" :to="j.to">
               <v-list-item-title>{{ j.title }}</v-list-item-title>
 
@@ -78,17 +52,8 @@
       <!-- <v-btn icon @click.stop="rightDrawer = !rightDrawer">
         <v-icon>mdi-menu</v-icon>
       </v-btn> -->
-      <v-menu
-        nudge-bottom="50"
-        transition="scale-transition"
-        origin="center center"
-        bottom
-        left
-        min-width="200"
-        nudge-left="5"
-        nudge-right="5"
-        fixed
-      >
+      <v-menu nudge-bottom="50" transition="scale-transition" origin="center center" bottom left min-width="200"
+        nudge-left="5" nudge-right="5" fixed>
         <template v-slot:activator="{ on, attrs }">
           <label class="px-2" v-bind="attrs" v-on="on">
             {{ getUser }}
@@ -96,7 +61,7 @@
 
           <v-btn icon color="yellow" v-bind="attrs" v-on="on">
             <v-avatar size="40">
-              <img :src="`https://via.placeholder.com/40x40?text=${getLogo}`" />
+              <img src="/favicon.png" />
             </v-avatar>
           </v-btn>
         </template>
@@ -130,9 +95,7 @@
                 <v-icon>mdi-logout</v-icon>
               </v-list-item-icon>
               <v-list-item-content>
-                <v-list-item-title class="black--text"
-                  >Logout</v-list-item-title
-                >
+                <v-list-item-title class="black--text">Logout</v-list-item-title>
               </v-list-item-content>
             </v-list-item>
           </v-list-item-group>
@@ -159,7 +122,7 @@
 
 <script>
 export default {
-  mounted() {},
+  mounted() { },
   data() {
     return {
       miniVariant: false,
@@ -271,7 +234,7 @@ export default {
       clipped: true,
 
       miniVariant: false,
-      title: "Attendance System",
+      title: "SOS System",
       logout_btn: {
         icon: "mdi-logout",
         label: "Logout",

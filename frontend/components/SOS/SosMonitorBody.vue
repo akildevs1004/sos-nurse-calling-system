@@ -770,6 +770,10 @@ export default {
         const list = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : [];
 
         this.devices = this.normalizeRooms(list);
+
+        if (this.devices.length === 0) {
+          alert(" No Rooms data ");
+        }
         this.updateDurationAll();
 
         if (this.pageIndex > this.totalPages - 1) this.pageIndex = 0;

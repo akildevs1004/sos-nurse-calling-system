@@ -1272,6 +1272,13 @@ export default {
     // }, 1000 * 60 * 2);
     const now = new Date();
     console.log("reloadCount", now.toLocaleTimeString([], { hour12: false }));
+
+
+
+
+
+
+
     setTimeout(() => {
       window.location.reload();
     }, 1000 * 60 * 15);
@@ -1784,7 +1791,7 @@ export default {
 
         return "";
       }
-      let roleType = this.$auth.user.role.role_type.toLowerCase();
+      let roleType = this.$auth.user.role?.role_type.toLowerCase();
 
       if (this.getLoginType === "company" || this.getLoginType === "branch") {
         // this.items = this.company_menus;

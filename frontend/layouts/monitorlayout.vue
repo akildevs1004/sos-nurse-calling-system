@@ -1542,7 +1542,7 @@ export default {
 
         return "";
       }
-      let roleType = this.$auth.user.role.role_type.toLowerCase();
+      let roleType = this.$auth.user.role?.role_type.toLowerCase();
 
       if (this.getLoginType === "company" || this.getLoginType === "branch") {
         // this.items = this.company_menus;

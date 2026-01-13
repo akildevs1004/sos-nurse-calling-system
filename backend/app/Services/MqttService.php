@@ -383,6 +383,8 @@ class MqttService
                                 ->delete();
                         });
                     } catch (\Throwable $e) {
+
+                        echo $e->getMessage() . "\n";
                         // Always log exceptions in MQTT consumers
                         $logDir = base_path('../../logs/sos-nurse-calling-system/mqtt-config-logs');
                         if (!File::exists($logDir)) {
@@ -634,16 +636,16 @@ class MqttService
     }
 
     public function createUpdateNewAlarm() {}
-    function getServerIp()
-    {
-        $ips = gethostbynamel(gethostname());
-        foreach ($ips as $ip) {
-            if ($ip !== '127.0.0.1') {
-                return $ip;
-            }
-        }
-        return '127.0.0.1';
-    }
+    // function getServerIp()
+    // {
+    //     $ips = gethostbynamel(gethostname());
+    //     foreach ($ips as $ip) {
+    //         if ($ip !== '127.0.0.1') {
+    //             return $ip;
+    //         }
+    //     }
+    //     return '127.0.0.1';
+    // }
     protected function reconnect()
     {
         $host = (new SOSRoomsControllers())->getServerIp(); //env('MQTT_HOST', '165.22.222.17');

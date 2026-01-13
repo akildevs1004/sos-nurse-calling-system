@@ -151,7 +151,7 @@
           <span style="font-size: 30px; color: #fff"> {{ currentTime }}</span>
           <span style="font-size: 16px; color: #fff; font-weight: 200">{{
             todayDate
-            }}</span>
+          }}</span>
         </div>
       </span>
       <v-menu nudge-bottom="50" transition="scale-transition" origin="center center" bottom left min-width="200"
@@ -1119,7 +1119,7 @@ export default {
 
         return "";
       }
-      let roleType = this.$auth.user.role.role_type.toLowerCase();
+      let roleType = this.$auth.user.role?.role_type.toLowerCase();
 
       if (this.getLoginType === "company" || this.getLoginType === "branch") {
         // this.items = this.company_menus;
