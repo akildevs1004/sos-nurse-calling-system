@@ -1263,117 +1263,125 @@ export default {
       this.loading = true;
       console.log("connecting to MQTT Alarm Page env", this.$store.state.env);
 
-      const host = this.$store.state.env.MQTT_SOCKET_HOST;//process.env.MQTT_SOCKET_HOST; // "wss://mqtt.xtremeguard.org:8084"; // If TLS WebSocket is available
+      if (this.$store.state.env?.MQTT_SOCKET_HOST) {
 
-      const clientId = "vue-client-" + Math.random().toString(16).substr(2, 8);
+        const host = this.$store.state.env.MQTT_SOCKET_HOST;//process.env.MQTT_SOCKET_HOST; // "wss://mqtt.xtremeguard.org:8084"; // If TLS WebSocket is available
 
-      this.mqttClient = mqtt.connect(host, {
-        clientId: clientId,
-        clean: true,
-        connectTimeout: 4000,
-      });
+        const clientId = "vue-client-" + Math.random().toString(16).substr(2, 8);
 
-      this.mqttClient.on("connect", () => {
-        console.log("✅ MQTT Connected");
+        this.mqttClient = mqtt.connect(host, {
+          clientId: clientId,
+          clean: true,
+          connectTimeout: 4000,
+        });
 
-        this.startHeartbeatWatcher();
+        this.mqttClient.on("connect", () => {
+          console.log("✅ MQTT Connected", host);
 
-        // // Subscribe to a topic
-        // const topic = `xtremesos/${this.editedItem.serial_number}/config`;
-        // this.mqttClient.subscribe(topic, (err) => {
-        //   if (err) console.error("❌ Subscribe failed:", err);
-        //   else console.log(`📡 Subscribed to ${topic}`);
+          this.startHeartbeatWatcher();
+
+          // // Subscribe to a topic
+          // const topic = `xtremesos/${this.editedItem.serial_number}/config`;
+          // this.mqttClient.subscribe(topic, (err) => {
+          //   if (err) console.error("❌ Subscribe failed:", err);
+          //   else console.log(`📡 Subscribed to ${topic}`);
+          // });
+
+          // this.sendConfigRequest();
+
+          // let topic = `xtremesos/+/config`;
+
+          // console.log("this.devicesList.length", this.devicesList.length);
+
+          // if (this.devicesList.length == 1)
+          //   topic = `xtremesos/${this.device_serial_number}/config`;
+
+          // this.mqttClient.subscribe(topic, (err) => {
+          //   if (err) console.error("❌ Subscribe failed:", err);
+          //   else console.log(`📡 Subscribed to ${topic}`);
+          // });
+        });
+
+        // this.mqttClient.on("message", (topic, payload) => {
+        //   // console.log("Message", payload.toString());
+        //   //console.log("topic", topic);
+
+        //   let message = JSON.parse(payload.toString());
+        //   //console.log(message);
+
+        //   if (this.device_serial_number == message.serialNumber) {
+        //     this.isMQTTConnected = true;
+        //     this.checkDeviceOnlineStatus();
+        //     if (message.type == "alarm") {
+        //       localStorage.setItem("alarm", true);
+
+        //       this.sendMQTTConfigRequest(); //get immediate relay data
+        //       this.getDataFromApi();
+        //     }
+
+        //     // console.log("this.waitMQTTRelayUpdate", this.waitMQTTRelayUpdate);
+        //     else if (message.type == "config" && !this.waitMQTTRelayUpdate) {
+        //       // this.$set(this, "deviceSettings", jsonconfig); // ensures reactivity
+        //       // //this.deviceSettings = jsonconfig;
+
+        //       let config = JSON.parse(message.config);
+        //       this.relayStatus[this.device_serial_number] = {};
+        //       if (config) {
+        //         this.relayStatus[this.device_serial_number].relay0 =
+        //           config.relay0;
+        //         this.relayStatus[this.device_serial_number].relay1 =
+        //           config.relay1;
+        //         this.relayStatus[this.device_serial_number].relay2 =
+        //           config.relay2;
+        //         this.relayStatus[this.device_serial_number].relay3 =
+        //           config.relay3;
+
+        //         //console.log(this.relayStatus);
+
+        //         // this.relayStatus.relay0 = data.config.relay0;
+        //         // this.relayStatus.relay1 = data.config.relay1;
+        //         // this.relayStatus.relay2 = data.config.relay2;
+        //         // this.relayStatus.relay3 = data.config.relay3;
+        //       } else {
+        //         this.relayStatus[this.device_serial_number].relay0 = false;
+        //         this.relayStatus[this.device_serial_number].relay1 = false;
+        //         this.relayStatus[this.device_serial_number].relay2 = false;
+        //         this.relayStatus[this.device_serial_number].relay3 = false;
+        //       }
+        //       this.key++;
+
+        //       this.loading = false;
+        //     }
+        //     // setTimeout(() => {
+        //     //   this.loading = false;
+        //     // }, 1000 * 5);
+        //   }
         // });
 
-        // this.sendConfigRequest();
-
-        // let topic = `xtremesos/+/config`;
-
-        // console.log("this.devicesList.length", this.devicesList.length);
-
-        // if (this.devicesList.length == 1)
-        //   topic = `xtremesos/${this.device_serial_number}/config`;
-
-        // this.mqttClient.subscribe(topic, (err) => {
-        //   if (err) console.error("❌ Subscribe failed:", err);
-        //   else console.log(`📡 Subscribed to ${topic}`);
-        // });
-      });
-
-      // this.mqttClient.on("message", (topic, payload) => {
-      //   // console.log("Message", payload.toString());
-      //   //console.log("topic", topic);
-
-      //   let message = JSON.parse(payload.toString());
-      //   //console.log(message);
-
-      //   if (this.device_serial_number == message.serialNumber) {
-      //     this.isMQTTConnected = true;
-      //     this.checkDeviceOnlineStatus();
-      //     if (message.type == "alarm") {
-      //       localStorage.setItem("alarm", true);
-
-      //       this.sendMQTTConfigRequest(); //get immediate relay data
-      //       this.getDataFromApi();
-      //     }
-
-      //     // console.log("this.waitMQTTRelayUpdate", this.waitMQTTRelayUpdate);
-      //     else if (message.type == "config" && !this.waitMQTTRelayUpdate) {
-      //       // this.$set(this, "deviceSettings", jsonconfig); // ensures reactivity
-      //       // //this.deviceSettings = jsonconfig;
-
-      //       let config = JSON.parse(message.config);
-      //       this.relayStatus[this.device_serial_number] = {};
-      //       if (config) {
-      //         this.relayStatus[this.device_serial_number].relay0 =
-      //           config.relay0;
-      //         this.relayStatus[this.device_serial_number].relay1 =
-      //           config.relay1;
-      //         this.relayStatus[this.device_serial_number].relay2 =
-      //           config.relay2;
-      //         this.relayStatus[this.device_serial_number].relay3 =
-      //           config.relay3;
-
-      //         //console.log(this.relayStatus);
-
-      //         // this.relayStatus.relay0 = data.config.relay0;
-      //         // this.relayStatus.relay1 = data.config.relay1;
-      //         // this.relayStatus.relay2 = data.config.relay2;
-      //         // this.relayStatus.relay3 = data.config.relay3;
-      //       } else {
-      //         this.relayStatus[this.device_serial_number].relay0 = false;
-      //         this.relayStatus[this.device_serial_number].relay1 = false;
-      //         this.relayStatus[this.device_serial_number].relay2 = false;
-      //         this.relayStatus[this.device_serial_number].relay3 = false;
-      //       }
-      //       this.key++;
-
-      //       this.loading = false;
-      //     }
-      //     // setTimeout(() => {
-      //     //   this.loading = false;
-      //     // }, 1000 * 5);
-      //   }
-      // });
-
-      this.mqttClient.on("error", (err) => {
-        console.error("MQTT Error:", err);
-        setTimeout(() => {
-          this.connectMQTT();
-        }, 1000 * 5);
-      });
-
-      this.mqttClient.on("close", () => {
-        // this.checkDeviceOnlineStatus();
-        console.log("❌ MQTT Disconnected");
-
-        this.MQTTRetryCount++;
-        {
+        this.mqttClient.on("error", (err) => {
+          console.error("MQTT Error:", err);
           setTimeout(() => {
             this.connectMQTT();
           }, 1000 * 5);
-        }
-      });
+        });
+
+        this.mqttClient.on("close", () => {
+          // this.checkDeviceOnlineStatus();
+          console.log("❌ MQTT Disconnected");
+
+          this.MQTTRetryCount++;
+          {
+            setTimeout(() => {
+              this.connectMQTT();
+            }, 1000 * 5);
+          }
+        });
+
+      }
+      else {
+        console.warn("MQTT environment is Empty");
+        this.loading = false;
+      }
     },
 
     async getDataFromApi(

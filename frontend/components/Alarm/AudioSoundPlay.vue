@@ -47,7 +47,7 @@ export default {
 
         setTimeout(() => {
           try {
-            console.log("AlarmAudioPlay.vue: isPlaying=", this.isPlaying, " notificationsMenuItemsCount=", this.notificationsMenuItemsCount);
+            // console.log("AlarmAudioPlay.vue: isPlaying=", this.isPlaying, " notificationsMenuItemsCount=", this.notificationsMenuItemsCount);
 
             if (this.isPlaying === true && this.notificationsMenuItemsCount === 0) {
               window.location.reload();

@@ -303,9 +303,9 @@ color:#FFF!important;
 .theme--dark .teal-text { color: #5eead4 !important; }
 
 
-.theme--dark  popup_background
+.theme--dark  .popup_background
 {
-color:black!important;;
+color:rgb(255, 255, 255)!important;;
 }
 /*
 :root {

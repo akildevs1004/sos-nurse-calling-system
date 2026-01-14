@@ -52,9 +52,9 @@
                       height: auto;
                       border: 1px solid #ddd;
                     " :src="visitor.SDKresponseData.data.faceImage
-                        ? 'data:image/jpeg;base64, ' +
-                        visitor.SDKresponseData.data.faceImage
-                        : '/no-profile-image.jpg'
+                      ? 'data:image/jpeg;base64, ' +
+                      visitor.SDKresponseData.data.faceImage
+                      : '/no-profile-image.jpg'
                       ">
                   </v-img>
                 </v-col>
@@ -317,8 +317,8 @@
                   <td>Device Always Open Status</td>
                   <td>
                     <v-switch :disabled="true" v-model="deviceCAMVIISettings.door_open_stat" :label="deviceCAMVIISettings.door_open_stat == 'none'
-                        ? 'OFF'
-                        : deviceCAMVIISettings.door_open_stat
+                      ? 'OFF'
+                      : deviceCAMVIISettings.door_open_stat
                       " color="green" value="green" hide-details></v-switch>
                     <!-- <v-text-field
                       :disabled="true"
@@ -405,7 +405,7 @@
     </v-row>
     <!-- <Back color="primary" /> -->
     <v-navigation-drawer v-model="editDialog" bottom temporary right fixed>
-      <v-toolbar class="popup_background" dense>
+      <v-toolbar class="popup_background" dense dark style="color:#FFF!important">
         {{ this.editedIndex == -1 ? "New " : "Edit " }} Device
         <v-spacer></v-spacer>
 
@@ -427,13 +427,13 @@
             <span v-if="errors && errors.short_name" class="error--text pa-0 ma-0">{{ errors.short_name[0] }}
             </span>
           </v-col>
-          <v-col md="12">
+          <!-- <v-col md="12">
             <v-autocomplete class="pb-0" :hide-details="!payload.branch_id" v-model="payload.branch_id"
               placeholder="Branch Name" outlined dense label="Branch Name" :items="branches" item-value="id"
               item-text="branch_name"></v-autocomplete>
             <span v-if="errors && errors.branch_id" class="error--text pa-0 ma-0">{{ errors.branch_id[0] }}
             </span>
-          </v-col>
+          </v-col> -->
           <v-col md="12">
             <v-text-field class="pb-0" :hide-details="!payload.location" v-model="payload.location"
               placeholder="Device location" outlined dense label="Device location *"></v-text-field>

@@ -522,7 +522,12 @@ class MqttService
 
                         $parts = explode('/', $topic); // tv/{companyId}/dashboard/request
                         $companyId = (int)($parts[1] ?? 0);
-                        if ($companyId <= 0) return;
+                        echo "Company Id is " . $companyId . "\n";
+
+                        if ($companyId <= 0) {
+                            echo "Company Id is 0 or empty";
+                            return false;
+                        };
 
                         // $alarmId = (string)($payload['alarmId'] ?? '');
                         $params = (array)($payload['params'] ?? []);

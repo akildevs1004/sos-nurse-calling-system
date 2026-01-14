@@ -763,7 +763,7 @@ export default {
 
       this.mqttClient.on("connect", () => {
         this.isConnected = true;
-        console.log("✅ MQTT Connected");
+        console.log("✅ MQTT Connected", host);
         this.mqqtt_response_status = "Device Connected....";
 
         // Subscribe to a topic

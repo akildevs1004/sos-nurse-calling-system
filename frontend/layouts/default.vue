@@ -1303,7 +1303,7 @@ export default {
       if (loadSelectedMenu[0]) {
         menu_name = loadSelectedMenu[0].module;
 
-        console.log("menu_name", menu_name);
+        // console.log("menu_name", menu_name);
 
         if (this.menuProperties.hasOwnProperty(menu_name)) {
           for (const key in this.menuProperties) {
@@ -1750,7 +1750,7 @@ export default {
       // );
       let bgColor = "violet";
       this.setMenus();
-      console.log("menu_name", menu_name);
+      // console.log("menu_name", menu_name);
 
       if (this.menuProperties.hasOwnProperty(menu_name)) {
         for (const key in this.menuProperties) {

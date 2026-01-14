@@ -230,9 +230,14 @@
             <div class="notifSub2">Start: {{ formatStartDate(r.alarm?.alarm_start_datetime || r.alarm_start_datetime) }}
             </div>
 
-            <v-btn x-small class="notifBtn danger" :disabled="!!r.alarm?.responded_datetime"
-              v-if="!r.alarm?.responded_datetime" @click="udpateResponse(r.alarm?.id)">
+            <v-btn x-small class="notifBtn warn" :disabled="!!r.alarm?.responded_datetime"
+              v-if="!r.alarm?.responded_datetime && r.off_code != ''" @click="udpateResponse(r.alarm?.id)">
               ACKNOWLEDGEMENT
+            </v-btn>
+            <v-btn x-small class="notifBtn danger" :disabled="!!r.alarm?.responded_datetime"
+              v-if="!r.alarm?.responded_datetime && (r.off_code == null || r.off_code == '' || r.off_code == undefined)"
+              @click="udpateResponse(r.alarm?.id)">
+              STOP ALARM
             </v-btn>
             <div style="height:30px;" v-if="!!r.alarm?.responded_datetime" @click="udpateResponse(r.alarm?.id)">
               &nbsp;
@@ -897,9 +902,13 @@ export default {
     // ========== ACK ==========
     udpateResponse(alarmId) {
 
+      let message = "Are you sure you want to Stop this alarm?";
+      const alarmRoom = (this.devices || []).find(r => r.alarm && r.alarm.id === alarmId);
+      if (alarmRoom && alarmRoom.off_code && alarmRoom.off_code !== "") {
+        message = "Are you sure you want to Acknowledge this alarm?";
+      }
 
-
-      if (confirm("Are you sure you want to Acknowledge this alarm?")) {
+      if (confirm(message)) {
         if (!alarmId) return;
 
         // stop sound immediately (TV + Desktop)
