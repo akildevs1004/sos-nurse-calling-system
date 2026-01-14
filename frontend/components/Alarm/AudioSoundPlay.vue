@@ -40,6 +40,25 @@ export default {
         } else {
           this.stopAudio();
         }
+
+        if (newVal === 0) {
+          this.stopAudio();
+        }
+
+        setTimeout(() => {
+          try {
+            console.log("AlarmAudioPlay.vue: isPlaying=", this.isPlaying, " notificationsMenuItemsCount=", this.notificationsMenuItemsCount);
+
+            if (this.isPlaying === true && this.notificationsMenuItemsCount === 0) {
+              window.location.reload();
+            }
+          } catch (e) {
+            //ignore
+          }
+
+
+
+        }, 1000 * 5);
       },
     },
   },
@@ -70,6 +89,8 @@ export default {
         this.isPlaying = false;
       });
     }
+
+
 
 
     // this.playAudio();

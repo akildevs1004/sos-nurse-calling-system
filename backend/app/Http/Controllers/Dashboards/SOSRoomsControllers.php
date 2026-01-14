@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboards;
 
 use App\Exports\SOSExcelReports;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\File;
 
 use App\Models\Attendance;
 use App\Models\Company;
@@ -30,19 +31,68 @@ class SOSRoomsControllers extends Controller
 
     public function updateResponseDatetime(Request $request)
     {
+        $logDir = base_path('../../logs/sos-nurse-calling-system/mqtt-sosalarm-logs');
+
+        if (!File::exists($logDir)) {
+            File::makeDirectory($logDir, 0755, true);
+        }
+        $logPath = $logDir . '/' . date("Y-m-d") . '.log';
 
 
         $companyId =  (int) $request->company_id;
         $alarmId =  (int) $request->alarmId;
 
-        $alarmLog = DeviceSosRoomLogs::with(["device"])->where("id", $alarmId)->where("company_id", $companyId)->where("sos_status", true)->first();
+        $alarmLog = DeviceSosRoomLogs::with(["device", "room"])->where("id", $alarmId)->where("company_id", $companyId)->where("sos_status", true)->first();
 
 
         if ($alarmLog && $alarmLog["device"]) {
 
             $now = now()->setTimezone($alarmLog->device->utc_time_zone)->format('Y-m-d H:i:s');
 
-            $alarmLog->update(["responded_datetime" => $now]);
+
+
+
+            //Close Alarm if SOS button has only one press button Like Fire Alarm
+            {
+
+                $device_sos_button_off_code = $alarmLog->room->off_code;
+                if ($device_sos_button_off_code == '' || $device_sos_button_off_code == null) { {
+                        # code...
+
+
+                        DeviceSosRooms::where("id", $alarmLog->device_sos_room_table_id)->where("company_id", $companyId)->update([
+                            'alarm_status'     => false,
+                            'updated_at' => now(),
+                        ]);;
+
+
+                        $response_in_minutes = 0;
+
+                        if ($alarmLog) {
+                            $response_in_minutes = Carbon::parse($alarmLog->alarm_start_datetime)
+                                ->diffInMinutes($now);
+
+                            DeviceSosRoomLogs::where("id", $alarmLog->id)->update([                          // FIX: update the instance
+                                "sos_status"          => false,
+                                "off_code"            => null,
+                                "alarm_end_datetime"  => $now,
+                                "responded_datetime"  => $now,
+                                "response_in_minutes"  => $response_in_minutes,
+
+                            ]);
+                            echo "\n -------------------------  Alarm Closed";
+
+                            File::prepend($logPath, "[" . now() . "] Info: SOS Alarm Is Updated  $alarmLog->id  \n");
+                        }
+                    }
+
+
+                    echo "\n SINGLE SOS BUTTON OFF " . $alarmLog->id;
+                }
+            }
+
+
+
             return $this->response('Acknowledgement Updated Successfully', null, true);
         }
         return $this->response('Not Updated.Try Again ', null, false);

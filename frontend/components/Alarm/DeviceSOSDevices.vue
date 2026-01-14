@@ -217,7 +217,7 @@ export default {
 
     // ---------------- MQTT ----------------
     getMqttHost() {
-      return this.$store.state.env.MQTT_SOCKET_HOST;//process.env.VUE_APP_MQTT_SOCKET_HOST || process.env.MQTT_SOCKET_HOST || "";
+      return this.$store.state.env?.MQTT_SOCKET_HOST;//process.env.VUE_APP_MQTT_SOCKET_HOST || process.env.MQTT_SOCKET_HOST || "";
     },
 
     buildTopics() {

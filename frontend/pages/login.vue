@@ -664,15 +664,22 @@ export default {
           // Treat security user as success
           // return res.user?.user_type === "security";
 
-          if (res.user?.user_type === "security")
+          if (res.user?.user_type === "security") {
+            this.$vuetify.theme.dark = false;
             redirect("/alarm/tvmonitor1");
+          }
+
 
 
           else if (res.user?.user_type === "master")
+
             redirect("/master/");
 
-          else
+          else {
             redirect("/alarm/dashboard");
+            this.$vuetify.theme.dark = false;
+          }
+
 
           return;
         }
@@ -696,7 +703,7 @@ export default {
         if (user?.user_type === "security")
           redirect("/alarm/tvmonitor1");
 
-        else if (res.user?.user_type === "master")
+        else if (user?.user_type === "master" || user?.user_type === "" || user?.is_master === true || user?.user_type === null)
           redirect("/master/");
 
         else

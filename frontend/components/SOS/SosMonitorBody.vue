@@ -202,6 +202,7 @@
         </section>
 
         <!-- Desktop sound (ONLY when NOT TV) -->
+
         <AudioSoundPlay :key="totalSOSCount"
           :notificationsMenuItemsCount="!isTv && stats.activeSos > 0 && !muted && Date.now() > soundSuppressUntil ? 1 : 0" />
       </main>
@@ -424,7 +425,7 @@ export default {
     if ([4, 9, 12, 16, 35, 60].includes(savedSplit)) this.splitMode = savedSplit;
 
     // mqttUrl must be set BEFORE connect
-    this.mqttUrl = this.$store.state.env ? this.$store.state.env.MQTT_SOCKET_HOST : '';//process.env.MQTT_SOCKET_HOST || "";
+    this.mqttUrl = this.$store.state?.env ? this.$store.state.env.MQTT_SOCKET_HOST : '';//process.env.MQTT_SOCKET_HOST || "";
   },
 
   async mounted() {
@@ -772,7 +773,10 @@ export default {
         this.devices = this.normalizeRooms(list);
 
         if (this.devices.length === 0) {
-          alert(" No Rooms data ");
+
+          this.snackbar = true;
+          this.snackbarResponse = "No Rooms data received";
+          // alert(" No Rooms data ");
         }
         this.updateDurationAll();
 

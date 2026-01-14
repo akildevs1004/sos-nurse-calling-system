@@ -106,7 +106,7 @@ export default {
 
     // if ((this.allowedSerials.length))
     {
-      this.mqttUrl = this.$store.state.env.MQTT_SOCKET_HOST;//process.env.MQTT_SOCKET_HOST;
+      this.mqttUrl = this.$store.state.env?.MQTT_SOCKET_HOST;//process.env.MQTT_SOCKET_HOST;
       this.connectMqtt();
     }
 

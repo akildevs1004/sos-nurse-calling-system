@@ -442,38 +442,7 @@
             ">{{ todayDate }}</span>
         </div>
       </span>
-      <v-menu nudge-bottom="50" transition="scale-transition" origin="center center" bottom left min-width="200"
-        nudge-left="20" style="z-index: 9999">
-        <template v-slot:activator="{ on, attrs }">
-          <v-btn icon color="red" v-bind="attrs" v-on="on">
-            <v-avatar size="35" style="border: 1px solid #fff">
-              <v-img class="company_logo" :src="getLogo"></v-img>
-            </v-avatar>
-          </v-btn>
-        </template>
 
-        <v-list light nav dense>
-          <v-list-item-group color="white">
-            <v-list-item v-if="this.$auth && this.$auth.user.user_type == 'company'" @click="goToCompany()">
-              <v-list-item-icon>
-                <v-icon>mdi-account-multiple-outline</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title class="black--text">Profile</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-
-            <v-list-item @click="logout">
-              <v-list-item-icon>
-                <v-icon>mdi-logout</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content>
-                <v-list-item-title class="black--text">Logout</v-list-item-title>
-              </v-list-item-content>
-            </v-list-item>
-          </v-list-item-group>
-        </v-list>
-      </v-menu>
       <!-- <button type="button" @click="playAudioOnUserInteraction" ref="myBtn">
         Click Me!
       </button> -->
@@ -529,7 +498,38 @@
 
       <v-btn v-if="getLoginType == 'company' || getLoginType == 'branch'" icon plan @click="goToSettings()"
         class="mr-3"><v-icon class="white--text" style="text-align: center">mdi-settings</v-icon></v-btn>
+      <v-menu nudge-bottom="50" transition="scale-transition" origin="center center" bottom left min-width="200"
+        nudge-left="20" style="z-index: 9999">
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn icon color="red" v-bind="attrs" v-on="on">
+            <v-avatar size="35" style="border: 1px solid #fff">
+              <v-img class="company_logo" :src="getLogo"></v-img>
+            </v-avatar>
+          </v-btn>
+        </template>
 
+        <v-list light nav dense>
+          <v-list-item-group color="white">
+            <v-list-item v-if="this.$auth && this.$auth.user.user_type == 'company'" @click="goToCompany()">
+              <v-list-item-icon>
+                <v-icon>mdi-account-multiple-outline</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title class="black--text">Profile</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+
+            <v-list-item @click="logout">
+              <v-list-item-icon>
+                <v-icon>mdi-logout</v-icon>
+              </v-list-item-icon>
+              <v-list-item-content>
+                <v-list-item-title class="black--text">Logout</v-list-item-title>
+              </v-list-item-content>
+            </v-list-item>
+          </v-list-item-group>
+        </v-list>
+      </v-menu>
       <!-- <v-menu
         bottom
         origin="center center"
@@ -1182,11 +1182,11 @@ export default {
   async created() {
     await this.loadEnv();
     const savedTheme = this.$auth.user.company?.theme || "light";
-
-    if (savedTheme === "dark") {
-      this.$vuetify.theme.dark = true;
-    } else {
+    this.$vuetify.theme.dark = true;
+    if (savedTheme != "dark") {
       this.$vuetify.theme.dark = false;
+    } else {
+      this.$vuetify.theme.dark = true;
     }
 
     this.pagename = this.$route.name;
