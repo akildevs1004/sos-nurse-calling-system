@@ -50,7 +50,12 @@ class SOSRoomsControllers extends Controller
             $now = now()->setTimezone($alarmLog->device->utc_time_zone)->format('Y-m-d H:i:s');
 
 
+            DeviceSosRoomLogs::where("id", $alarmLog->id)->update([                          // FIX: update the instance
 
+                "responded_datetime"  => $now,
+
+
+            ]);
 
             //Close Alarm if SOS button has only one press button Like Fire Alarm
             {
@@ -94,6 +99,8 @@ class SOSRoomsControllers extends Controller
 
 
             return $this->response('Acknowledgement Updated Successfully', null, true);
+        } else {
+            echo "\n Alarm Is not Open " . $alarmLog->id;
         }
         return $this->response('Not Updated.Try Again ', null, false);
     }
