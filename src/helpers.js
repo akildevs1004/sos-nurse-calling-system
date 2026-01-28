@@ -1,3 +1,10 @@
+// helpers.js (MERGED VERSION)
+// - Keeps all your existing logic
+// - Changes logger() to write logs in: logs/YYYY-MM-DD/<ServiceName>.log
+// - Adds sanitizeServiceName() + getLogDayFolder()
+// - Updates spawnWrapper + spawnPhpCgiWorker to use cleaner log messages (no double prefix)
+// - Updates stopServices() shutdown file to date folder: logs/YYYY-MM-DD/XtremeGuardParking_SHUTDOWN.log
+
 const simpleGit = require("simple-git");
 const fs = require("fs");
 const path = require("path");
@@ -31,6 +38,45 @@ Object.keys(networkInterfaces).forEach((interfaceName) => {
   });
 });
 
+// -------------------- NEW HELPERS (FOR DATE FOLDER LOGS) --------------------
+function sanitizeServiceName(name) {
+  return String(name || "Service")
+    .replace(/^\s*\[/, "") // remove leading [
+    .replace(/\]\s*$/, "") // remove trailing ]
+    .trim()
+    .replace(/\s+/g, "") // remove spaces
+    .replace(/[^a-zA-Z0-9-_]/g, ""); // safe filename chars
+}
+
+function getLogDayFolder() {
+  // YYYY-MM-DD (UTC). If you want Dubai date specifically, tell me; we can use Intl with Asia/Dubai.
+  return new Date().toISOString().slice(0, 10);
+}
+
+// -------------------- UPDATED LOGGER (DATE FOLDER + SERVICE FILE) --------------------
+function logger(processType, message) {
+  const now = new Date();
+  const timestamp = now.toISOString().replace("T", " ").split(".")[0]; // YYYY-MM-DD HH:mm:ss
+  const fullMessage = `[${timestamp}] ${message}\n`;
+
+  // logs/YYYY-MM-DD/<ServiceName>.log
+  const dayFolder = getLogDayFolder();
+  const logDir = path.join(appDir, "logs", dayFolder);
+
+  const serviceName = sanitizeServiceName(processType);
+  const logFile = path.join(logDir, `${serviceName}.log`);
+
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+  }
+
+  fs.appendFile(logFile, fullMessage, (err) => {
+    if (err) {
+      console.error("❌ Failed to write log file:", err);
+    }
+  });
+}
+
 // Flexible spawn wrapper
 function spawnWrapper(processType, command, argsOrOptions, maybeOptions) {
   let args = [];
@@ -45,25 +91,30 @@ function spawnWrapper(processType, command, argsOrOptions, maybeOptions) {
 
   const child = spawn(command, args, options);
 
-  child.stdout.on("data", (data) => {
-    logger(processType, `${processType} ${data.toString()}`);
-  });
+  // ✅ cleaner logging (no double prefix)
+  if (child.stdout) {
+    child.stdout.on("data", (data) => {
+      const msg = data.toString().trim();
+      if (msg) logger(processType, msg);
+    });
+  }
 
-  child.stderr.on("data", (data) => {
-    logger(processType, `${processType} ${data.toString()}`);
-  });
+  if (child.stderr) {
+    child.stderr.on("data", (data) => {
+      const msg = data.toString().trim();
+      if (msg) logger(processType, `ERR: ${msg}`);
+    });
+  }
 
   child.on("close", (code) => {
     logger(
       processType,
-      `${processType} exited with code ${code} for ${JSON.stringify(
-        argsOrOptions
-      )}`
+      `Exited with code ${code} for ${JSON.stringify(argsOrOptions)}`,
     );
   });
 
   child.on("error", (err) => {
-    logger(processType, `${processType} ${err.message}`);
+    logger(processType, `ERROR: ${err.message}`);
   });
 
   return child.pid;
@@ -76,24 +127,29 @@ function spawnPhpCgiWorker(phpCGi, port) {
   function start() {
     const child = spawn(phpCGi, args, options);
 
-    child.stdout.on("data", (data) => {
-      logger(port, `[PHP-CGI:${port}] ${data.toString()}`);
-    });
+    const serviceName = `PHP-CGI-${port}`;
 
-    child.stderr.on("data", (data) => {
-      logger(port, `[PHP-CGI:${port}] ${data.toString()}`);
-    });
+    if (child.stdout) {
+      child.stdout.on("data", (data) => {
+        const msg = data.toString().trim();
+        if (msg) logger(serviceName, msg);
+      });
+    }
+
+    if (child.stderr) {
+      child.stderr.on("data", (data) => {
+        const msg = data.toString().trim();
+        if (msg) logger(serviceName, `ERR: ${msg}`);
+      });
+    }
 
     child.on("close", (code) => {
-      logger(
-        port,
-        `[PHP-CGI:${port}] exited with code ${code}. Restarting in 2s...`
-      );
+      logger(serviceName, `Exited with code ${code}. Restarting in 2s...`);
       setTimeout(start, 2000); // auto-restart after 2 seconds
     });
 
     child.on("error", (err) => {
-      logger(port, `[PHP-CGI:${port}] error: ${err.message}`);
+      logger(serviceName, `ERROR: ${err.message}`);
     });
 
     return child.pid;
@@ -138,45 +194,12 @@ function notify(title = "", body = "", icon = "favicon", onClick = null) {
   notification.show();
 }
 
-function logger(processType, message) {
-  const now = new Date();
-
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  const hours = String(now.getHours()).padStart(2, "0");
-  const minutes = String(now.getMinutes()).padStart(2, "0");
-  const seconds = String(now.getSeconds()).padStart(2, "0");
-
-  const timestamp = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-  const fullMessage = `[${timestamp}] ${message}\n`;
-
-  // Write to file in logs directory within appDir
-  const logDir = path.join(appDir, "logs");
-  const logFile = path.join(
-    logDir,
-    `${processType}-${year}-${month}-${day}.log`
-  );
-
-  // Create logs directory if it doesn't exist
-  if (!fs.existsSync(logDir)) {
-    fs.mkdirSync(logDir, { recursive: true });
-  }
-
-  fs.appendFile(logFile, fullMessage, (err) => {
-    if (err) {
-      console.error("❌ Failed to write log file:", err);
-    }
-  });
-}
-
 /**
  * Checks if VS Redistributable is already installed
  * @param {string} displayName - Part of the name to check in installed programs
  * @returns {boolean}
  */
 function isVSRedistInstalled(displayName = "Microsoft Visual C++") {
-  // Use PowerShell to check registry for installed programs
   const psScript = `
     Get-ItemProperty HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*,
                       HKLM:\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\* |
@@ -194,29 +217,29 @@ function isVSRedistInstalled(displayName = "Microsoft Visual C++") {
 function runInstaller(installerPath) {
   return new Promise((resolve, reject) => {
     if (isVSRedistInstalled()) {
-      logger(`VS_REDIST`, "✅ VS Redistributable already installed.");
+      logger("VS_REDIST", "✅ VS Redistributable already installed.");
       return resolve("Already installed");
     }
 
     const installer = spawn(installerPath, ["/quiet", "/norestart"]);
 
     installer.stdout.on("data", (data) => {
-      logger(`VS_REDIST`, data.toString());
+      logger("VS_REDIST", data.toString().trim());
     });
 
     installer.stderr.on("data", (data) => {
-      logger(`VS_REDIST`, data.toString());
+      logger("VS_REDIST", `ERR: ${data.toString().trim()}`);
     });
 
     installer.on("close", (code) => {
       if (code === 0) {
-        logger(`VS_REDIST`, "Installed successfully");
+        logger("VS_REDIST", "Installed successfully");
         resolve("Installed successfully");
       } else if (code === 1638) {
-        logger(`VS_REDIST`, "Already installed (code 1638)");
+        logger("VS_REDIST", "Already installed (code 1638)");
         resolve("Already installed");
       } else {
-        logger(`VS_REDIST`, `❌ Installation failed with code ${code}`);
+        logger("VS_REDIST", `❌ Installation failed with code ${code}`);
         reject(new Error(`Installation failed with code ${code}`));
       }
     });
@@ -230,10 +253,7 @@ async function openUpdaterWindow() {
     properties: ["openFile"],
   });
 
-  logger(
-    "Updater",
-    `called openUpdaterWindow, result: ${JSON.stringify(result)}`
-  );
+  logger("Updater", `openUpdaterWindow: ${JSON.stringify(result)}`);
 
   if (!result.canceled && result.filePaths.length > 0) {
     const zipPath = result.filePaths[0];
@@ -243,27 +263,22 @@ async function openUpdaterWindow() {
 
 async function applyUpdate(zipPath) {
   try {
-    const tempDir = path.join(appDir, "XtremeGuardSOSUpdate");
+    const tempDir = path.join(appDir, "XtremeGuardParkingUpdate");
 
-    // Clean temp dir first
     if (fs.existsSync(tempDir)) {
       fs.rmSync(tempDir, { recursive: true, force: true });
     }
     fs.mkdirSync(tempDir, { recursive: true });
 
-    // Extract ZIP
     await fs
       .createReadStream(zipPath)
       .pipe(unzipper.Extract({ path: tempDir }))
       .promise();
 
-    // Copy files to app directory
     copyFolderRecursiveSync(tempDir, appDir);
 
-    // ✅ DELETE temp update folder after copy
     fs.rmSync(tempDir, { recursive: true, force: true });
 
-    const { dialog } = require("electron");
     dialog
       .showMessageBox({
         type: "info",
@@ -301,7 +316,7 @@ function setMenu() {
       submenu: [
         {
           label: "Update App",
-          click: () => openUpdaterWindow(), // now works
+          click: () => openUpdaterWindow(),
         },
         { role: "quit" },
       ],
@@ -314,23 +329,25 @@ function setMenu() {
 
 function stopServices(pid) {
   return new Promise((resolve) => {
-    fs.appendFileSync(
-      path.join(appDir, "logs", "XtremeGuardSOS_SHUTDOWN.txt"),
-      "Stopping services...\n"
+    const dayFolder = getLogDayFolder();
+    const shutdownDir = path.join(appDir, "logs", dayFolder);
+    const shutdownFile = path.join(
+      shutdownDir,
+      "XtremeGuardParking_SHUTDOWN.log",
     );
+
+    if (!fs.existsSync(shutdownDir)) {
+      fs.mkdirSync(shutdownDir, { recursive: true });
+    }
+
+    fs.appendFileSync(shutdownFile, "Stopping services...\n");
 
     if (pid) {
       try {
         execSync(`taskkill /PID ${pid} /T /F`);
-        fs.appendFileSync(
-          path.join(appDir, "logs", "XtremeGuardSOS_SHUTDOWN.txt"),
-          `✅ ${pid} stopped\n`
-        );
+        fs.appendFileSync(shutdownFile, `✅ ${pid} stopped\n`);
       } catch (err) {
-        fs.appendFileSync(
-          path.join(appDir, "logs", "XtremeGuardSOS_SHUTDOWN.txt"),
-          `ℹ️ Failed to stop\n`
-        );
+        fs.appendFileSync(shutdownFile, `ℹ️ Failed to stop ${pid}\n`);
       }
     }
 
@@ -339,7 +356,7 @@ function stopServices(pid) {
 }
 
 async function generateHardwareFingerprint() {
-  const [cpu, baseboard, disks, network, os] = await Promise.all([
+  const [cpu, baseboard, disks, network, osInfo] = await Promise.all([
     si.cpu(),
     si.baseboard(),
     si.diskLayout(),
@@ -359,7 +376,7 @@ async function generateHardwareFingerprint() {
     cpu.physicalCores,
     baseboard.serial || "NO_MB",
     primaryDisk.serial || "NO_DISK",
-    os.hostname,
+    osInfo.hostname,
     macs,
   ].join("|");
 
@@ -397,7 +414,6 @@ function writeClock(ts) {
 function isClockTampered() {
   const data = readClock();
   if (!data || !data.last) {
-    // first run → trust system time
     writeClock(Date.now());
     return false;
   }
@@ -409,9 +425,38 @@ function isClockTampered() {
     return true;
   }
 
-  // update monotonic timestamp
   writeClock(now);
   return false;
+}
+
+function cleanupOldLogs(daysToKeep = 2) {
+  try {
+    const logsRoot = path.join(appDir, "logs");
+    if (!fs.existsSync(logsRoot)) return;
+
+    const now = Date.now();
+    const maxAgeMs = daysToKeep * 24 * 60 * 60 * 1000;
+
+    const entries = fs.readdirSync(logsRoot, { withFileTypes: true });
+
+    entries.forEach((entry) => {
+      if (!entry.isDirectory()) return;
+
+      // Expect folder name: YYYY-MM-DD
+      const folderName = entry.name;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(folderName)) return;
+
+      const folderPath = path.join(logsRoot, folderName);
+      const folderDate = new Date(folderName + "T00:00:00Z").getTime();
+
+      if (now - folderDate > maxAgeMs) {
+        fs.rmSync(folderPath, { recursive: true, force: true });
+        logger("LOG-CLEANUP", `Deleted old log folder: ${folderName}`);
+      }
+    });
+  } catch (err) {
+    logger("LOG-CLEANUP", `ERROR: ${err.message}`);
+  }
 }
 
 module.exports = {
@@ -424,4 +469,5 @@ module.exports = {
   setMenu,
   getCachedMachineId,
   isClockTampered,
+  cleanupOldLogs, // ✅ ADD THIS
 };

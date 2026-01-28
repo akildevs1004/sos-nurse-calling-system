@@ -774,8 +774,8 @@ export default {
 
           err ? reject(err) : resolve(data);
         };
-
-        const timeout = setTimeout(() => finish(new Error("login timeout")), 1000 * 10);
+        console.log("MQTT Login Timeout - Unable to connect MQTT " + host)
+        const timeout = setTimeout(() => finish(new Error("MQTT Login Timeout")), 1000 * 10);
 
         try {
           client = mqtt.connect(host, { clientId, clean: true, connectTimeout: 1000 * 20 });
