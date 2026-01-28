@@ -17,7 +17,7 @@ db_missing:
   Abort
 
 db_fail:
-  MessageBox MB_ICONSTOP "Database installation failed (exit code: $0).$\r$\nCheck: C:\ProgramData\XtremeGuardParking\logs\db_install.log"
+  MessageBox MB_ICONSTOP "Database installation failed (exit code: $0).$\r$\nCheck: C:\ProgramData\XtremeGuardSOS\logs\db_install.log"
   Abort
 
 db_ok:

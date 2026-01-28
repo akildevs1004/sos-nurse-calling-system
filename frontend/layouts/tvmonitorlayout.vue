@@ -23,8 +23,10 @@ export default {
       // return;
     }
     else {
-      alert("Unauthorized Access. Redirecting to Login.");
-      this.logout();
+
+      console.log("Unauthorized Access. Redirecting to Login.");
+
+      //this.logout();
       return "";
     }
 

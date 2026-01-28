@@ -39,6 +39,12 @@ export default ({ $axios, store }, inject) => {
 
   const isClient = process.client;
 
+  if (process.server && process.static) {
+    // skip axios calls during nuxt generate
+    console.log("skip axios calls during nuxt generate");
+    return;
+  }
+
   /*
 
   const backendURL = isClient

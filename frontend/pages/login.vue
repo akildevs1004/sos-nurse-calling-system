@@ -77,7 +77,7 @@
           <div class="tvLeft" :style="tvLeftStyle">
             <v-img class="tvLogo" :style="tvLogoStyle" src="/logo22.png" contain />
             <div class="tvWelcome" :style="tvWelcomeStyle">
-              Welcome To <span class="tvBrand">Xtreme Guard</span>
+              Welcome To <span class="tvBrand">Xtreme Guard - SOS</span>
             </div>
 
             <div class="tvSupport" :style="tvSupportStyle">
@@ -395,7 +395,7 @@ export default {
   },
 
   async mounted() {
-
+    await this.loadEnv();
     this.$vuetify.theme.dark = false;
 
     this.updateViewport();
@@ -638,15 +638,16 @@ export default {
         console.log("this.isTv", this.isTv);
 
         if (this.isTv) {
+
+          await this.loadEnv();
+
           let res = await this.mqttLoginVerify(this.credentials);
-
+          console.log("res ERROR", res);
           res = res.data;
-
-          console.log("res", res);
 
 
           if (!res || !res.status) {
-            this.msg = res?.message || "Invalid Login Details";
+            this.msg = res?.message + this.$store.state.env?.MQTT_SOCKET_HOST + " ERROR Detected." || "Invalid Login Details";
             this.snackbar = true;
             this.snackbarMessage = this.msg;
             return false;
@@ -749,6 +750,7 @@ export default {
     },
 
     async mqttLoginVerify(credentials) {
+      alert(this.$store.state.env?.MQTT_SOCKET_HOST);
       const host = this.$store.state.env?.MQTT_SOCKET_HOST;//process.env.MQTT_SOCKET_HOST;
       const clientId = "vue-client-" + Math.random().toString(16).substr(2, 8);
 

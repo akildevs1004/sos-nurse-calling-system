@@ -3,7 +3,7 @@
 // - Changes logger() to write logs in: logs/YYYY-MM-DD/<ServiceName>.log
 // - Adds sanitizeServiceName() + getLogDayFolder()
 // - Updates spawnWrapper + spawnPhpCgiWorker to use cleaner log messages (no double prefix)
-// - Updates stopServices() shutdown file to date folder: logs/YYYY-MM-DD/XtremeGuardParking_SHUTDOWN.log
+// - Updates stopServices() shutdown file to date folder: logs/YYYY-MM-DD/XtremeGuardSOS_SHUTDOWN.log
 
 const simpleGit = require("simple-git");
 const fs = require("fs");
@@ -27,7 +27,7 @@ if (isDev) {
 
 const networkInterfaces = os.networkInterfaces();
 
-let ipv4Address = "localhost";
+let ipv4Address = "localhost11111111111";
 
 Object.keys(networkInterfaces).forEach((interfaceName) => {
   networkInterfaces[interfaceName].forEach((networkInterface) => {
@@ -37,6 +37,8 @@ Object.keys(networkInterfaces).forEach((interfaceName) => {
     }
   });
 });
+
+logger("Application", `IP address found  at ${ipv4Address} `);
 
 // -------------------- NEW HELPERS (FOR DATE FOLDER LOGS) --------------------
 function sanitizeServiceName(name) {
@@ -263,7 +265,7 @@ async function openUpdaterWindow() {
 
 async function applyUpdate(zipPath) {
   try {
-    const tempDir = path.join(appDir, "XtremeGuardParkingUpdate");
+    const tempDir = path.join(appDir, "XtremeGuardSOSUpdate");
 
     if (fs.existsSync(tempDir)) {
       fs.rmSync(tempDir, { recursive: true, force: true });
@@ -331,10 +333,7 @@ function stopServices(pid) {
   return new Promise((resolve) => {
     const dayFolder = getLogDayFolder();
     const shutdownDir = path.join(appDir, "logs", dayFolder);
-    const shutdownFile = path.join(
-      shutdownDir,
-      "XtremeGuardParking_SHUTDOWN.log",
-    );
+    const shutdownFile = path.join(shutdownDir, "XtremeGuardSOS_SHUTDOWN.log");
 
     if (!fs.existsSync(shutdownDir)) {
       fs.mkdirSync(shutdownDir, { recursive: true });
