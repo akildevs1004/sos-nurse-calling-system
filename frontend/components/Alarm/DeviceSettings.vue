@@ -758,7 +758,7 @@ export default {
       this.mqttClient = mqtt.connect(host, {
         clientId: clientId,
         clean: true,
-        connectTimeout: 4000,
+        connectTimeout: 1000 * 20,
       });
 
       this.mqttClient.on("connect", () => {

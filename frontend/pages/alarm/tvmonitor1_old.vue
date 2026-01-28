@@ -842,7 +842,7 @@ export default {
 
       this.loading = false;
       this.requestDashboardSnapshot();
-      alert("Acknowledgement is Received..");
+      // alert("Acknowledgement is Received..");
     }
   }
 };

@@ -249,7 +249,7 @@ export default {
       this.mqttClient = mqtt.connect(host, {
         clientId,
         clean: true,
-        connectTimeout: 6000,
+        connectTimeout: 1000 * 20,
         reconnectPeriod: 2000, // mqtt.js auto reconnect
       });
 

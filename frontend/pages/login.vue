@@ -402,6 +402,9 @@ export default {
     try {
       window.addEventListener("resize", this.updateViewport, { passive: true });
     } catch (e) { }
+
+
+    this.$auth.logout();
     // Logout only for website (do NOT logout for TV, else auto-redirect will never work)
     if (!this.isTv) {
       try {
@@ -746,7 +749,7 @@ export default {
     },
 
     async mqttLoginVerify(credentials) {
-      const host = process.env.MQTT_SOCKET_HOST;
+      const host = this.$store.state.env?.MQTT_SOCKET_HOST;//process.env.MQTT_SOCKET_HOST;
       const clientId = "vue-client-" + Math.random().toString(16).substr(2, 8);
 
       const reqTopic = "tv/auth/req";
@@ -775,7 +778,7 @@ export default {
         const timeout = setTimeout(() => finish(new Error("login timeout")), 1000 * 10);
 
         try {
-          client = mqtt.connect(host, { clientId, clean: true, connectTimeout: 4000 });
+          client = mqtt.connect(host, { clientId, clean: true, connectTimeout: 1000 * 20 });
         } catch (e) {
           clearTimeout(timeout);
           finish(new Error("MQTT connect failed"));
