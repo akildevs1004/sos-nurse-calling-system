@@ -334,7 +334,7 @@ export default {
       this.latestConfig = cfg || {};
       const list = Array.isArray(cfg?.sos_devices) ? cfg.sos_devices : [];
 
-      console.log("topic SOS", cfg.sos_devices[0].status);
+      // console.log("topic SOS", cfg.sos_devices[0]?.status);
 
 
       // update table with full objects (status/lastSeen/codes/bits/proto/etc)

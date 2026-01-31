@@ -1261,7 +1261,7 @@ export default {
     connectMQTT() {
 
       this.loading = true;
-      console.log("connecting to MQTT Alarm Page env", this.$store.state.env);
+      console.log("connecting to MQTT Alarm Page env", this.$store.state.env?.MQTT_SOCKET_HOST);
 
       if (this.$store.state.env?.MQTT_SOCKET_HOST) {
 

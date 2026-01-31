@@ -138,7 +138,7 @@
           <div class="logoWrap">
             <v-img class="webLogo" src="/logo22.png" contain />
             <h3 class="webWelcome">
-              Welcome To <span class="webBrand">Xtreme Guard</span>
+              Welcome To <span class="webBrand">Xtreme Guard - SOS </span>
             </h3>
           </div>
 
@@ -670,17 +670,20 @@ export default {
 
           if (res.user?.user_type === "security") {
             this.$vuetify.theme.dark = false;
-            redirect("/alarm/tvmonitor1");
+
+            // redirect("/alarm/tvmonitor1");
+            this.$router.push("/alarm/tvmonitor1");
           }
 
 
 
           else if (res.user?.user_type === "master")
+            this.$router.push("/master/");
 
-            redirect("/master/");
 
           else {
-            redirect("/alarm/dashboard");
+            this.$router.push("/alarm/dashboard");
+            // redirect("/alarm/dashboard");
             this.$vuetify.theme.dark = false;
           }
 
@@ -705,13 +708,13 @@ export default {
 
 
         if (user?.user_type === "security")
-          redirect("/alarm/tvmonitor1");
+          this.$router.push("/alarm/tvmonitor1");
 
         else if (user?.user_type === "master" || user?.user_type === "" || user?.is_master === true || user?.user_type === null)
-          redirect("/master/");
+          this.$router.push("/master/");
 
         else
-          redirect("/alarm/dashboard");
+          this.$router.push("/alarm/dashboard");
 
         return;
 
@@ -740,7 +743,7 @@ export default {
 
         return true;
       } catch (e) {
-        this.msg = e?.message || "Login failed";
+        this.msg = e?.message + ' Error' || "Login failed";
         this.snackbar = true;
         this.snackbarMessage = this.msg;
         return false;

@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Http\Controllers\Dashboards\SOSRoomsControllers;
 use App\Models\Device;
 use Illuminate\Console\Command;
 use App\Services\MqttService;
@@ -13,7 +14,8 @@ class MqttSubscribe extends Command
 
     public function handle()
     {
-        $this->info("🚀 MQTT subscription started..." . env('MQTT_HOST'));
+        $host =  (new SOSRoomsControllers())->getServerIp(); //env('MQTT_HOST');
+        $this->info("🚀 MQTT subscription started..." .  $host);
 
 
 
