@@ -184,10 +184,10 @@
         </div>
       </v-col>
 
-      <v-col cols="12" lg="7" class="webRight d-none d-lg-flex" style="color:black!important">
-        <div class="about-content" style="color:black!important">
+      <v-col cols="12" lg="7" class="webRight d-none d-lg-flex">
+        <div class="about-content">
           <h3>About Xtreme Guard</h3>
-          <div class="aboutText" style="color:black!important">
+          <div class="aboutText">
             Xtreme Guard is an innovative and comprehensive platform.
             <br />
             Monitoring humidity and temperature alongside fire alarms, smoke alarms, water leakage alarms, power-off
@@ -204,16 +204,16 @@
             <li>Door Open Status Monitoring</li>
           </ul>
 
-          <div class="pt-8" style="color:black!important">
+          <div class="pt-8">
             <h3>Technical Support</h3>
-            <div class="aboutSupport" style="color:black!important">
-              <a target="_blank" class="supportLink whiteLink1"
+            <div class="aboutSupport">
+              <a target="_blank" class="supportLink whiteLink"
                 href="https://wa.me/971529048025?text=Hello%20XtremeGuard.%20I%20need%20your%20support.">
-                <v-icon color="green" small>mdi-whatsapp</v-icon>
+                <v-icon color="white" small>mdi-whatsapp</v-icon>
               </a>
-              <a class="supportLink whiteLink1" href="tel:+971529048025">+971 52 904 8025</a>
+              <a class="supportLink whiteLink" href="tel:+971529048025">+971 52 904 8025</a>
               <br />
-              <a class="supportLink whiteLink1" href="mailto:support@xtremeguard.org">support@xtremeguard.org</a>
+              <a class="supportLink whiteLink" href="mailto:support@xtremeguard.org">support@xtremeguard.org</a>
             </div>
           </div>
         </div>
@@ -267,25 +267,15 @@ export default {
     // TV mode detection:
     // width 900..1100 OR height < 700
     isTv() {
-      const w = Number(this.screenW) || 0;
-      const h = Number(this.screenH) || 0;
 
-      // 1. Server-side rendering (Nuxt)
-      if (process.server) return true;
 
-      // 2. Explicit TV / Android TV / WebOS / Tizen user agents
-      if (this.isTVUserAgent()) return true;
+      const w = this.screenW || 0;
+      const h = this.screenH || 0;
 
-      // 3. Real TV resolution detection (landscape, large screen)
-      const isLandscape = w > h;
-      const isLargeScreen = w >= 1280 && h >= 720;
+      console.log(w, h);
 
-      // 4. Exclude mobile & tablets
-      const isMobileLike = w > 0 && w <= 1024 && h > 0 && h <= 1366;
-
-      return isLandscape && isLargeScreen && !isMobileLike;
+      return this.isTVUserAgent() || (w < 700 && w > 0) || (h < 900 && h > 0) || (w >= 900 && w <= 1100) || (h > 0 && h < 700) || (w === 0 && h === 0); // treat 0x0 as TV for server-side rendering
     },
-
 
     // Are saved credentials present?
     hasSavedLogin() {
