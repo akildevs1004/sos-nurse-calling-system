@@ -184,10 +184,10 @@
         </div>
       </v-col>
 
-      <v-col cols="12" lg="7" class="webRight d-none d-lg-flex">
-        <div class="about-content">
+      <v-col cols="12" lg="7" class="webRight d-none d-lg-flex" style="color:black!important">
+        <div class="about-content" style="color:black!important">
           <h3>About Xtreme Guard</h3>
-          <div class="aboutText">
+          <div class="aboutText" style="color:black!important">
             Xtreme Guard is an innovative and comprehensive platform.
             <br />
             Monitoring humidity and temperature alongside fire alarms, smoke alarms, water leakage alarms, power-off
@@ -204,16 +204,16 @@
             <li>Door Open Status Monitoring</li>
           </ul>
 
-          <div class="pt-8">
+          <div class="pt-8" style="color:black!important">
             <h3>Technical Support</h3>
-            <div class="aboutSupport">
-              <a target="_blank" class="supportLink whiteLink"
+            <div class="aboutSupport" style="color:black!important">
+              <a target="_blank" class="supportLink whiteLink1"
                 href="https://wa.me/971529048025?text=Hello%20XtremeGuard.%20I%20need%20your%20support.">
-                <v-icon color="white" small>mdi-whatsapp</v-icon>
+                <v-icon color="green" small>mdi-whatsapp</v-icon>
               </a>
-              <a class="supportLink whiteLink" href="tel:+971529048025">+971 52 904 8025</a>
+              <a class="supportLink whiteLink1" href="tel:+971529048025">+971 52 904 8025</a>
               <br />
-              <a class="supportLink whiteLink" href="mailto:support@xtremeguard.org">support@xtremeguard.org</a>
+              <a class="supportLink whiteLink1" href="mailto:support@xtremeguard.org">support@xtremeguard.org</a>
             </div>
           </div>
         </div>
@@ -267,15 +267,25 @@ export default {
     // TV mode detection:
     // width 900..1100 OR height < 700
     isTv() {
+      const w = Number(this.screenW) || 0;
+      const h = Number(this.screenH) || 0;
 
+      // 1. Server-side rendering (Nuxt)
+      if (process.server) return true;
 
-      const w = this.screenW || 0;
-      const h = this.screenH || 0;
+      // 2. Explicit TV / Android TV / WebOS / Tizen user agents
+      if (this.isTVUserAgent()) return true;
 
-      console.log(w, h);
+      // 3. Real TV resolution detection (landscape, large screen)
+      const isLandscape = w > h;
+      const isLargeScreen = w >= 1280 && h >= 720;
 
-      return this.isTVUserAgent() || (w < 700) || (h < 900) || (w >= 900 && w <= 1100) || (h > 0 && h < 700) || (w === 0 && h === 0); // treat 0x0 as TV for server-side rendering
+      // 4. Exclude mobile & tablets
+      const isMobileLike = w > 0 && w <= 1024 && h > 0 && h <= 1366;
+
+      return isLandscape && isLargeScreen && !isMobileLike;
     },
+
 
     // Are saved credentials present?
     hasSavedLogin() {
@@ -501,7 +511,7 @@ export default {
     },
 
     async tvAutoRedirectIfSaved() {
-      if (!this.isTv || this.autoRedirecting) return;
+      if (!this.isTv || this.autoRedirecting || this.$auth.user.user_type != "security") return;
 
       console.log("this.$auth", this.$auth);
 
@@ -535,16 +545,16 @@ export default {
         return;
       }
 
-      try {
-        const ok = await this.login();
-        if (ok) {
-          this.$router.replace("/alarm/tvmonitor14");
-          return;
-        }
-        this.autoRedirecting = false;
-      } catch (e) {
-        this.autoRedirecting = false;
-      }
+      // try {
+      //   const ok = await this.login();
+      //   if (ok) {
+      //     this.$router.replace("/alarm/tvmonitor1");
+      //     return;
+      //   }
+      //   this.autoRedirecting = false;
+      // } catch (e) {
+      //   this.autoRedirecting = false;
+      // }
     },
 
     async isBackendUp() {
@@ -636,60 +646,142 @@ export default {
         // If backend is down OR TV => MQTT
 
         console.log("this.isTv", this.isTv);
-
         if (this.isTv) {
+          try {
+            // 1. Load environment (must be awaited)
+            await this.loadEnv();
 
-          await this.loadEnv();
+            // 2. Call API
+            const response = await this.mqttLoginVerify(this.credentials);
 
-          let res = await this.mqttLoginVerify(this.credentials);
-          console.log("res ERROR", res);
-          res = res.data;
+            if (!response || !response.data) {
+              throw new Error("No response from server");
+            }
 
+            const res = response.data;
+            console.log("MQTT Login Response:", res);
 
-          if (!res || !res.status) {
-            this.msg = res?.message + this.$store.state.env?.MQTT_SOCKET_HOST + " ERROR Detected." || "Invalid Login Details";
+            // 3. Validate login
+            if (!res.status) {
+              this.msg =
+                (res.message || "Invalid Login Details") +
+                " " +
+                (this.$store.state.env?.MQTT_SOCKET_HOST || "");
+
+              this.snackbarMessage = this.msg;
+              this.snackbar = true;
+              return false;
+            }
+
+            // 4. Set token
+            if (res.token) {
+              this.$auth.strategy.token.set(`Bearer ${res.token}`);
+              this.$auth.strategy.token.sync?.();
+            }
+
+            // 5. Set user
+            if (res.user) {
+              this.$auth.setUser(res.user);
+            }
+
+            // 6. Save credentials for TV auto-login
+            if (process.client) {
+              localStorage.setItem("saved_email", this.credentials.email);
+              localStorage.setItem("saved_password", this.credentials.password);
+            }
+
+            // 7. Route by user type
+            const userType = res.user?.user_type;
+            console.log("User Type:", userType);
+
+            this.$vuetify.theme.dark = false;
+
+            switch (userType) {
+              case "security":
+                await this.$router.push("/alarm/tvmonitor1");
+                break;
+
+              case "master":
+                await this.$router.push("/master/");
+                break;
+
+              default:
+                console.warn("Unknown user type, redirecting to dashboard");
+                await this.$router.push("/alarm/dashboard");
+                break;
+            }
+
+            return true;
+          } catch (error) {
+            console.error("TV Login Error:", error);
+
+            this.snackbarMessage =
+              error.message || "Login failed. Please try again.";
             this.snackbar = true;
-            this.snackbarMessage = this.msg;
+
             return false;
           }
-
-          if (res.token) {
-            this.$auth.strategy.token.set(`Bearer ${res.token}`);
-            if (this.$auth.strategy?.token?.sync) this.$auth.strategy.token.sync();
-          }
-          if (res.user) this.$auth.setUser(res.user);
-
-          // Save credentials for TV auto-login
-          if (process.client) {
-            localStorage.setItem("saved_email", this.credentials.email);
-            localStorage.setItem("saved_password", this.credentials.password);
-          }
-
-          // Treat security user as success
-          // return res.user?.user_type === "security";
-
-          if (res.user?.user_type === "security") {
-            this.$vuetify.theme.dark = false;
-
-            // redirect("/alarm/tvmonitor1");
-            this.$router.push("/alarm/tvmonitor1");
-          }
-
-
-
-          else if (res.user?.user_type === "master")
-            this.$router.push("/master/");
-
-
-          else {
-            this.$router.push("/alarm/dashboard");
-            // redirect("/alarm/dashboard");
-            this.$vuetify.theme.dark = false;
-          }
-
-
-          return;
         }
+
+        // if (this.isTv) {
+
+        //   await this.loadEnv();
+
+        //   let res = await this.mqttLoginVerify(this.credentials);
+        //   console.log("res ERROR", res);
+        //   res = res.data;
+
+
+
+
+        //   if (!res || !res.status) {
+        //     this.msg = res?.message + this.$store.state.env?.MQTT_SOCKET_HOST + " ERROR Detected." || "Invalid Login Details";
+        //     this.snackbar = true;
+        //     this.snackbarMessage = this.msg;
+        //     return false;
+        //   }
+
+        //   if (res.token) {
+        //     this.$auth.strategy.token.set(`Bearer ${res.token}`);
+        //     if (this.$auth.strategy?.token?.sync) this.$auth.strategy.token.sync();
+        //   }
+        //   if (res.user) this.$auth.setUser(res.user);
+
+        //   // Save credentials for TV auto-login
+        //   if (process.client) {
+        //     localStorage.setItem("saved_email", this.credentials.email);
+        //     localStorage.setItem("saved_password", this.credentials.password);
+        //   }
+
+        //   // Treat security user as success
+        //   // return res.user?.user_type === "security";
+
+        //   console.log("res.user?.user_type", res.user?.user_type)
+
+        //   if (res.user?.user_type === "security") {
+        //     this.$vuetify.theme.dark = false;
+
+        //     // redirect("/alarm/tvmonitor1");
+        //     this.$router.push("/alarm/tvmonitor1");
+        //   }
+
+
+
+        //   else if (res.user?.user_type === "master")
+        //     this.$router.push("/master/");
+
+
+        //   else {
+
+        //     console.log("User Type Should be Security/Monitor Role")
+        //     this.$router.push("/alarm/dashboard");
+        //     // redirect("/alarm/dashboard");
+        //     this.$vuetify.theme.dark = false;
+        //   }
+
+
+        //   return;
+        // }
 
         // Backend UP => normal Nuxt Auth
         if (!this.$refs.form || !this.$refs.form.validate()) {
@@ -753,7 +845,7 @@ export default {
     },
 
     async mqttLoginVerify(credentials) {
-      alert(this.$store.state.env?.MQTT_SOCKET_HOST);
+      console.log(this.$store.state.env?.MQTT_SOCKET_HOST);
       const host = this.$store.state.env?.MQTT_SOCKET_HOST;//process.env.MQTT_SOCKET_HOST;
       const clientId = "vue-client-" + Math.random().toString(16).substr(2, 8);
 
@@ -783,7 +875,7 @@ export default {
         const timeout = setTimeout(() => finish(new Error("MQTT Login Timeout")), 1000 * 10);
 
         try {
-          client = mqtt.connect(host, { clientId, clean: true, connectTimeout: 1000 * 20 });
+          client = mqtt.connect(host, { clientId, clean: true, connectTimeout: 1000 * 60 });
         } catch (e) {
           clearTimeout(timeout);
           finish(new Error("MQTT connect failed"));
