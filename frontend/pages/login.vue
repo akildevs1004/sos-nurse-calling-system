@@ -97,7 +97,7 @@
 
           <!-- RIGHT: Form -->
           <div class="tvRight" :style="tvRightStyle">
-            <v-form ref="form" v-model="valid" lazy-validation autocomplete="off">
+            <v-form v-if="!trialExpired" ref="form" v-model="valid" lazy-validation autocomplete="off">
               <v-text-field label="Email" v-model="credentials.email" dense outlined type="email"
                 prepend-inner-icon="mdi-account" append-icon="mdi-at" autocomplete="off" :disabled="loading"
                 class="tvField" :style="tvFieldStyle" />
@@ -126,6 +126,11 @@
                 Don't Have an Account? Contact Admin
               </div>
             </v-form>
+            <div v-else>
+              <!-- License Activation -->
+              <LicenseActivationForm @openloginpage="openloginpage()" key="1" :machine-id="machineId" />
+            </div>
+
           </div>
         </div>
       </v-card>
@@ -142,7 +147,7 @@
             </h3>
           </div>
 
-          <v-form ref="form" v-model="valid" lazy-validation autocomplete="off">
+          <v-form v-if="!trialExpired" ref="form" v-model="valid" lazy-validation autocomplete="off">
             <v-text-field label="Email" v-model="credentials.email" dense outlined type="email"
               prepend-inner-icon="mdi-account" append-icon="mdi-at" autocomplete="off" :disabled="loading" />
             <v-text-field label="Password" v-model="credentials.password" dense outlined prepend-inner-icon="mdi-lock"
@@ -165,6 +170,10 @@
               </v-btn>
             </div>
           </v-form>
+          <div v-else>
+            <!-- License Activation -->
+            <LicenseActivationForm @openloginpage="openloginpage()" key="1" :machine-id="machineId" />
+          </div>
 
           <div class="text-center pt-3">Don't Have an Account? Contact Admin</div>
 
@@ -225,12 +234,14 @@
 <script>
 import mqtt from "mqtt";
 import ForgotPassword from "../components/ForgotPassword.vue";
+import LicenseActivationForm from "../components/Auth/LicenseActivationForm.vue";
 
 export default {
   layout: "login",
-  components: { ForgotPassword },
-
+  components: { ForgotPassword, LicenseActivationForm },
   data: () => ({
+    trialExpired: false,
+    machineId: null,
     autoRedirecting: false,
 
     // responsive detection
@@ -427,6 +438,11 @@ export default {
   },
 
   methods: {
+    openloginpage() {
+
+      this.trialExpired = false;
+      this.msg = "Licence Activaed. Login Now";
+    },
     async loadEnv() {
       // Load runtime env from store
       try {
@@ -616,6 +632,9 @@ export default {
           this.msg = "Invalid Login Details";
         })
         .catch(() => {
+
+          console.log("Test Error");
+
           this.snackbar = true;
           this.snackbarMessage = "Login OTP request failed";
         })
@@ -705,8 +724,25 @@ export default {
           } catch (error) {
             console.error("TV Login Error:", error);
 
-            this.snackbarMessage =
-              error.message || "Login failed. Please try again.";
+            if (error && error.response && error.response.data && error.response.data.message) {
+
+              this.msg = error.response.data.message;
+
+              console.log("data", error.response.data?.errors?.trialExpired[0]);
+
+              if (error.response.data?.errors?.trialExpired[0] == true)
+                this.trialExpired = true;
+              else
+                this.trialExpired = false;
+
+
+
+            } else {
+              this.msg = "Login failed. Please try again.";
+
+            }
+
+            this.snackbarMessage = this.msg;
             this.snackbar = true;
 
             return false;
@@ -825,7 +861,30 @@ export default {
 
         return true;
       } catch (e) {
-        this.msg = e?.message + ' Error' || "Login failed";
+
+        console.error("Login Error:", e);
+
+        if (e && e.response && e.response.data && e.response.data.message) {
+
+          this.msg = e.response.data.message;
+
+          console.log("data", e.response.data?.errors?.trialExpired[0]);
+
+
+          if (e.response.data?.errors?.trialExpired[0] == true)
+            this.trialExpired = true;
+          else
+            this.trialExpired = false;
+
+
+        } else {
+          this.msg = "Login failed. Please try again.";
+
+        }
+
+
+
+        // this.msg = e?.message + ' Error' || "Login failed";
         this.snackbar = true;
         this.snackbarMessage = this.msg;
         return false;

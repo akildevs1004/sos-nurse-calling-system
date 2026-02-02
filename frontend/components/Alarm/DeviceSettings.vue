@@ -742,7 +742,7 @@ export default {
     },
     connectMQTT() {
       // this.key++;
-      console.log("Device settingsconnecting to MQTT");
+      console.log("Device settingsconnecting to MQTT", this.$store.state.env.MQTT_SOCKET_HOST);
       // this.loading = true;
       this.mqqtt_response_status = "Connecting to MQTT.... Device Settings";
       //const host = "wss://broker.hivemq.com:8884/mqtt"; // For secure WebSocket
@@ -758,7 +758,7 @@ export default {
       this.mqttClient = mqtt.connect(host, {
         clientId: clientId,
         clean: true,
-        connectTimeout: 1000 * 20,
+        connectTimeout: 1000 * 10,
       });
 
       this.mqttClient.on("connect", () => {
@@ -863,7 +863,7 @@ export default {
         console.log("✅ MQTT connection is active");
       } else {
         console.log("❌ MQTT connection is inactive or not established");
-        // this.connectMQTT();
+        this.connectMQTT();
       }
       let isConfigReceived = false;
       const topic = `xtremesos/${this.editedItem.serial_number}/config/request`;

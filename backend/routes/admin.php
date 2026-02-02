@@ -34,7 +34,7 @@ Route::post('/check_otp/{key}', [AuthController::class, 'verifyOTP']);
 //"me"
 Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
 Route::get('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-
+Route::post('/updateLicenseInfo', [AuthController::class, 'updateLicenseInfo']);
 // reset password
 Route::post('/reset-password', [ResetPasswordController::class, 'sendCode']);
 Route::post('/check-code', [ResetPasswordController::class, 'checkCode']);

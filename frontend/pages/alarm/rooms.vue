@@ -1272,7 +1272,7 @@ export default {
         this.mqttClient = mqtt.connect(host, {
           clientId: clientId,
           clean: true,
-          connectTimeout: 1000 * 20,
+          connectTimeout: 1000 * 10,
         });
 
         this.mqttClient.on("connect", () => {
@@ -1474,7 +1474,9 @@ export default {
     async startHeartbeatWatcher() {
       if (!this.mqttClient) {
         console.warn("MQTT client not available");
-        return;
+
+        this.connectMQTT();
+        //return;
       }
 
       this.loading = true;

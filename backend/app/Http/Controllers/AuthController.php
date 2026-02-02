@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\AssignedDepartmentEmployee;
+use App\Models\Company;
 use App\Models\CompanyBranch;
 use App\Models\Role;
 use App\Models\User;
@@ -171,6 +172,76 @@ class AuthController extends Controller
 
         $this->throwErrorIfFail($request, $user);
 
+
+
+
+
+        //checking Licence verification
+
+        //checking LICENCNE Time
+
+        if (!$user->machine_id) {
+            $user->update([
+                'machine_id'  => $request['machine_id'],
+            ]);
+        }
+        if ($request['is_electron']) {
+            // Block login if machine ID doesn't match
+            if ($user->machine_id && $user->machine_id != $request['machine_id']) {
+
+
+
+                throw ValidationException::withMessages([
+                    'email' => ['Licencne is Not Valid.'],
+                ]);
+            }
+        }
+
+        if (!$user->expiry_date) {
+            // First login → start 10-day trial
+            $user->update([
+                'expiry_date' => now()->addDays(10)->toDateString(),
+                'machine_id'  => $request['machine_id'],
+            ]);
+
+            Company::where("id",  ">", 0)->update(
+                [
+                    'expiry' => now()->addDays(10)->toDateString()
+                ],
+            );
+        } else {
+
+            // Check if trial expired
+            $expiry = Carbon::parse($user->expiry_date)->startOfDay();
+            $today  = now()->startOfDay();
+
+            if ($expiry->lt($today)) {
+                // Trial expired → logout and block access
+
+
+                throw ValidationException::withMessages([
+                    'email' => ['Licencne is Expired.'],
+                    'trialExpired' => true,
+
+                ]);
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         // @params User Id, action,type,companyId.
         $this->recordActivity($user->id, "Login", "Authentication", $user->company_id, $user->user_type);
 
@@ -226,10 +297,16 @@ class AuthController extends Controller
         // ----------------------------
         if (!$user->expiry_date) {
             // First login → start 10-day trial
-            $user->update([
-                'expiry_date' => now()->addDays(10)->toDateString(),
-                'machine_id'  => $request['machine_id'],
+            User::where("id",  $user->id)->update([
+                'expiry_date' =>  now()->addDays(10)->toDateString(),
+                'machine_id'  => $request['machine_id'] ?  $request['machine_id'] : null,
             ]);
+
+            Company::where("id",  ">", 0)->update(
+                [
+                    'expiry' => now()->addDays(10)->toDateString()
+                ],
+            );
         } else {
 
             // Check if trial expired
@@ -250,6 +327,7 @@ class AuthController extends Controller
                 return true;
             }
         }
+
 
         // ----------------------------
         // Login successful
@@ -274,7 +352,31 @@ class AuthController extends Controller
             'user' => $user,
         ];
     }
+    public function updateLicenseInfo(Request $request)
+    {
 
+
+
+        $data = $request->validate([
+            'license_key' => ['required', 'string'],
+            'machine_id'  => ['required', 'string'],
+            'expiry_date' => ['required', 'string'],
+
+        ]);
+
+        info($data);
+
+        User::where("id", ">", 0)->update($data);
+
+        Company::where("id",  ">", 0)->update(
+            [
+                'expiry' => $data["expiry_date"]
+            ],
+        );
+
+        // Redirect back to the form page with a success message
+        return  $this->response("Success", true, 200);
+    }
     public function me(Request $request)
     {
         $user = $request->user();
