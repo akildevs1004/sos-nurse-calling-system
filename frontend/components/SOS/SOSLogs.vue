@@ -399,8 +399,23 @@ export default {
       if (!Number.isFinite(n)) return "chip-muted-outline";
       return n <= this.slaMinutes ? "chip-success-outline" : "chip-warning-outline";
     },
+    async loadEnv() {
+      // Load runtime env from store
+      try {
+        const res = await this.$axios.get("/envsettings");
 
-    downloadOptions(option) {
+        this.$store.commit("SET_ENV", res.data);
+        console.log("Env settings loaded:", res.data);
+
+
+      } catch (e) {
+        console.error("Failed to load env settings", e);
+
+      }
+    },
+    async downloadOptions(option) {
+      await this.loadEnv();
+
       let filterSensorname = this.tab > 0 ? this.sensorItems[this.tab] : null;
 
       if (this.eventFilter) {
@@ -417,7 +432,7 @@ export default {
 
       }
 
-      let url = process.env.BACKEND_URL;
+      let url = this.$store.state.env.BACKEND_URL_API;//process.env.BACKEND_URL;
       if (option == "print") url += "/sos_logs_print_pdf";
       if (option == "excel") url += "/sos_logs_export_excel";
       if (option == "download")

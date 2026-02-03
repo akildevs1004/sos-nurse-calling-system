@@ -35,7 +35,20 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log as Logger;
 use Illuminate\Support\Facades\File;
 
+Route::get('/deletedevices123', function (Request $request) {
 
+    DeviceSosRooms::where("id",  225)->delete();
+
+
+    return true;
+});
+
+Route::get('/gersensorslist', function (Request $request) {
+
+    return DeviceSosRooms::get();
+
+    return true;
+});
 
 Route::get('/weather1111111', function (Request $request) {
 

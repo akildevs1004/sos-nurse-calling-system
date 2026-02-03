@@ -1,12 +1,7 @@
 <template>
   <div>
     <div class="text-center ma-2">
-      <v-snackbar
-        v-model="snackbar"
-        top="top"
-        :color="snackbarColor"
-        elevation="24"
-      >
+      <v-snackbar v-model="snackbar" top="top" :color="snackbarColor" elevation="24">
         {{ snackbarResponse }}
       </v-snackbar>
     </div>
@@ -25,52 +20,23 @@
           <v-container class="mt-4">
             <v-row>
               <v-col md="12" cols="12">
-                <v-text-field
-                  label="Room/Sensor Name"
-                  :disabled="viewMode"
-                  v-model="editedItem.name"
-                  outlined
-                  dense
-                  small
-                  :hide-details="true"
-                  placeholder="Sensor Name"
-                ></v-text-field>
+                <v-text-field label="Room/Sensor Name" :disabled="viewMode" v-model="editedItem.name" outlined dense
+                  small :hide-details="true" placeholder="Sensor Name"></v-text-field>
                 <span dense v-if="errors && errors.name" class="error--text">{{
                   errors.name[0]
-                }}</span>
+                  }}</span>
               </v-col>
               <v-col cols="12">
-                <v-text-field
-                  label="Sensor Address"
-                  :disabled="viewMode"
-                  v-model="editedItem.temperature_serial_address"
-                  outlined
-                  dense
-                  small
-                  :hide-details="true"
-                  placeholder="Sensor Address"
-                  type="number"
-                ></v-text-field>
-                <span
-                  dense
-                  v-if="errors && errors.temperature_serial_address"
-                  class="error--text"
-                  >{{ errors.temperature_serial_address[0] }}</span
-                >
+                <v-text-field label="Sensor Address" :disabled="viewMode"
+                  v-model="editedItem.temperature_serial_address" outlined dense small :hide-details="true"
+                  placeholder="Sensor Address" type="number"></v-text-field>
+                <span dense v-if="errors && errors.temperature_serial_address" class="error--text">{{
+                  errors.temperature_serial_address[0] }}</span>
               </v-col>
 
               <v-col cols="12" class="text-right" v-if="!viewMode">
-                <v-btn
-                  small
-                  @click="newItemDialog = false"
-                  dark
-                  filled
-                  color="grey white--text"
-                  >Cancel</v-btn
-                >
-                <v-btn small @click="save()" dark filled color="primary"
-                  >Save</v-btn
-                >
+                <v-btn small @click="newItemDialog = false" dark filled color="grey white--text">Cancel</v-btn>
+                <v-btn small @click="save()" dark filled color="primary">Save</v-btn>
               </v-col>
             </v-row>
           </v-container>
@@ -82,18 +48,8 @@
         <!-- <v-toolbar-title><span>Rooms</span></v-toolbar-title> -->
         <v-tooltip top color="primary">
           <template v-slot:activator="{ on, attrs }">
-            <v-btn
-              dense
-              class="ma-0 px-0"
-              x-small
-              :ripple="false"
-              text
-              v-bind="attrs"
-              v-on="on"
-            >
-              <v-icon class="ml-2" @click="reload()" dark
-                >mdi mdi-reload</v-icon
-              >
+            <v-btn dense class="ma-0 px-0" x-small :ripple="false" text v-bind="attrs" v-on="on">
+              <v-icon class="ml-2" @click="reload()" dark>mdi mdi-reload</v-icon>
             </v-btn>
           </template>
           <span>Reload</span>
@@ -120,33 +76,16 @@
       </v-toolbar>
       <v-row>
         <v-col cols="12">
-          <v-data-table
-            dense
-            :headers="headers_table"
-            :items="data"
-            :loading="loading"
-            :options.sync="options"
+          <v-data-table dense :headers="headers_table" :items="data" :loading="loading" :options.sync="options"
             :footer-props="{
               itemsPerPageOptions: [50, 100, 500, 1000],
-            }"
-            :server-items-length="totalTableRowsCount"
-          >
+            }" :server-items-length="totalTableRowsCount">
             <template v-slot:header="{ props: { headers } }">
               <tr v-if="isFilter">
                 <td v-for="header in headers" :key="header.text">
-                  <v-text-field
-                    v-if="header.filterable && !header.filterSpecial"
-                    clearable
-                    :hide-details="true"
-                    v-model="filters[header.value]"
-                    no-title
-                    outlined
-                    dense
-                    small
-                    :id="header.value"
-                    autocomplete="off"
-                    @input="applyFilters()"
-                  ></v-text-field>
+                  <v-text-field v-if="header.filterable && !header.filterSpecial" clearable :hide-details="true"
+                    v-model="filters[header.value]" no-title outlined dense small :id="header.value" autocomplete="off"
+                    @input="applyFilters()"></v-text-field>
                 </td>
               </tr>
             </template>
@@ -154,7 +93,7 @@
               {{
                 currentPage
                   ? (currentPage - 1) * perPage +
-                    (cumulativeIndex + itemIndex(item))
+                  (cumulativeIndex + itemIndex(item))
                   : ""
               }}
             </template>
@@ -167,24 +106,24 @@
                   </v-btn>
                 </template>
                 <v-list width="120" dense>
-                  <v-list-item @click="editItem(item, true)">
+                  <!-- <v-list-item @click="editItem(item, true)">
                     <v-list-item-title style="cursor: pointer">
                       <v-icon small> mdi-eye </v-icon>
                       View
                     </v-list-item-title>
-                  </v-list-item>
+                  </v-list-item> -->
                   <!-- <v-list-item @click="editItem(item, false)">
                     <v-list-item-title style="cursor: pointer">
                       <v-icon small> mdi-pencil </v-icon>
                       Edit
                     </v-list-item-title>
-                  </v-list-item>
+                  </v-list-item>-->
                   <v-list-item @click="deleteItem(item)">
                     <v-list-item-title style="cursor: pointer">
                       <v-icon color="error" small> mdi-delete </v-icon>
                       Delete
                     </v-list-item-title>
-                  </v-list-item>-->
+                  </v-list-item>
                 </v-list>
               </v-menu>
             </template>
@@ -227,18 +166,33 @@ export default {
         filterSpecial: true,
       },
       {
-        text: "Sensor Address",
-        value: "temperature_serial_address",
+        text: "Room Id",
+        value: "room_id",
         align: "left",
         sortable: false,
         filterable: true,
+        filterSpecial: true,
+      }, {
+        text: "On Code",
+        value: "on_code",
+        align: "left",
+        sortable: false,
+        filterable: true,
+        filterSpecial: true,
+      }, {
+        text: "OFF Code",
+        value: "off_code",
+        align: "left",
+        sortable: false,
+        filterable: true,
+        filterSpecial: true,
       },
 
       { text: "Options", value: "options", align: "left", sortable: false },
     ],
     roomTypesData: [],
 
-    endpoint: "device_temperature_sensors",
+    endpoint: "device_sensors",
 
     newItemDialog: false,
 
@@ -309,6 +263,8 @@ export default {
 
       let options = {
         params: {
+          company_id: this.$auth.user.company.id,
+          device_id: this.device_id,
           page: page,
           sortBy: sortedBy,
           sortDesc: sortedDesc,
@@ -444,11 +400,21 @@ export default {
     deleteItem(item) {
       confirm("Are you sure you wish to delete?") &&
         this.$axios
-          .delete(this.endpoint + "/" + item.id)
+          .post(this.endpoint + "_delete?id=" + item.id)
           .then(({ data }) => {
             this.getDataFromApi();
             this.snackbar = data.status;
             this.snackbarResponse = data.message;
+
+            if (data.errors) {
+              this.errors = data.errors;
+            } else {
+              this.errors = {};
+
+              this.snackbar = true;
+              this.snackbarColor = "red";
+              this.snackbarResponse = data.message;
+            }
           })
           .catch((err) => console.log(err));
     },

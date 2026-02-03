@@ -37,7 +37,9 @@ Route::get('/envsettings',  function (Request $request) {
             "MQTT_DEVICE_CLIENTID" => "xtremesos",
             "TV_COMPANY_ID" => "8",
             "BACKEND_URL2" => "https://165.22.222.17:8000",
-            "MQTT_SSL" => true
+            "MQTT_SSL" => true,
+            "BACKEND_URL_API" => "https://165.22.222.17:8000/api",
+
         ];
     }
 
@@ -49,7 +51,8 @@ Route::get('/envsettings',  function (Request $request) {
         "MQTT_DEVICE_CLIENTID" => "xtremesos",
         "TV_COMPANY_ID" => "8",
         "BACKEND_URL2" => "http://{$ip}:8000",
-        "MQTT_SSL" => false
+        "MQTT_SSL" => false,
+        "BACKEND_URL_API" => "http://{$ip}:8000/api",
     ];
 
     // return [

@@ -96,6 +96,7 @@
                       <v-col cols="3" md="3" sm="3">
                         <label class="col-form-label">Licence Expiry Date</label>
                         <span class="text-danger">*</span>
+
                         <v-text-field color="grey" readonly dense outlined
                           v-model="company_payload.expiry"></v-text-field>
                         <span v-if="errors && errors.expiry" class="text-danger mt-2">{{ errors.expiry[0] }}</span>

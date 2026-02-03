@@ -395,12 +395,12 @@
               </div>
             </template>
             <v-list dense>
-              <!-- <v-list-item v-if="can(`device_edit`)" @click="SensorsList(item)">
+              <v-list-item v-if="can(`device_edit`)" @click="SensorsList(item)">
                 <v-list-item-title style="cursor: pointer">
                   <v-icon small> mdi-leak </v-icon>
                   Sensors
                 </v-list-item-title>
-              </v-list-item> -->
+              </v-list-item>
               <v-list-item v-if="!$vuetify.breakpoint.smAndDown && can(`device_edit`)" @click="editItem(item)">
                 <v-list-item-title style="cursor: pointer">
                   <v-icon small> mdi-pencil </v-icon>
@@ -408,10 +408,11 @@
                 </v-list-item-title>
               </v-list-item>
 
+
               <v-list-item @click="showDeviceSettings(item)">
                 <v-list-item-title style="cursor: pointer">
                   <v-icon small> mdi-cog </v-icon>
-                  Settings
+                  Live Settings
                 </v-list-item-title>
               </v-list-item>
               <v-list-item v-if="!$vuetify.breakpoint.smAndDown && can(`device_delete`)" @click="deleteItem(item)">

@@ -305,33 +305,31 @@ class SOSRoomsControllers extends Controller
         // return $deviceRooms;
     }
 
-    public function  getRecords($request, $perpage = null)
+    public function getRecords($request, $perpage = null)
     {
-
         $companyId = (int) $request->company_id;
 
         $model = DeviceSosRoomLogs::query()
             ->with(['room', 'device'])
             ->where('company_id', $companyId);
 
-        // Common search
+        // Common search (SQLite compatible)
         $model->when($request->filled('common_search'), function ($q) use ($request) {
             $s = trim($request->common_search);
 
             $q->where(function ($qq) use ($s) {
-                $qq->where('room_id', 'ILIKE', "%{$s}%")
-                    ->orWhere('serial_number', 'ILIKE', "%{$s}%")
-                    ->orWhere('room_name', 'ILIKE', "%{$s}%")
-                    // IMPORTANT: use correct relation name (likely "room")
+                $qq->where('room_id', 'LIKE', "%{$s}%")
+                    ->orWhere('serial_number', 'LIKE', "%{$s}%")
+                    ->orWhere('room_name', 'LIKE', "%{$s}%")
                     ->orWhereHas('room', function ($rq) use ($s) {
-                        $rq->where('room_type', 'ILIKE', "%{$s}%");
+                        $rq->where('room_type', 'LIKE', "%{$s}%");
                     })
-                    // Optional: device location search
                     ->orWhereHas('device', function ($dq) use ($s) {
-                        $dq->where('location', 'ILIKE', "%{$s}%");
+                        $dq->where('location', 'LIKE', "%{$s}%");
                     });
             });
         });
+
 
         // Date range (safe)
         $model->when($request->filled('date_from'), function ($q) use ($request) {
@@ -1478,5 +1476,17 @@ class SOSRoomsControllers extends Controller
             'ok' => true,
             //'pdf_url' => route('geenratecharts', ['chart' => $path]),
         ]);
+    }
+
+    public function SosRoomsList(Request $request)
+    {
+
+        return DeviceSOSRooms::where('company_id', $request->company_id)->where('device_id', $request->device_id)->paginate($request->per_page ?? 20);
+    }
+
+    public function SosRoomsListDelete()
+    {
+        DeviceSOSRooms::where('id', request()->id)->delete();
+        return response()->json(['message' => 'Deleted Successfully', 'status' => true]);
     }
 }

@@ -431,6 +431,8 @@ export default {
 
     // mqttUrl must be set BEFORE connect
     this.mqttUrl = this.$store.state?.env ? this.$store.state.env.MQTT_SOCKET_HOST : '';//process.env.MQTT_SOCKET_HOST || "";
+
+    this.connectMqtt();
   },
 
   async mounted() {
@@ -471,7 +473,7 @@ export default {
         const res = await this.$axios.get("/envsettings");
 
         this.$store.commit("SET_ENV", res.data);
-
+        console.log("Env settings loaded:", res.data);
 
 
       } catch (e) {
@@ -667,9 +669,12 @@ export default {
     async connectMqtt() {
 
       await this.loadEnv();
-      if (this.client) return;
+      // if (this.client) return;
 
       if (!this.mqttUrl) {
+
+        console.log("MQTT_SOCKET_HOST missing in env");
+
         this.snackbar = true;
         this.snackbarResponse = "MQTT_SOCKET_HOST missing in env";
         return;
@@ -679,6 +684,8 @@ export default {
       const securityId = this.$auth?.user?.security?.id || 0;
 
       if (!companyId) {
+
+        console.error("TV_COMPANY_ID missing in env");
         this.snackbar = true;
         this.snackbarResponse = "TV_COMPANY_ID missing in env";
         return;
@@ -736,7 +743,10 @@ export default {
     },
 
     requestDashboardSnapshot() {
-      if (!this.client || !this.isConnected) return;
+      if (!this.client || !this.isConnected) {
+        console.error("requestDashboardSnapshot MQTT not connected");
+        return;
+      };
 
       const companyId = this.$auth?.user ? this.$auth?.user?.company_id : Number(process.env.TV_COMPANY_ID || 0);
 
@@ -806,14 +816,20 @@ export default {
       if (topic === this.topics.reload) {
         try {
           window.location.reload();
-        } catch (e) { }
+        } catch (e) {
+          console.error("Failed to reload page", e);
+        }
         return;
       }
 
       if (topic === this.topics.reloadconfig) {
         try {
           this.requestDashboardSnapshot();
-        } catch (e) { }
+        } catch (e) {
+
+
+          console.error("Failed to reload config", e);
+        }
         return;
       }
 

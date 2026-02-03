@@ -276,10 +276,11 @@ export default {
     async loadAllowedSerials() {
       try {
         const list = await this.fetchDeviceListViaMqtt();
+        console.log("allowedSerials Load", list);
 
-        this.allowedSerials = list
-          .map(d => d?.serial_number)
-          .filter(Boolean);
+        // this.allowedSerials = list
+        //   .map(d => d?.serial_number)
+        //   .filter(Boolean);
 
         console.log("this.allowedSerials", this.allowedSerials);
       } catch (err) {
@@ -313,25 +314,27 @@ export default {
 
     onMqttMessage(topic, payload) {
 
-      // console.log("payload", payload);
+      console.log("payloadpayloadpayloadpayload", payload, topic);
       let msg;
       try {
         msg = JSON.parse(payload.toString());
       } catch (e) {
-        // console.log("onMqttMessage", e, msg);
+        console.log("onMqttMessage", e, msg);
 
         return;
       }
 
       if (!msg || msg.type !== "sos") {
 
-        // console.log("msg.type", msg.type);
+        console.log("msg.type", msg.type);
+
+        console.log("msg.type", msg.type);
 
         return
       };
       if (!msg.serialNumber || msg.id == null) {
 
-        console.log("msg.id", msg.id);
+        console.log("ERROR msg.id", msg.id);
 
         return
       };
@@ -341,7 +344,9 @@ export default {
         this.allowedSerials.length &&
         !this.allowedSerials.includes(msg.serialNumber)
       ) {
-        return;
+        console.log("ERROR  msg.serialNumber not in allowed list", this.allowedSerials.length, msg.serialNumber);
+
+        // return;
       }
 
       const key = `${msg.serialNumber}:${msg.id}`;

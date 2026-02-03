@@ -24,6 +24,12 @@ Route::get('/sos_logs_download_pdf', [SOSRoomsControllers::class, 'SosLogsDownlo
 Route::get('/sos_logs_export_excel', [SOSRoomsControllers::class, 'SosLogsDownloadCSV']);
 
 
+Route::get('/device_sensors', [SOSRoomsControllers::class, 'SosRoomsList']);
+Route::post('/device_sensors_delete', [SOSRoomsControllers::class, 'SosRoomsListDelete']);
+
+
+
+
 //monitor
 
 Route::get('/sos_monitor_statistics', [SOSRoomsControllers::class, 'SOSMonitorStatistics']);

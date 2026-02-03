@@ -44,3 +44,8 @@ Route::get('alarm_temperature_logs', [DeviceSensorLogsController::class, 'getTem
 
 
 Route::get('delete_alarm_device_logs', [DeviceSensorLogsController::class, 'deleteOneMonthOldLogs']);
+
+
+
+
+Route::get('alarm_dashboard_get_temparature_latest', [DeviceSensorLogsController::class, 'getDeviceLatestTemperature']);

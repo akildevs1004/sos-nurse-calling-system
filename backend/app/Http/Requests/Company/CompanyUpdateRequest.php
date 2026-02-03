@@ -35,12 +35,13 @@ class CompanyUpdateRequest extends FormRequest
 
         return [
             'member_from' => ['nullable', 'date'],
-            'expiry' => ['nullable', 'date'],
+            // 'expiry' => ['nullable', 'date'],
             'max_branches' => ['nullable', 'integer'],
             'max_employee' => ['nullable', 'integer'],
             'max_devices' => ['nullable', 'integer'],
             'logo' => ['image', 'mimes:jpeg,png,jpg,svg', 'max:2048', 'sometimes', 'nullable'],
-            'mol_id' => ['nullable', 'max:15'], 'min:2',
+            'mol_id' => ['nullable', 'max:15'],
+            'min:2',
             'p_o_box_no' => ['nullable', 'max:15', 'min:2'],
 
         ];
